@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @match        https://www.torn.com/factions.php*
 // @grant        none
 // ==/UserScript==
 
-(function () {
+function initializeCalendarTool() {
     // Existing code setup...
     const topBar = document.createElement('div');
     topBar.style.position = 'fixed';
@@ -229,7 +229,7 @@
         monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`; // Include year
         renderCalendar(currentYear, currentMonthIndex);
     };
-    
+
     cardBackButton.addEventListener('click', () => {
         // Prevent going backward past January 2025
         if (currentYear === 2025 && currentMonthIndex === 0) return;
@@ -267,4 +267,8 @@
     backButton.addEventListener('click', () => {
         modal.style.display = 'none';
     });
-})();
+
+}
+
+// Call the function directly
+initializeCalendarTool();
