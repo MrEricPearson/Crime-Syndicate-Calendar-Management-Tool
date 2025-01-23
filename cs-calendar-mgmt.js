@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.17
+// @version      0.18
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -151,23 +151,21 @@ function initializeCalendarTool() {
 
     const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
 
-    const renderCalendar = (year, month) => {
+    const renderCalendar = (year, month, events) => {
         calendarGrid.innerHTML = ''; // Clear previous grid
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = getDaysInMonth(year, month);
-        const daysInPrevMonth = getDaysInMonth(year, month - 1);
-
         const totalCells = 42; // 6 rows * 7 days
         const days = [];
-
+    
         // Fill previous month's overflow days
         for (let i = firstDay - 1; i >= 0; i--) {
             days.push({
-                day: daysInPrevMonth - i,
+                day: getDaysInMonth(year, month - 1) - i,
                 class: 'prev',
             });
         }
-
+    
         // Fill current month's days
         for (let i = 1; i <= daysInMonth; i++) {
             days.push({
@@ -175,7 +173,7 @@ function initializeCalendarTool() {
                 class: 'current',
             });
         }
-
+    
         // Fill next month's overflow days
         while (days.length < totalCells) {
             days.push({
@@ -183,14 +181,14 @@ function initializeCalendarTool() {
                 class: 'next',
             });
         }
-
+    
         // Inside the renderCalendar function
         days.forEach((d) => {
             const dayElem = document.createElement('div');
             dayElem.className = `day ${d.class}`;
             dayElem.textContent = d.day;
-
-            // Apply styles based on day type
+    
+            // Apply styles based on day type (prev, current, next)
             if (d.class === 'prev' || d.class === 'next') {
                 dayElem.style.backgroundColor = '#ecf1ed';
                 dayElem.style.color = '#d3d8d4';
@@ -198,29 +196,62 @@ function initializeCalendarTool() {
                 dayElem.style.backgroundColor = '#eff4f1';
                 dayElem.style.color = '#333333';
             }
-
+    
             // General styles for all day elements
             dayElem.style.height = '4em';
             dayElem.style.display = 'block';
             dayElem.style.position = 'relative';
             dayElem.style.borderRadius = '8px';
-
+    
+            // Create a unique ID for the day
+            const dayID = `day-${year}-${(month + 1).toString().padStart(2, '0')}-${d.day.toString().padStart(2, '0')}`;
+            dayElem.id = dayID;
+    
+            // Check for events that fall on this day and apply colors
+            applyEventColor(dayElem, dayID, events);
+    
             // Position the date number
-            dayElem.style.padding = '0'; // Remove any default padding
-            dayElem.style.boxSizing = 'border-box'; // Ensure positioning works as expected
-
             const dateNumber = document.createElement('span');
             dateNumber.textContent = d.day;
             dateNumber.style.position = 'absolute';
             dateNumber.style.bottom = '5px';
             dateNumber.style.left = '5px';
-
+    
             dayElem.textContent = ''; // Clear text content to avoid duplicate numbers
             dayElem.appendChild(dateNumber);
-
+    
             calendarGrid.appendChild(dayElem);
         });
+    };
 
+    const applyEventColor = (dayElem, dayID, events) => {
+        // Check if any event includes this day and apply the corresponding color
+        for (let event of events) {
+            const eventStartDate = new Date(event.event_start_date);
+            const eventEndDate = new Date(event.event_end_date);
+            const eventType = event.event_type;
+    
+            // Parse the event start and end dates to compare with the current day
+            const currentDate = new Date(dayID.split('-').slice(1).join('-'));
+    
+            // Check if the current day is within the event's range
+            if (currentDate >= eventStartDate && currentDate <= eventEndDate) {
+                // Apply the appropriate color based on event type
+                let color = getEventColor(eventType);
+                dayElem.style.backgroundColor = color;
+            }
+        }
+    };
+    
+    const getEventColor = (eventType) => {
+        switch (eventType) {
+            case 'war': return '#faa31e'; // War
+            case 'event': return '#51c1b6'; // Event
+            case 'chaining': return '#c79b7a'; // Chaining
+            case 'stacking': return '#a5a866'; // Stacking
+            case 'training': return '#4d8dca'; // Training
+            default: return '#eff4f1'; // Default
+        }
     };
 
     let currentMonthIndex = 0;
