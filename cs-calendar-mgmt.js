@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.26
+// @version      0.27
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -308,22 +308,30 @@ function initializeCalendarTool() {
     
                 // Filter events for the current year
                 const currentYear = 2025;
-                const eventsThisYear = events.filter(function(event) {
+                const eventsThisYear = events.filter(function (event) {
+                    if (!event || !event.event_start_date) return false; // Skip invalid or incomplete data
                     const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
                     return eventYear === currentYear;
                 });
     
-                // Use the filtered event or the first one from the response if no matches
-                const selectedEvent = eventsThisYear.length > 0 ? eventsThisYear[0] : events[0];
+                // Use the filtered event or the first valid one from the response
+                const selectedEvent = eventsThisYear.length > 0 
+                    ? eventsThisYear[0] 
+                    : events.find(event => event && event.event_start_date && event.event_end_date);
+    
+                if (!selectedEvent) {
+                    eventDisplayContainer.textContent = "No valid events found.";
+                    return;
+                }
     
                 // Parse the event's date range
                 const startDateParts = selectedEvent.event_start_date.split("-");
                 const endDateParts = selectedEvent.event_end_date.split("-");
-                
+    
                 const startDate = new Date(
-                    parseInt(startDateParts[0], 10), // Year
-                    parseInt(startDateParts[1], 10) - 1, // Month (0-indexed)
-                    parseInt(startDateParts[2], 10) // Day
+                    parseInt(startDateParts[0], 10),
+                    parseInt(startDateParts[1], 10) - 1,
+                    parseInt(startDateParts[2], 10)
                 );
                 const endDate = new Date(
                     parseInt(endDateParts[0], 10),
@@ -348,7 +356,7 @@ function initializeCalendarTool() {
                 }
     
                 // Display event details and date range results
-                eventDisplayContainer.textContent = 
+                eventDisplayContainer.textContent =
                     "Event Title: " + selectedEvent.event_title + "\n" +
                     "Start Date: " + selectedEvent.event_start_date + "\n" +
                     "End Date: " + selectedEvent.event_end_date + "\n" +
