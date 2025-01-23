@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.21
+// @version      0.22
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -156,10 +156,10 @@ function initializeCalendarTool() {
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = getDaysInMonth(year, month);
         const daysInPrevMonth = getDaysInMonth(year, month - 1);
-
+    
         const totalCells = 42; // 6 rows * 7 days
         const days = [];
-
+    
         // Fill previous month's overflow days
         for (let i = firstDay - 1; i >= 0; i--) {
             days.push({
@@ -167,7 +167,7 @@ function initializeCalendarTool() {
                 class: 'prev',
             });
         }
-
+    
         // Fill current month's days
         for (let i = 1; i <= daysInMonth; i++) {
             days.push({
@@ -175,7 +175,7 @@ function initializeCalendarTool() {
                 class: 'current',
             });
         }
-
+    
         // Fill next month's overflow days
         while (days.length < totalCells) {
             days.push({
@@ -183,13 +183,20 @@ function initializeCalendarTool() {
                 class: 'next',
             });
         }
-
-        // Inside the renderCalendar function
-        days.forEach((d) => {
+    
+        days.forEach((d, index) => {
             const dayElem = document.createElement('div');
             dayElem.className = `day ${d.class}`;
             dayElem.textContent = d.day;
-
+    
+            // Assign unique identifier
+            const cellDate = new Date(year, month, d.day);
+            const cellYear = cellDate.getFullYear();
+            const cellMonth = String(cellDate.getMonth() + 1).padStart(2, '0'); // Add 1 since months are 0-based
+            const cellDay = String(d.day).padStart(2, '0');
+            const cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
+            dayElem.id = cellId;
+    
             // Apply styles based on day type
             if (d.class === 'prev' || d.class === 'next') {
                 dayElem.style.backgroundColor = '#ecf1ed';
@@ -198,30 +205,25 @@ function initializeCalendarTool() {
                 dayElem.style.backgroundColor = '#eff4f1';
                 dayElem.style.color = '#333333';
             }
-
+    
             // General styles for all day elements
             dayElem.style.height = '4em';
             dayElem.style.display = 'block';
             dayElem.style.position = 'relative';
             dayElem.style.borderRadius = '8px';
-
-            // Position the date number
-            dayElem.style.padding = '0'; // Remove any default padding
-            dayElem.style.boxSizing = 'border-box'; // Ensure positioning works as expected
-
+    
             const dateNumber = document.createElement('span');
             dateNumber.textContent = d.day;
             dateNumber.style.position = 'absolute';
             dateNumber.style.bottom = '5px';
             dateNumber.style.left = '5px';
-
+    
             dayElem.textContent = ''; // Clear text content to avoid duplicate numbers
             dayElem.appendChild(dateNumber);
-
+    
             calendarGrid.appendChild(dayElem);
         });
-
-    };
+    };    
 
     let currentMonthIndex = 0;
     let currentYear = 2025;
