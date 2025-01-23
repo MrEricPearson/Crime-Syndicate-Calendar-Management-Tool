@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.20
+// @version      0.21
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -151,21 +151,23 @@ function initializeCalendarTool() {
 
     const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
 
-    const renderCalendar = (year, month, events) => {
+    const renderCalendar = (year, month) => {
         calendarGrid.innerHTML = ''; // Clear previous grid
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = getDaysInMonth(year, month);
+        const daysInPrevMonth = getDaysInMonth(year, month - 1);
+
         const totalCells = 42; // 6 rows * 7 days
         const days = [];
-    
+
         // Fill previous month's overflow days
         for (let i = firstDay - 1; i >= 0; i--) {
             days.push({
-                day: getDaysInMonth(year, month - 1) - i,
+                day: daysInPrevMonth - i,
                 class: 'prev',
             });
         }
-    
+
         // Fill current month's days
         for (let i = 1; i <= daysInMonth; i++) {
             days.push({
@@ -173,7 +175,7 @@ function initializeCalendarTool() {
                 class: 'current',
             });
         }
-    
+
         // Fill next month's overflow days
         while (days.length < totalCells) {
             days.push({
@@ -181,14 +183,14 @@ function initializeCalendarTool() {
                 class: 'next',
             });
         }
-    
+
         // Inside the renderCalendar function
         days.forEach((d) => {
             const dayElem = document.createElement('div');
             dayElem.className = `day ${d.class}`;
             dayElem.textContent = d.day;
-    
-            // Apply styles based on day type (prev, current, next)
+
+            // Apply styles based on day type
             if (d.class === 'prev' || d.class === 'next') {
                 dayElem.style.backgroundColor = '#ecf1ed';
                 dayElem.style.color = '#d3d8d4';
@@ -196,32 +198,29 @@ function initializeCalendarTool() {
                 dayElem.style.backgroundColor = '#eff4f1';
                 dayElem.style.color = '#333333';
             }
-    
+
             // General styles for all day elements
             dayElem.style.height = '4em';
             dayElem.style.display = 'block';
             dayElem.style.position = 'relative';
             dayElem.style.borderRadius = '8px';
-    
-            // Create a unique ID for the day
-            const dayID = `day-${year}-${(month + 1).toString().padStart(2, '0')}-${d.day.toString().padStart(2, '0')}`;
-            dayElem.id = dayID;
-    
-            // Check for events that fall on this day and apply colors
-            applyEventColor(dayElem, dayID, events);
-    
+
             // Position the date number
+            dayElem.style.padding = '0'; // Remove any default padding
+            dayElem.style.boxSizing = 'border-box'; // Ensure positioning works as expected
+
             const dateNumber = document.createElement('span');
             dateNumber.textContent = d.day;
             dateNumber.style.position = 'absolute';
             dateNumber.style.bottom = '5px';
             dateNumber.style.left = '5px';
-    
+
             dayElem.textContent = ''; // Clear text content to avoid duplicate numbers
             dayElem.appendChild(dateNumber);
-    
+
             calendarGrid.appendChild(dayElem);
         });
+
     };
 
     let currentMonthIndex = 0;
@@ -292,92 +291,23 @@ function initializeCalendarTool() {
     async function fetchData() {
         try {
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
-    
+
             // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
-    
+
             // Clear previous content in jsonDisplayContainer
             jsonDisplayContainer.textContent = '';
-    
+
             if (response.status === 200) {
                 const jsonResponse = JSON.parse(response.responseText); // Parse response JSON
-    
-                // Format and display JSON
-                jsonDisplayContainer.textContent = JSON.stringify(jsonResponse, null, 2); 
-    
-                // Get the list of events
-                const events = jsonResponse;
-    
-                // Colors mapping based on event type
-                const colorMapping = {
-                    stacking: '#a5a866',
-                    training: '#4d8dca',
-                    event: '#51c1b6',
-                    war: '#faa31e',
-                    chaining: '#c79b7a'
-                };
-    
-                // Priority mapping for overlapping events
-                const priority = {
-                    war: 1,
-                    event: 2,
-                    chaining: 3,
-                    stacking: 4,
-                    training: 5
-                };
-    
-                // Prepare an object to track colors for each day of the calendar
-                const calendarColors = {};
-    
-                // Function to set color based on event type and priority
-                function setColorForDay(day, eventType) {
-                    if (!calendarColors[day]) {
-                        calendarColors[day] = eventType;
-                    } else {
-                        const currentPriority = priority[calendarColors[day]];
-                        const newPriority = priority[eventType];
-    
-                        // If new event has higher priority, update color
-                        if (newPriority < currentPriority) {
-                            calendarColors[day] = eventType;
-                        }
-                    }
-                }
-    
-                // Iterate over events to determine the days affected
-                events.forEach(event => {
-                    const { event_start_date, event_end_date, event_type } = event;
-    
-                    const startDate = new Date(event_start_date);
-                    const endDate = new Date(event_end_date);
-    
-                    // Iterate over each day in the event duration
-                    for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
-                        const dayString = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-                        setColorForDay(dayString, event_type);
-                    }
-                });
-    
-                // Now that we have the color data for each day, we need to apply it to the calendar
-                const allCalendarDays = document.querySelectorAll('.day.current'); // Select current month days
-    
-                allCalendarDays.forEach(dayElem => {
-                    const day = dayElem.textContent;
-                    const date = new Date(currentYear, currentMonthIndex, day);
-                    const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-    
-                    if (calendarColors[dateString]) {
-                        dayElem.style.backgroundColor = colorMapping[calendarColors[dateString]];
-                    }
-                });
-    
+                jsonDisplayContainer.textContent = JSON.stringify(jsonResponse, null, 2); // Format and display JSON
             } else {
                 jsonDisplayContainer.textContent = "Error: " + response.status + " - " + response.statusText;
             }
         } catch (error) {
             jsonDisplayContainer.textContent = "Fetch Error: " + error.message;
         }
-    } 
+    }
 
     // Trigger fetchData after modal and elements are fully ready
     modalButton.addEventListener('click', () => {
