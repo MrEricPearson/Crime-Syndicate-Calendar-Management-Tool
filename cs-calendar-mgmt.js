@@ -1,7 +1,8 @@
+
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.7
+// @version      0.8
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -285,64 +286,13 @@ function initializeCalendarTool() {
     jsonDisplayContainer.style.color = '#333';
 
     // Add scrollable area to modal
-    const card = document.querySelector('div[style*="background-color: #f4f9f5"]');
-    if (card) {
-        card.appendChild(jsonDisplayContainer);
-    }
+    card.appendChild(jsonDisplayContainer);
 
     // Fetch data using PDA_httpGet
     async function fetchData() {
         try {
-            const endpoint = 'https://your-api-endpoint.com/calendar-events'; // Replace with your API endpoint
+            const endpoint = 'https://epearson.me:3000/api/twisted-minds/calendar'; // Replace with your API endpoint
             const headers = {
-                'Authorization': 'Bearer your-token', // Replace with your auth token if required
-                'Content-Type': 'application/json',
-            };
-
-            const response = await PDA_httpGet(endpoint, headers);
-
-            if (response.status === 200) {
-                const jsonResponse = JSON.parse(response.responseText);
-                jsonDisplayContainer.textContent = JSON.stringify(jsonResponse, null, 2);
-            } else {
-                jsonDisplayContainer.textContent = `Error: ${response.status} - ${response.statusText}`;
-            }
-        } catch (error) {
-            jsonDisplayContainer.textContent = `Fetch Error: ${error.message}`;
-        }
-    }
-
-    // Call fetchData after modal loads
-    modalButton.addEventListener('click', () => {
-        fetchData();
-        modal.style.display = 'flex';
-    });
-
-    // Create scrollable area for JSON response
-    const jsonDisplayContainer = document.createElement('div');
-    jsonDisplayContainer.style.width = '80%';
-    jsonDisplayContainer.style.height = '100px'; // 5-line height
-    jsonDisplayContainer.style.overflowY = 'scroll';
-    jsonDisplayContainer.style.backgroundColor = '#f8f9fa';
-    jsonDisplayContainer.style.border = '1px solid #ddd';
-    jsonDisplayContainer.style.marginTop = '20px';
-    jsonDisplayContainer.style.padding = '10px';
-    jsonDisplayContainer.style.fontFamily = 'monospace';
-    jsonDisplayContainer.style.fontSize = '0.9em';
-    jsonDisplayContainer.style.color = '#333';
-
-    // Add scrollable area to modal
-    const card = document.querySelector('div[style*="background-color: #f4f9f5"]');
-    if (card) {
-        card.appendChild(jsonDisplayContainer);
-    }
-
-    // Fetch data using PDA_httpGet
-    async function fetchData() {
-        try {
-            const endpoint = 'https://your-api-endpoint.com/calendar-events'; // Replace with your API endpoint
-            const headers = {
-                'Authorization': 'Bearer your-token', // Replace with your auth token if required
                 'Content-Type': 'application/json',
             };
 
