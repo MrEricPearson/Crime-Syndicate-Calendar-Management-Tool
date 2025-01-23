@@ -315,6 +315,31 @@ function initializeCalendarTool() {
         modal.style.display = 'flex';
     });
 
+    // Create an error log container at the top
+    const errorLog = document.createElement('div');
+    errorLog.style.position = 'fixed';
+    errorLog.style.bottom = '10px';
+    errorLog.style.left = '10px';
+    errorLog.style.backgroundColor = '#ffdddd';
+    errorLog.style.color = '#ff0000';
+    errorLog.style.padding = '10px';
+    errorLog.style.border = '1px solid #ff0000';
+    errorLog.style.borderRadius = '5px';
+    errorLog.style.fontSize = '0.9em';
+    errorLog.style.zIndex = '100002';
+    errorLog.style.display = 'none'; // Initially hidden
+    document.body.appendChild(errorLog);
+
+    // Function to log and display errors
+    function displayError(message) {
+        console.error(message); // Log in case console becomes available
+        errorLog.textContent = message;
+        errorLog.style.display = 'block';
+        setTimeout(() => {
+            errorLog.style.display = 'none'; // Hide after 10 seconds
+        }, 10000);
+    }
+
     // END TEMPORARY SECTION FOR TESTING
 
 // Call the function directly
