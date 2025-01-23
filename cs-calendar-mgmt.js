@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.25
+// @version      0.26
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -309,15 +309,27 @@ function initializeCalendarTool() {
                 // Filter events for the current year
                 const currentYear = 2025;
                 const eventsThisYear = events.filter(function(event) {
-                    return new Date(event.event_start_date).getFullYear() === currentYear;
+                    const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
+                    return eventYear === currentYear;
                 });
     
                 // Use the filtered event or the first one from the response if no matches
                 const selectedEvent = eventsThisYear.length > 0 ? eventsThisYear[0] : events[0];
     
                 // Parse the event's date range
-                const startDate = new Date(selectedEvent.event_start_date);
-                const endDate = new Date(selectedEvent.event_end_date);
+                const startDateParts = selectedEvent.event_start_date.split("-");
+                const endDateParts = selectedEvent.event_end_date.split("-");
+                
+                const startDate = new Date(
+                    parseInt(startDateParts[0], 10), // Year
+                    parseInt(startDateParts[1], 10) - 1, // Month (0-indexed)
+                    parseInt(startDateParts[2], 10) // Day
+                );
+                const endDate = new Date(
+                    parseInt(endDateParts[0], 10),
+                    parseInt(endDateParts[1], 10) - 1,
+                    parseInt(endDateParts[2], 10)
+                );
     
                 const dateCells = [];
                 for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
