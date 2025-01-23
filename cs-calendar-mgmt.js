@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.11
+// @version      0.12
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -271,7 +271,7 @@ function initializeCalendarTool() {
 
     // START TEMPORARY SECTION FOR TESTING
 
-    // Create scrollable area for JSON response
+    // Create a scrollable area for the JSON response
     const jsonDisplayContainer = document.createElement('div');
     jsonDisplayContainer.style.width = '80%';
     jsonDisplayContainer.style.height = '100px'; // 5-line height
@@ -284,13 +284,13 @@ function initializeCalendarTool() {
     jsonDisplayContainer.style.fontSize = '0.9em';
     jsonDisplayContainer.style.color = '#333';
 
-    // Add scrollable area to modal
+    // Locate the calendar's parent container
     const card = document.querySelector('div[style*="background-color: #f4f9f5"]');
     if (card) {
-        card.appendChild(jsonDisplayContainer);
+        card.appendChild(jsonDisplayContainer); // Append the scrollable area below the calendar
     }
 
-    // Fetch data using PDA_httpGet
+    // Fetch and display data using PDA_httpGet
     async function fetchData() {
         try {
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
@@ -299,8 +299,8 @@ function initializeCalendarTool() {
             const response = await PDA_httpGet(endpoint);
 
             if (response.status === 200) {
-                const jsonResponse = JSON.parse(response.responseText);
-                jsonDisplayContainer.textContent = JSON.stringify(jsonResponse, null, 2);
+                const jsonResponse = JSON.parse(response.responseText); // Parse response JSON
+                jsonDisplayContainer.textContent = JSON.stringify(jsonResponse, null, 2); // Format and display JSON
             } else {
                 jsonDisplayContainer.textContent = "Error: " + response.status + " - " + response.statusText;
             }
@@ -309,50 +309,8 @@ function initializeCalendarTool() {
         }
     }
 
-    // Add a button to open the modal and fetch data
-    const modalButton = document.createElement('button');
-    modalButton.textContent = "Open Modal";
-    modalButton.style.cssText = "position: fixed; top: 10px; right: 10px; z-index: 1000;";
-    document.body.appendChild(modalButton);
-
-    // Create a simple modal for displaying content
-    const modal = document.createElement('div');
-    modal.style.cssText = 
-        "display: none; " +
-        "position: fixed; " +
-        "top: 0; " +
-        "left: 0; " +
-        "width: 100%; " +
-        "height: 100%; " +
-        "background: rgba(0, 0, 0, 0.5); " +
-        "justify-content: center; " +
-        "align-items: center; " +
-        "z-index: 1000;";
-    document.body.appendChild(modal);
-
-    const modalContent = document.createElement('div');
-    modalContent.style.cssText = 
-        "background: white; " +
-        "padding: 20px; " +
-        "width: 80%; " +
-        "max-height: 90%; " +
-        "overflow: auto; " +
-        "border-radius: 10px;";
-    modal.appendChild(modalContent);
-    modalContent.appendChild(jsonDisplayContainer);
-
-    // Close modal when clicking outside content
-    modal.addEventListener('click', function (e) {
-        if (e.target === modal) {
-            modal.style.display = "none";
-        }
-    });
-
-    // Open modal and fetch data on button click
-    modalButton.addEventListener('click', function () {
-        fetchData();
-        modal.style.display = "flex";
-    });
+    // Trigger fetchData immediately to populate the area
+    fetchData();
 
     // END TEMPORARY SECTION FOR TESTING
 
