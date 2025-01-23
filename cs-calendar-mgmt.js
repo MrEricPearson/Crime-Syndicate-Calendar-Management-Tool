@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.16
+// @version      0.17
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -269,7 +269,7 @@ function initializeCalendarTool() {
         modal.style.display = 'none';
     });
 
-    // START TEMPORARY SECTION FOR TESTING
+    // START JSON DISPLAY SECTION
 
     // Create a scrollable area for the JSON response
     const jsonDisplayContainer = document.createElement('div');
@@ -291,23 +291,92 @@ function initializeCalendarTool() {
     async function fetchData() {
         try {
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
-
+    
             // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
-
+    
             // Clear previous content in jsonDisplayContainer
             jsonDisplayContainer.textContent = '';
-
+    
             if (response.status === 200) {
                 const jsonResponse = JSON.parse(response.responseText); // Parse response JSON
-                jsonDisplayContainer.textContent = JSON.stringify(jsonResponse, null, 2); // Format and display JSON
+    
+                // Format and display JSON
+                jsonDisplayContainer.textContent = JSON.stringify(jsonResponse, null, 2); 
+    
+                // Get the list of events
+                const events = jsonResponse;
+    
+                // Colors mapping based on event type
+                const colorMapping = {
+                    stacking: '#a5a866',
+                    training: '#4d8dca',
+                    event: '#51c1b6',
+                    war: '#faa31e',
+                    chaining: '#c79b7a'
+                };
+    
+                // Priority mapping for overlapping events
+                const priority = {
+                    war: 1,
+                    event: 2,
+                    chaining: 3,
+                    stacking: 4,
+                    training: 5
+                };
+    
+                // Prepare an object to track colors for each day of the calendar
+                const calendarColors = {};
+    
+                // Function to set color based on event type and priority
+                function setColorForDay(day, eventType) {
+                    if (!calendarColors[day]) {
+                        calendarColors[day] = eventType;
+                    } else {
+                        const currentPriority = priority[calendarColors[day]];
+                        const newPriority = priority[eventType];
+    
+                        // If new event has higher priority, update color
+                        if (newPriority < currentPriority) {
+                            calendarColors[day] = eventType;
+                        }
+                    }
+                }
+    
+                // Iterate over events to determine the days affected
+                events.forEach(event => {
+                    const { event_start_date, event_end_date, event_type } = event;
+    
+                    const startDate = new Date(event_start_date);
+                    const endDate = new Date(event_end_date);
+    
+                    // Iterate over each day in the event duration
+                    for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+                        const dayString = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+                        setColorForDay(dayString, event_type);
+                    }
+                });
+    
+                // Now that we have the color data for each day, we need to apply it to the calendar
+                const allCalendarDays = document.querySelectorAll('.day.current'); // Select current month days
+    
+                allCalendarDays.forEach(dayElem => {
+                    const day = dayElem.textContent;
+                    const date = new Date(currentYear, currentMonthIndex, day);
+                    const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+    
+                    if (calendarColors[dateString]) {
+                        dayElem.style.backgroundColor = colorMapping[calendarColors[dateString]];
+                    }
+                });
+    
             } else {
                 jsonDisplayContainer.textContent = "Error: " + response.status + " - " + response.statusText;
             }
         } catch (error) {
             jsonDisplayContainer.textContent = "Fetch Error: " + error.message;
         }
-    }
+    } 
 
     // Trigger fetchData after modal and elements are fully ready
     modalButton.addEventListener('click', () => {
@@ -315,7 +384,7 @@ function initializeCalendarTool() {
         fetchData(); // Now fetch data once the modal is opened
     });
 
-    // END TEMPORARY SECTION FOR TESTING
+    // END JSON DISPLAY SECTION
 
 }
 
