@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.8
+// @version      0.9
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -269,78 +269,6 @@ function initializeCalendarTool() {
     backButton.addEventListener('click', () => {
         modal.style.display = 'none';
     });
-
-    // START TEMPORARY SECTION FOR TESTING
-
-    // Create scrollable area for JSON response
-    const jsonDisplayContainer = document.createElement('div');
-    jsonDisplayContainer.style.width = '80%';
-    jsonDisplayContainer.style.height = '100px'; // 5-line height
-    jsonDisplayContainer.style.overflowY = 'scroll';
-    jsonDisplayContainer.style.backgroundColor = '#f8f9fa';
-    jsonDisplayContainer.style.border = '1px solid #ddd';
-    jsonDisplayContainer.style.marginTop = '20px';
-    jsonDisplayContainer.style.padding = '10px';
-    jsonDisplayContainer.style.fontFamily = 'monospace';
-    jsonDisplayContainer.style.fontSize = '0.9em';
-    jsonDisplayContainer.style.color = '#333';
-
-    // Add scrollable area to modal
-    card.appendChild(jsonDisplayContainer);
-
-    // Fetch data using PDA_httpGet
-    async function fetchData() {
-        try {
-            const endpoint = 'https://epearson.me:3000/api/twisted-minds/calendar'; // Replace with your API endpoint
-            const headers = {
-                'Content-Type': 'application/json',
-            };
-
-            const response = await PDA_httpGet(endpoint, headers);
-
-            if (response.status === 200) {
-                const jsonResponse = JSON.parse(response.responseText);
-                jsonDisplayContainer.textContent = JSON.stringify(jsonResponse, null, 2);
-            } else {
-                jsonDisplayContainer.textContent = `Error: ${response.status} - ${response.statusText}`;
-            }
-        } catch (error) {
-            jsonDisplayContainer.textContent = `Fetch Error: ${error.message}`;
-        }
-    }
-
-    // Call fetchData after modal loads
-    modalButton.addEventListener('click', () => {
-        fetchData();
-        modal.style.display = 'flex';
-    });
-
-    // Create an error log container at the top
-    const errorLog = document.createElement('div');
-    errorLog.style.position = 'fixed';
-    errorLog.style.bottom = '10px';
-    errorLog.style.left = '10px';
-    errorLog.style.backgroundColor = '#ffdddd';
-    errorLog.style.color = '#ff0000';
-    errorLog.style.padding = '10px';
-    errorLog.style.border = '1px solid #ff0000';
-    errorLog.style.borderRadius = '5px';
-    errorLog.style.fontSize = '0.9em';
-    errorLog.style.zIndex = '100002';
-    errorLog.style.display = 'none'; // Initially hidden
-    document.body.appendChild(errorLog);
-
-    // Function to log and display errors
-    function displayError(message) {
-        console.error(message); // Log in case console becomes available
-        errorLog.textContent = message;
-        errorLog.style.display = 'block';
-        setTimeout(() => {
-            errorLog.style.display = 'none'; // Hide after 10 seconds
-        }, 10000);
-    }
-
-    // END TEMPORARY SECTION FOR TESTING
 
 // Call the function directly
 initializeCalendarTool();
