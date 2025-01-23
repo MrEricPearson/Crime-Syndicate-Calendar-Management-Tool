@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/MrEricPearson
 // @version      0.5
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
