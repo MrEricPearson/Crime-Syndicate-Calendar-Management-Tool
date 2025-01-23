@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.12
+// @version      0.13
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -284,10 +284,10 @@ function initializeCalendarTool() {
     jsonDisplayContainer.style.fontSize = '0.9em';
     jsonDisplayContainer.style.color = '#333';
 
-    // Locate the calendar's parent container
-    const card = document.querySelector('div[style*="background-color: #f4f9f5"]');
-    if (card) {
-        card.appendChild(jsonDisplayContainer); // Append the scrollable area below the calendar
+    // Locate the card container (not overwriting the original card reference)
+    const calendarCard = document.querySelector('div[style*="background-color: #f4f9f5"]');
+    if (calendarCard) {
+        calendarCard.appendChild(jsonDisplayContainer); // Append the scrollable area below the calendar
     }
 
     // Fetch and display data using PDA_httpGet
@@ -309,8 +309,11 @@ function initializeCalendarTool() {
         }
     }
 
-    // Trigger fetchData immediately to populate the area
-    fetchData();
+    // Trigger fetchData after modal and elements are fully ready
+    modalButton.addEventListener('click', () => {
+        modal.style.display = 'flex';
+        fetchData(); // Now fetch data once the modal is opened
+    });
 
     // END TEMPORARY SECTION FOR TESTING
 
