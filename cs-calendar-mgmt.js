@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.23
+// @version      0.24
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -293,36 +293,39 @@ function initializeCalendarTool() {
     async function fetchEventData() {
         try {
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
-
+    
             // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
-
+    
             // Clear previous content in eventDisplayContainer
             eventDisplayContainer.textContent = '';
-
+    
             if (response.status === 200) {
                 const jsonResponse = JSON.parse(response.responseText); // Parse response JSON
-
+    
+                // Check if jsonResponse is an array or a single object
+                const events = Array.isArray(jsonResponse) ? jsonResponse : [jsonResponse];
+    
                 // Filter events for the current year
                 const currentYear = 2025;
-                const eventsThisYear = jsonResponse.filter(event =>
+                const eventsThisYear = events.filter(event =>
                     new Date(event.event_start_date).getFullYear() === currentYear
                 );
-
+    
                 if (eventsThisYear.length > 0) {
                     // Select a random event
                     const randomEvent = eventsThisYear[Math.floor(Math.random() * eventsThisYear.length)];
-
+    
                     // Display event details
                     eventDisplayContainer.textContent = `Event Title: ${randomEvent.event_title}\n` +
                         `Start Date: ${randomEvent.event_start_date}\n` +
                         `Description: ${randomEvent.event_description}`;
-
+    
                     // Highlight corresponding day on calendar
                     const [year, month, day] = randomEvent.event_start_date.split('-');
                     const cellId = `cell-${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
                     const eventDayCell = document.getElementById(cellId);
-
+    
                     if (eventDayCell) {
                         eventDayCell.style.backgroundColor = '#ffeb3b'; // Highlight cell
                         eventDayCell.style.color = '#000'; // Adjust text color for readability
@@ -336,7 +339,7 @@ function initializeCalendarTool() {
         } catch (error) {
             eventDisplayContainer.textContent = "Fetch Error: " + error.message;
         }
-    }
+    }    
 
     // Trigger fetchEventData after modal and elements are fully ready
     modalButton.addEventListener('click', () => {
