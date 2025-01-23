@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.22
+// @version      0.23
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -271,53 +271,80 @@ function initializeCalendarTool() {
         modal.style.display = 'none';
     });
 
-    // START JSON DISPLAY SECTION
+    // START EVENT DISPLAY SECTION
 
-    // Create a scrollable area for the JSON response
-    const jsonDisplayContainer = document.createElement('div');
-    jsonDisplayContainer.style.width = '80%';
-    jsonDisplayContainer.style.height = '100px'; // 5-line height
-    jsonDisplayContainer.style.overflowY = 'scroll';
-    jsonDisplayContainer.style.backgroundColor = '#f8f9fa';
-    jsonDisplayContainer.style.border = '1px solid #ddd';
-    jsonDisplayContainer.style.marginTop = '20px';
-    jsonDisplayContainer.style.padding = '10px';
-    jsonDisplayContainer.style.fontFamily = 'monospace';
-    jsonDisplayContainer.style.fontSize = '0.9em';
-    jsonDisplayContainer.style.color = '#333';
+    // Create a scrollable area to display event details
+    const eventDisplayContainer = document.createElement('div');
+    eventDisplayContainer.style.width = '80%';
+    eventDisplayContainer.style.height = '100px'; // 5-line height
+    eventDisplayContainer.style.overflowY = 'scroll';
+    eventDisplayContainer.style.backgroundColor = '#f8f9fa';
+    eventDisplayContainer.style.border = '1px solid #ddd';
+    eventDisplayContainer.style.marginTop = '20px';
+    eventDisplayContainer.style.padding = '10px';
+    eventDisplayContainer.style.fontFamily = 'monospace';
+    eventDisplayContainer.style.fontSize = '0.9em';
+    eventDisplayContainer.style.color = '#333';
 
     // Append the scrollable area to the modal
-    modal.appendChild(jsonDisplayContainer);
+    modal.appendChild(eventDisplayContainer);
 
-    // Fetch and display data using PDA_httpGet
-    async function fetchData() {
+    // Fetch and process data using PDA_httpGet
+    async function fetchEventData() {
         try {
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
 
             // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
 
-            // Clear previous content in jsonDisplayContainer
-            jsonDisplayContainer.textContent = '';
+            // Clear previous content in eventDisplayContainer
+            eventDisplayContainer.textContent = '';
 
             if (response.status === 200) {
                 const jsonResponse = JSON.parse(response.responseText); // Parse response JSON
-                jsonDisplayContainer.textContent = JSON.stringify(jsonResponse, null, 2); // Format and display JSON
+
+                // Filter events for the current year
+                const currentYear = 2025;
+                const eventsThisYear = jsonResponse.filter(event =>
+                    new Date(event.event_start_date).getFullYear() === currentYear
+                );
+
+                if (eventsThisYear.length > 0) {
+                    // Select a random event
+                    const randomEvent = eventsThisYear[Math.floor(Math.random() * eventsThisYear.length)];
+
+                    // Display event details
+                    eventDisplayContainer.textContent = `Event Title: ${randomEvent.event_title}\n` +
+                        `Start Date: ${randomEvent.event_start_date}\n` +
+                        `Description: ${randomEvent.event_description}`;
+
+                    // Highlight corresponding day on calendar
+                    const [year, month, day] = randomEvent.event_start_date.split('-');
+                    const cellId = `cell-${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                    const eventDayCell = document.getElementById(cellId);
+
+                    if (eventDayCell) {
+                        eventDayCell.style.backgroundColor = '#ffeb3b'; // Highlight cell
+                        eventDayCell.style.color = '#000'; // Adjust text color for readability
+                    }
+                } else {
+                    eventDisplayContainer.textContent = 'No events found for this year.';
+                }
             } else {
-                jsonDisplayContainer.textContent = "Error: " + response.status + " - " + response.statusText;
+                eventDisplayContainer.textContent = "Error: " + response.status + " - " + response.statusText;
             }
         } catch (error) {
-            jsonDisplayContainer.textContent = "Fetch Error: " + error.message;
+            eventDisplayContainer.textContent = "Fetch Error: " + error.message;
         }
     }
 
-    // Trigger fetchData after modal and elements are fully ready
+    // Trigger fetchEventData after modal and elements are fully ready
     modalButton.addEventListener('click', () => {
         modal.style.display = 'flex';
-        fetchData(); // Now fetch data once the modal is opened
+        fetchEventData(); // Now fetch and process data once the modal is opened
     });
 
-    // END JSON DISPLAY SECTION
+    // END EVENT DISPLAY SECTION
 
 }
 
