@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.24
+// @version      0.25
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -301,38 +301,47 @@ function initializeCalendarTool() {
             eventDisplayContainer.textContent = '';
     
             if (response.status === 200) {
-                const jsonResponse = JSON.parse(response.responseText); // Parse response JSON
+                const jsonResponse = JSON.parse(response.responseText);
     
-                // Check if jsonResponse is an array or a single object
+                // Ensure we work with an array of events
                 const events = Array.isArray(jsonResponse) ? jsonResponse : [jsonResponse];
     
                 // Filter events for the current year
                 const currentYear = 2025;
-                const eventsThisYear = events.filter(event =>
-                    new Date(event.event_start_date).getFullYear() === currentYear
-                );
+                const eventsThisYear = events.filter(function(event) {
+                    return new Date(event.event_start_date).getFullYear() === currentYear;
+                });
     
-                if (eventsThisYear.length > 0) {
-                    // Select a random event
-                    const randomEvent = eventsThisYear[Math.floor(Math.random() * eventsThisYear.length)];
+                // Use the filtered event or the first one from the response if no matches
+                const selectedEvent = eventsThisYear.length > 0 ? eventsThisYear[0] : events[0];
     
-                    // Display event details
-                    eventDisplayContainer.textContent = `Event Title: ${randomEvent.event_title}\n` +
-                        `Start Date: ${randomEvent.event_start_date}\n` +
-                        `Description: ${randomEvent.event_description}`;
+                // Parse the event's date range
+                const startDate = new Date(selectedEvent.event_start_date);
+                const endDate = new Date(selectedEvent.event_end_date);
     
-                    // Highlight corresponding day on calendar
-                    const [year, month, day] = randomEvent.event_start_date.split('-');
-                    const cellId = `cell-${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                const dateCells = [];
+                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                    const year = d.getFullYear();
+                    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+                    const day = d.getDate().toString().padStart(2, '0');
+                    const cellId = "cell-" + year + "-" + month + "-" + day;
+                    dateCells.push(month + "-" + day + " = " + cellId);
+    
+                    // Highlight the corresponding cell on the calendar
                     const eventDayCell = document.getElementById(cellId);
-    
                     if (eventDayCell) {
-                        eventDayCell.style.backgroundColor = '#ffeb3b'; // Highlight cell
-                        eventDayCell.style.color = '#000'; // Adjust text color for readability
+                        eventDayCell.style.backgroundColor = "#ffeb3b"; // Highlight cell
+                        eventDayCell.style.color = "#000"; // Adjust text color for readability
                     }
-                } else {
-                    eventDisplayContainer.textContent = 'No events found for this year.';
                 }
+    
+                // Display event details and date range results
+                eventDisplayContainer.textContent = 
+                    "Event Title: " + selectedEvent.event_title + "\n" +
+                    "Start Date: " + selectedEvent.event_start_date + "\n" +
+                    "End Date: " + selectedEvent.event_end_date + "\n" +
+                    "Description: " + selectedEvent.event_description + "\n\n" +
+                    "Date Range Results:\n" + dateCells.join("\n");
             } else {
                 eventDisplayContainer.textContent = "Error: " + response.status + " - " + response.statusText;
             }
