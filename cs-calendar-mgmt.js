@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.35
+// @version      0.36
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -175,6 +175,7 @@ function initializeCalendarTool() {
             days.push({
                 day: daysInPrevMonth - i,
                 class: 'prev',
+                isCurrentMonth: false, // Mark as not part of the current month
             });
         }
     
@@ -183,6 +184,7 @@ function initializeCalendarTool() {
             days.push({
                 day: i,
                 class: 'current',
+                isCurrentMonth: true, // Mark as part of the current month
             });
         }
     
@@ -191,6 +193,7 @@ function initializeCalendarTool() {
             days.push({
                 day: days.length - daysInMonth - firstDay + 1,
                 class: 'next',
+                isCurrentMonth: false, // Mark as not part of the current month
             });
         }
     
@@ -199,13 +202,15 @@ function initializeCalendarTool() {
             dayElem.className = `day ${d.class}`;
             dayElem.textContent = d.day;
     
-            // Assign unique identifier
-            const cellDate = new Date(year, month, d.day);
-            const cellYear = cellDate.getFullYear();
-            const cellMonth = String(cellDate.getMonth() + 1).padStart(2, '0'); // Add 1 since months are 0-based
-            const cellDay = String(d.day).padStart(2, '0');
-            const cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
-            dayElem.id = cellId;
+            // Assign unique identifier only if the day belongs to the current month
+            if (d.isCurrentMonth) {
+                const cellDate = new Date(year, month, d.day);
+                const cellYear = cellDate.getFullYear();
+                const cellMonth = String(cellDate.getMonth() + 1).padStart(2, '0'); // Add 1 since months are 0-based
+                const cellDay = String(d.day).padStart(2, '0');
+                const cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
+                dayElem.id = cellId;
+            }
     
             // Apply styles based on day type
             if (d.class === 'prev' || d.class === 'next') {
