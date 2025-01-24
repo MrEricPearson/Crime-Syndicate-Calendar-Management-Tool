@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.27
+// @version      0.28
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -309,10 +309,16 @@ function initializeCalendarTool() {
                 // Filter events for the current year
                 const currentYear = 2025;
                 const eventsThisYear = events.filter(function (event) {
-                    if (!event || !event.event_start_date) return false; // Skip invalid or incomplete data
+                    console.log("Processing Event:", event); // Log each event
+                    if (!event || !event.event_start_date) {
+                        console.log("Skipping invalid event:", event);
+                        return false; // Skip invalid or incomplete data
+                    }
                     const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
+                    console.log("Event Year:", eventYear, "Current Year:", currentYear);
                     return eventYear === currentYear;
                 });
+                console.log("Events This Year:", eventsThisYear);
     
                 // Use the filtered event or the first valid one from the response
                 const selectedEvent = eventsThisYear.length > 0 
