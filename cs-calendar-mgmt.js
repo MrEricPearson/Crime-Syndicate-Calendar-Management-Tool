@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.37
+// @version      0.38
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -240,24 +240,30 @@ function initializeCalendarTool() {
             dayElem.textContent = '';
             dayElem.appendChild(dateNumber);
     
-            // Display cellId within the cell if it exists (debugging feature)
-            if (cellId) {
-                // Start of debugging addition
-                const cellIdText = document.createElement('span');
-                cellIdText.textContent = cellId;
-                cellIdText.style.position = 'absolute';
-                cellIdText.style.top = '5px';
-                cellIdText.style.left = '50%';
-                cellIdText.style.transform = 'translateX(-50%)';
-                cellIdText.style.fontSize = '0.8em';
-                cellIdText.style.color = '#555555';
-                dayElem.appendChild(cellIdText);
-                // End of debugging addition
+            // Highlight the relevant events
+            if (storedEvents.length > 0) {
+                storedEvents.forEach(event => {
+                    const startDate = new Date(event.event_start_date);
+                    const endDate = new Date(event.event_end_date);
+    
+                    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                        const eventYear = d.getFullYear();
+                        const eventMonth = (d.getMonth() + 1).toString().padStart(2, "0");
+                        const eventDay = d.getDate().toString().padStart(2, "0");
+                        const eventCellId = `cell-${eventYear}-${eventMonth}-${eventDay}`;
+    
+                        if (eventCellId === cellId) {
+                            const color = colorMap[event.event_type] || "#dde0cf"; // Default to "other" color
+                            dayElem.style.backgroundColor = color;
+                            dayElem.style.color = "#000"; // Adjust text color for readability
+                        }
+                    }
+                });
             }
     
             calendarGrid.appendChild(dayElem);
         });
-    };
+    };    
 
     let currentMonthIndex = 0;
     let currentYear = 2025;
@@ -265,7 +271,7 @@ function initializeCalendarTool() {
     const updateCalendar = () => {
         monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`; // Include year
         renderCalendar(currentYear, currentMonthIndex);
-    };
+    };    
 
     cardBackButton.addEventListener('click', () => {
         // Prevent going backward past January 2025
@@ -324,78 +330,79 @@ function initializeCalendarTool() {
     modal.appendChild(eventDisplayContainer);
 
     // Fetch and process data using PDA_httpGet
+    let storedEvents = []; // Global variable to store events
+
     async function fetchEventData() {
         try {
-            const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
-
-            // Make GET request using PDA_httpGet
-            const response = await PDA_httpGet(endpoint);
-
-            // Clear previous content in eventDisplayContainer
-            eventDisplayContainer.textContent = "";
-
-            if (response.status === 200) {
-                const jsonResponse = JSON.parse(response.responseText);
-
-                // Access the 'events' array from the response
-                const events = jsonResponse.events || [];  // Use an empty array if no events
-
-                eventDisplayContainer.textContent += "Fetched " + events.length + " events from the API.\n";
-
-                // Filter and process events
-                const validEvents = events.filter(event => {
-                    if (!event || !event.event_start_date || !event.event_type) {
-                        eventDisplayContainer.textContent += "Skipping invalid event: " + JSON.stringify(event) + "\n";
-                        return false;
-                    }
-
-                    const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
-                    const validYear = eventYear >= 2025;
-                    const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-
-                    if (!validYear || !validType) {
-                        eventDisplayContainer.textContent += "Skipping out-of-scope event: " + event.event_title + "\n";
-                        return false;
-                    }
-                    return true;
-                });
-
-                if (validEvents.length === 0) {
-                    eventDisplayContainer.textContent += "No valid events found for processing.\n";
-                    return;
+            if (storedEvents.length === 0) { // Only fetch if events haven't been loaded yet
+                const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
+                const response = await PDA_httpGet(endpoint);
+    
+                // Clear previous content in eventDisplayContainer
+                eventDisplayContainer.textContent = "";
+    
+                if (response.status === 200) {
+                    const jsonResponse = JSON.parse(response.responseText);
+                    const events = jsonResponse.events || [];
+    
+                    eventDisplayContainer.textContent += "Fetched " + events.length + " events from the API.\n";
+                    storedEvents = events; // Store the fetched events
+                } else {
+                    eventDisplayContainer.textContent = `Error: ${response.status} - ${response.statusText}`;
                 }
-
-                // Highlight dates for each valid event
-                validEvents.forEach(event => {
-                    const startDate = new Date(event.event_start_date);
-                    const endDate = new Date(event.event_end_date);
-
-                    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                        const year = d.getFullYear();
-                        const month = (d.getMonth() + 1).toString().padStart(2, "0");
-                        const day = d.getDate().toString().padStart(2, "0");
-                        const cellId = `cell-${year}-${month}-${day}`;
-
-                        const eventDayCell = document.getElementById(cellId);
-                        if (eventDayCell) {
-                            const color = colorMap[event.event_type] || "#dde0cf"; // Default to "other" color
-                            eventDayCell.style.backgroundColor = color;
-                            eventDayCell.style.color = "#000"; // Adjust text color for readability
-                        } else {
-                            eventDisplayContainer.textContent += `Warning: No cell found for ID ${cellId}\n`;
-                        }
-                    }
-                });
-
-                eventDisplayContainer.textContent += "Events processed successfully.\n";
             } else {
-                eventDisplayContainer.textContent = `Error: ${response.status} - ${response.statusText}`;
+                eventDisplayContainer.textContent = "Using stored event data.\n";
             }
+    
+            // Process stored events
+            const validEvents = storedEvents.filter(event => {
+                if (!event || !event.event_start_date || !event.event_type) {
+                    eventDisplayContainer.textContent += "Skipping invalid event: " + JSON.stringify(event) + "\n";
+                    return false;
+                }
+                const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
+                const validYear = eventYear >= 2025;
+                const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
+    
+                if (!validYear || !validType) {
+                    eventDisplayContainer.textContent += "Skipping out-of-scope event: " + event.event_title + "\n";
+                    return false;
+                }
+                return true;
+            });
+    
+            if (validEvents.length === 0) {
+                eventDisplayContainer.textContent += "No valid events found for processing.\n";
+                return;
+            }
+    
+            // Highlight dates for each valid event
+            validEvents.forEach(event => {
+                const startDate = new Date(event.event_start_date);
+                const endDate = new Date(event.event_end_date);
+    
+                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                    const year = d.getFullYear();
+                    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+                    const day = d.getDate().toString().padStart(2, "0");
+                    const cellId = `cell-${year}-${month}-${day}`;
+    
+                    const eventDayCell = document.getElementById(cellId);
+                    if (eventDayCell) {
+                        const color = colorMap[event.event_type] || "#dde0cf"; // Default to "other" color
+                        eventDayCell.style.backgroundColor = color;
+                        eventDayCell.style.color = "#000"; // Adjust text color for readability
+                    } else {
+                        eventDisplayContainer.textContent += `Warning: No cell found for ID ${cellId}\n`;
+                    }
+                }
+            });
+    
+            eventDisplayContainer.textContent += "Events processed successfully.\n";
         } catch (error) {
             eventDisplayContainer.textContent = `Fetch Error: ${error.message}`;
         }
-    }
-
+    }    
     
     // Trigger fetchEventData after modal and elements are fully ready
     modalButton.addEventListener('click', () => {
