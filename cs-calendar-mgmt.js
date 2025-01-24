@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.36
+// @version      0.37
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -202,13 +202,15 @@ function initializeCalendarTool() {
             dayElem.className = `day ${d.class}`;
             dayElem.textContent = d.day;
     
+            let cellId = null;
+    
             // Assign unique identifier only if the day belongs to the current month
             if (d.isCurrentMonth) {
                 const cellDate = new Date(year, month, d.day);
                 const cellYear = cellDate.getFullYear();
                 const cellMonth = String(cellDate.getMonth() + 1).padStart(2, '0'); // Add 1 since months are 0-based
                 const cellDay = String(d.day).padStart(2, '0');
-                const cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
+                cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
                 dayElem.id = cellId;
             }
     
@@ -227,18 +229,35 @@ function initializeCalendarTool() {
             dayElem.style.position = 'relative';
             dayElem.style.borderRadius = '8px';
     
+            // Create and position the day number
             const dateNumber = document.createElement('span');
             dateNumber.textContent = d.day;
             dateNumber.style.position = 'absolute';
             dateNumber.style.bottom = '5px';
             dateNumber.style.left = '5px';
     
-            dayElem.textContent = ''; // Clear text content to avoid duplicate numbers
+            // Clear text content to avoid duplicate numbers
+            dayElem.textContent = '';
             dayElem.appendChild(dateNumber);
+    
+            // Display cellId within the cell if it exists (debugging feature)
+            if (cellId) {
+                // Start of debugging addition
+                const cellIdText = document.createElement('span');
+                cellIdText.textContent = cellId;
+                cellIdText.style.position = 'absolute';
+                cellIdText.style.top = '5px';
+                cellIdText.style.left = '50%';
+                cellIdText.style.transform = 'translateX(-50%)';
+                cellIdText.style.fontSize = '0.8em';
+                cellIdText.style.color = '#555555';
+                dayElem.appendChild(cellIdText);
+                // End of debugging addition
+            }
     
             calendarGrid.appendChild(dayElem);
         });
-    };    
+    };
 
     let currentMonthIndex = 0;
     let currentYear = 2025;
