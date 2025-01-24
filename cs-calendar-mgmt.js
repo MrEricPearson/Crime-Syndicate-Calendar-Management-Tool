@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.30
+// @version      0.31
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -301,56 +301,76 @@ function initializeCalendarTool() {
 
     // Fetch and process data using PDA_httpGet
     async function fetchEventData() {
-        const eventDisplayContainer = document.createElement("div");
-        eventDisplayContainer.style.width = "80%";
-        eventDisplayContainer.style.height = "150px";
-        eventDisplayContainer.style.overflowY = "auto";
-        eventDisplayContainer.style.backgroundColor = "#f8f9fa";
-        eventDisplayContainer.style.border = "1px solid #ddd";
-        eventDisplayContainer.style.marginTop = "20px";
-        eventDisplayContainer.style.padding = "10px";
-        document.body.appendChild(eventDisplayContainer);
-
         try {
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
+    
+            // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
-
+    
+            // Clear previous content in eventDisplayContainer
+            eventDisplayContainer.textContent = "";
+    
             if (response.status === 200) {
-                const events = JSON.parse(response.responseText);
-                const validEvents = events.filter(function (event) {
-                    const year = parseInt(event.event_start_date.split("-")[0], 10);
-                    return year >= 2025 && Object.keys(colorMap).includes(event.event_type);
+                const jsonResponse = JSON.parse(response.responseText);
+    
+                // Ensure we work with an array of events
+                const events = Array.isArray(jsonResponse) ? jsonResponse : [jsonResponse];
+                eventDisplayContainer.textContent += "Fetched " + events.length + " events from the API.\n";
+    
+                // Filter and process events
+                const validEvents = events.filter(event => {
+                    if (!event || !event.event_start_date || !event.event_type) {
+                        eventDisplayContainer.textContent += "Skipping invalid event: " + JSON.stringify(event) + "\n";
+                        return false;
+                    }
+    
+                    const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
+                    const validYear = eventYear >= 2025;
+                    const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
+    
+                    if (!validYear || !validType) {
+                        eventDisplayContainer.textContent += "Skipping out-of-scope event: " + event.event_title + "\n";
+                        return false;
+                    }
+                    return true;
                 });
-
-                validEvents.forEach(function (event) {
-                    const startDateParts = event.event_start_date.split("-");
-                    const endDateParts = event.event_end_date.split("-");
-                    const startDate = new Date(startDateParts[0], startDateParts[1] - 1, startDateParts[2]);
-                    const endDate = new Date(endDateParts[0], endDateParts[1] - 1, endDateParts[2]);
-
+    
+                if (validEvents.length === 0) {
+                    eventDisplayContainer.textContent += "No valid events found for processing.\n";
+                    return;
+                }
+    
+                // Highlight dates for each valid event
+                validEvents.forEach(event => {
+                    const startDate = new Date(event.event_start_date);
+                    const endDate = new Date(event.event_end_date);
+    
                     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                         const year = d.getFullYear();
-                        const month = String(d.getMonth() + 1).padStart(2, "0");
-                        const day = String(d.getDate()).padStart(2, "0");
-                        const cellId = "cell-" + year + "-" + month + "-" + day;
-                        const cell = document.getElementById(cellId);
-
-                        if (cell) {
-                            cell.style.backgroundColor = colorMap[event.event_type];
-                            cell.style.color = "#000";
+                        const month = (d.getMonth() + 1).toString().padStart(2, "0");
+                        const day = d.getDate().toString().padStart(2, "0");
+                        const cellId = `cell-${year}-${month}-${day}`;
+    
+                        const eventDayCell = document.getElementById(cellId);
+                        if (eventDayCell) {
+                            const color = colorMap[event.event_type] || "#dde0cf"; // Default to "other" color
+                            eventDayCell.style.backgroundColor = color;
+                            eventDayCell.style.color = "#000"; // Adjust text color for readability
+                        } else {
+                            eventDisplayContainer.textContent += `Warning: No cell found for ID ${cellId}\n`;
                         }
                     }
                 });
-
-                eventDisplayContainer.textContent = "Events successfully mapped to the calendar.";
+    
+                eventDisplayContainer.textContent += "Events processed successfully.\n";
             } else {
-                eventDisplayContainer.textContent = "Error fetching events: " + response.statusText;
+                eventDisplayContainer.textContent = `Error: ${response.status} - ${response.statusText}`;
             }
         } catch (error) {
-            eventDisplayContainer.textContent = "Error fetching event data: " + error.message;
+            eventDisplayContainer.textContent = `Fetch Error: ${error.message}`;
         }
-    }   
-
+    }
+    
     // Trigger fetchEventData after modal and elements are fully ready
     modalButton.addEventListener('click', () => {
         modal.style.display = 'flex';
