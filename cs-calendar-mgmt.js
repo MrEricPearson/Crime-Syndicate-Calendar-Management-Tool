@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.29
+// @version      0.30
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -11,6 +11,16 @@
 // ==/UserScript==
 
 function initializeCalendarTool() {
+    // Map event types to their respective background colors
+    const colorMap = {
+        event: '#51c1b6',
+        training: '#4d8dca',
+        stacking: '#a5a866',
+        war: '#faa31e',
+        chaining: '#c79b7a',
+        other: '#dde0cf'
+    };
+
     const topBar = document.createElement('div');
     topBar.style.position = 'fixed';
     topBar.style.top = '0';
@@ -291,95 +301,55 @@ function initializeCalendarTool() {
 
     // Fetch and process data using PDA_httpGet
     async function fetchEventData() {
+        const eventDisplayContainer = document.createElement("div");
+        eventDisplayContainer.style.width = "80%";
+        eventDisplayContainer.style.height = "150px";
+        eventDisplayContainer.style.overflowY = "auto";
+        eventDisplayContainer.style.backgroundColor = "#f8f9fa";
+        eventDisplayContainer.style.border = "1px solid #ddd";
+        eventDisplayContainer.style.marginTop = "20px";
+        eventDisplayContainer.style.padding = "10px";
+        document.body.appendChild(eventDisplayContainer);
+
         try {
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
-    
-            // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
-    
-            // Clear previous content in eventDisplayContainer
-            eventDisplayContainer.textContent = '';
-    
+
             if (response.status === 200) {
-                const jsonResponse = JSON.parse(response.responseText);
-    
-                // Ensure we work with an array of events
-                const events = Array.isArray(jsonResponse) ? jsonResponse : [jsonResponse];
-                eventDisplayContainer.textContent += `Fetched ${events.length} events from the API.\n`;
-    
-                // Filter events for the current year
-                const currentYear = 2025;
-                const eventsThisYear = events.filter(event => {
-                    if (!event || !event.event_start_date) {
-                        eventDisplayContainer.textContent += `Skipping invalid event: ${JSON.stringify(event)}\n`;
-                        return false;
-                    }
-                    const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
-                    eventDisplayContainer.textContent += `Processing event "${event.event_title}" - Year: ${eventYear}\n`;
-                    return eventYear === currentYear;
+                const events = JSON.parse(response.responseText);
+                const validEvents = events.filter(function (event) {
+                    const year = parseInt(event.event_start_date.split("-")[0], 10);
+                    return year >= 2025 && Object.keys(colorMap).includes(event.event_type);
                 });
-    
-                if (eventsThisYear.length === 0) {
-                    eventDisplayContainer.textContent += "No events match the current year.\n";
-                }
-    
-                // Use the filtered event or the first valid one from the response
-                const selectedEvent = eventsThisYear.length > 0 
-                    ? eventsThisYear[0] 
-                    : events.find(event => event && event.event_start_date && event.event_end_date);
-    
-                if (!selectedEvent) {
-                    eventDisplayContainer.textContent += "No valid events found.\n";
-                    return;
-                }
-    
-                // Parse the event's date range
-                const startDateParts = selectedEvent.event_start_date.split("-");
-                const endDateParts = selectedEvent.event_end_date.split("-");
-    
-                const startDate = new Date(
-                    parseInt(startDateParts[0], 10),
-                    parseInt(startDateParts[1], 10) - 1,
-                    parseInt(startDateParts[2], 10)
-                );
-                const endDate = new Date(
-                    parseInt(endDateParts[0], 10),
-                    parseInt(endDateParts[1], 10) - 1,
-                    parseInt(endDateParts[2], 10)
-                );
-    
-                const dateCells = [];
-                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                    const year = d.getFullYear();
-                    const month = (d.getMonth() + 1).toString().padStart(2, '0');
-                    const day = d.getDate().toString().padStart(2, '0');
-                    const cellId = "cell-" + year + "-" + month + "-" + day;
-                    dateCells.push(month + "-" + day + " = " + cellId);
-    
-                    // Highlight the corresponding cell on the calendar
-                    const eventDayCell = document.getElementById(cellId);
-                    if (eventDayCell) {
-                        eventDayCell.style.backgroundColor = "#ffeb3b"; // Highlight cell
-                        eventDayCell.style.color = "#000"; // Adjust text color for readability
-                    } else {
-                        eventDisplayContainer.textContent += `Warning: No cell found for ID ${cellId}\n`;
+
+                validEvents.forEach(function (event) {
+                    const startDateParts = event.event_start_date.split("-");
+                    const endDateParts = event.event_end_date.split("-");
+                    const startDate = new Date(startDateParts[0], startDateParts[1] - 1, startDateParts[2]);
+                    const endDate = new Date(endDateParts[0], endDateParts[1] - 1, endDateParts[2]);
+
+                    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const cellId = "cell-" + year + "-" + month + "-" + day;
+                        const cell = document.getElementById(cellId);
+
+                        if (cell) {
+                            cell.style.backgroundColor = colorMap[event.event_type];
+                            cell.style.color = "#000";
+                        }
                     }
-                }
-    
-                // Display event details and date range results
-                eventDisplayContainer.textContent +=
-                    "Event Title: " + selectedEvent.event_title + "\n" +
-                    "Start Date: " + selectedEvent.event_start_date + "\n" +
-                    "End Date: " + selectedEvent.event_end_date + "\n" +
-                    "Description: " + selectedEvent.event_description + "\n\n" +
-                    "Highlighted Dates:\n" + dateCells.join("\n");
+                });
+
+                eventDisplayContainer.textContent = "Events successfully mapped to the calendar.";
             } else {
-                eventDisplayContainer.textContent = "Error: " + response.status + " - " + response.statusText;
+                eventDisplayContainer.textContent = "Error fetching events: " + response.statusText;
             }
         } catch (error) {
-            eventDisplayContainer.textContent = "Fetch Error: " + error.message;
+            eventDisplayContainer.textContent = "Error fetching event data: " + error.message;
         }
-    }    
+    }   
 
     // Trigger fetchEventData after modal and elements are fully ready
     modalButton.addEventListener('click', () => {
