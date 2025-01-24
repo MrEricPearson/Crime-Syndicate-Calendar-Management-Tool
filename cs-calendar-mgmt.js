@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.31
+// @version      0.32
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -303,54 +303,55 @@ function initializeCalendarTool() {
     async function fetchEventData() {
         try {
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
-    
+
             // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
-    
+
             // Clear previous content in eventDisplayContainer
             eventDisplayContainer.textContent = "";
-    
+
             if (response.status === 200) {
                 const jsonResponse = JSON.parse(response.responseText);
-    
-                // Ensure we work with an array of events
-                const events = Array.isArray(jsonResponse) ? jsonResponse : [jsonResponse];
+
+                // Access the 'events' array from the response
+                const events = jsonResponse.events || [];  // Use an empty array if no events
+
                 eventDisplayContainer.textContent += "Fetched " + events.length + " events from the API.\n";
-    
+
                 // Filter and process events
                 const validEvents = events.filter(event => {
                     if (!event || !event.event_start_date || !event.event_type) {
                         eventDisplayContainer.textContent += "Skipping invalid event: " + JSON.stringify(event) + "\n";
                         return false;
                     }
-    
+
                     const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
                     const validYear = eventYear >= 2025;
                     const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-    
+
                     if (!validYear || !validType) {
                         eventDisplayContainer.textContent += "Skipping out-of-scope event: " + event.event_title + "\n";
                         return false;
                     }
                     return true;
                 });
-    
+
                 if (validEvents.length === 0) {
                     eventDisplayContainer.textContent += "No valid events found for processing.\n";
                     return;
                 }
-    
+
                 // Highlight dates for each valid event
                 validEvents.forEach(event => {
                     const startDate = new Date(event.event_start_date);
                     const endDate = new Date(event.event_end_date);
-    
+
                     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                         const year = d.getFullYear();
                         const month = (d.getMonth() + 1).toString().padStart(2, "0");
                         const day = d.getDate().toString().padStart(2, "0");
                         const cellId = `cell-${year}-${month}-${day}`;
-    
+
                         const eventDayCell = document.getElementById(cellId);
                         if (eventDayCell) {
                             const color = colorMap[event.event_type] || "#dde0cf"; // Default to "other" color
@@ -361,7 +362,7 @@ function initializeCalendarTool() {
                         }
                     }
                 });
-    
+
                 eventDisplayContainer.textContent += "Events processed successfully.\n";
             } else {
                 eventDisplayContainer.textContent = `Error: ${response.status} - ${response.statusText}`;
