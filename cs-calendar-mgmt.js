@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.28
+// @version      0.29
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -305,20 +305,23 @@ function initializeCalendarTool() {
     
                 // Ensure we work with an array of events
                 const events = Array.isArray(jsonResponse) ? jsonResponse : [jsonResponse];
+                eventDisplayContainer.textContent += `Fetched ${events.length} events from the API.\n`;
     
                 // Filter events for the current year
                 const currentYear = 2025;
-                const eventsThisYear = events.filter(function (event) {
-                    console.log("Processing Event:", event); // Log each event
+                const eventsThisYear = events.filter(event => {
                     if (!event || !event.event_start_date) {
-                        console.log("Skipping invalid event:", event);
-                        return false; // Skip invalid or incomplete data
+                        eventDisplayContainer.textContent += `Skipping invalid event: ${JSON.stringify(event)}\n`;
+                        return false;
                     }
                     const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
-                    console.log("Event Year:", eventYear, "Current Year:", currentYear);
+                    eventDisplayContainer.textContent += `Processing event "${event.event_title}" - Year: ${eventYear}\n`;
                     return eventYear === currentYear;
                 });
-                console.log("Events This Year:", eventsThisYear);
+    
+                if (eventsThisYear.length === 0) {
+                    eventDisplayContainer.textContent += "No events match the current year.\n";
+                }
     
                 // Use the filtered event or the first valid one from the response
                 const selectedEvent = eventsThisYear.length > 0 
@@ -326,7 +329,7 @@ function initializeCalendarTool() {
                     : events.find(event => event && event.event_start_date && event.event_end_date);
     
                 if (!selectedEvent) {
-                    eventDisplayContainer.textContent = "No valid events found.";
+                    eventDisplayContainer.textContent += "No valid events found.\n";
                     return;
                 }
     
@@ -358,16 +361,18 @@ function initializeCalendarTool() {
                     if (eventDayCell) {
                         eventDayCell.style.backgroundColor = "#ffeb3b"; // Highlight cell
                         eventDayCell.style.color = "#000"; // Adjust text color for readability
+                    } else {
+                        eventDisplayContainer.textContent += `Warning: No cell found for ID ${cellId}\n`;
                     }
                 }
     
                 // Display event details and date range results
-                eventDisplayContainer.textContent =
+                eventDisplayContainer.textContent +=
                     "Event Title: " + selectedEvent.event_title + "\n" +
                     "Start Date: " + selectedEvent.event_start_date + "\n" +
                     "End Date: " + selectedEvent.event_end_date + "\n" +
                     "Description: " + selectedEvent.event_description + "\n\n" +
-                    "Date Range Results:\n" + dateCells.join("\n");
+                    "Highlighted Dates:\n" + dateCells.join("\n");
             } else {
                 eventDisplayContainer.textContent = "Error: " + response.status + " - " + response.statusText;
             }
