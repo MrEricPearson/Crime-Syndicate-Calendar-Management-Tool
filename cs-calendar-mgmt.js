@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.32
+// @version      0.33
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -207,6 +207,15 @@ function initializeCalendarTool() {
             const cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
             dayElem.id = cellId;
     
+            // Inject MM-DD inside the cell for visual identification
+            const dateText = document.createElement('span');
+            dateText.textContent = `${cellMonth}-${cellDay}`;
+            dateText.style.position = 'absolute';
+            dateText.style.top = '5px';
+            dateText.style.right = '5px';
+            dateText.style.fontSize = '0.8em';
+            dateText.style.color = '#333';
+    
             // Apply styles based on day type
             if (d.class === 'prev' || d.class === 'next') {
                 dayElem.style.backgroundColor = '#ecf1ed';
@@ -222,18 +231,13 @@ function initializeCalendarTool() {
             dayElem.style.position = 'relative';
             dayElem.style.borderRadius = '8px';
     
-            const dateNumber = document.createElement('span');
-            dateNumber.textContent = d.day;
-            dateNumber.style.position = 'absolute';
-            dateNumber.style.bottom = '5px';
-            dateNumber.style.left = '5px';
-    
+            // Clear existing text and append the new text element
             dayElem.textContent = ''; // Clear text content to avoid duplicate numbers
-            dayElem.appendChild(dateNumber);
-    
+            dayElem.appendChild(dateText); // Add MM-DD text to the cell
             calendarGrid.appendChild(dayElem);
         });
-    };    
+    };
+       
 
     let currentMonthIndex = 0;
     let currentYear = 2025;
