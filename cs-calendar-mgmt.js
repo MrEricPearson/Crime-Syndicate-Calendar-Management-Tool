@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.44
+// @version      0.45
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -344,9 +344,6 @@ function initializeCalendarTool() {
         try {
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
     
-            // Log fetching attempt
-            logToContainer(`Attempting to fetch data from ${endpoint}...`);
-    
             // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
     
@@ -376,7 +373,6 @@ function initializeCalendarTool() {
     
             // Process the events array
             const events = jsonResponse.events || [];
-            logToContainer(`Fetched ${events.length} events.`);
     
             const validEvents = events.filter((event) => {
                 if (!event || !event.event_start_date || !event.event_type) {
@@ -390,7 +386,6 @@ function initializeCalendarTool() {
                 const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
     
                 if (!validYear || !validMonth || !validType) {
-                    logToContainer(`Skipping out-of-scope event: ${event.event_title || "Unknown"}`, true);
                     return false;
                 }
                 return true;
@@ -401,18 +396,25 @@ function initializeCalendarTool() {
                 return;
             }
     
-            // Highlight dates for each valid event
+            // Convert UTC-0 time to local time
+            function convertToLocalTime(utcDate) {
+                const date = new Date(utcDate);
+                const localDate = new Date(date.toLocaleString()); // Automatically converts to local timezone
+                return localDate;
+            }
+
+            // Use this conversion method when processing event start and end dates
             validEvents.forEach((event) => {
-                const startDate = new Date(event.event_start_date);
-                const endDate = new Date(event.event_end_date);
-            
+                const startDate = convertToLocalTime(event.event_start_date);
+                const endDate = convertToLocalTime(event.event_end_date);
+                
                 // Ensure the start date is correctly handled at month boundaries
                 for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                     const year = d.getFullYear();
                     const month = (d.getMonth() + 1).toString().padStart(2, "0"); // Account for month transition
                     const day = d.getDate().toString().padStart(2, "0");
                     const cellId = `cell-${year}-${month}-${day}`;
-            
+                    
                     // Check if the cell exists for that date, or if it's out of bounds
                     const eventDayCell = document.getElementById(cellId);
                     if (eventDayCell) {
@@ -423,9 +425,8 @@ function initializeCalendarTool() {
                         logToContainer(`Warning: No cell found for ID ${cellId}`, true);
                     }
                 }
-            });            
+            });
     
-            logToContainer("Events processed successfully.");
         } catch (error) {
             logToContainer(`Fetch Error: ${error.message}`, true);
         }
