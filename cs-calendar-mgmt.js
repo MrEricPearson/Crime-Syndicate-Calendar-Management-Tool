@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.43
+// @version      0.44
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -380,7 +380,6 @@ function initializeCalendarTool() {
     
             const validEvents = events.filter((event) => {
                 if (!event || !event.event_start_date || !event.event_type) {
-                    logToContainer(`Skipping invalid event: ${JSON.stringify(event)}`, true);
                     return false;
                 }
     
@@ -406,23 +405,25 @@ function initializeCalendarTool() {
             validEvents.forEach((event) => {
                 const startDate = new Date(event.event_start_date);
                 const endDate = new Date(event.event_end_date);
-    
+            
+                // Ensure the start date is correctly handled at month boundaries
                 for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                     const year = d.getFullYear();
-                    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+                    const month = (d.getMonth() + 1).toString().padStart(2, "0"); // Account for month transition
                     const day = d.getDate().toString().padStart(2, "0");
                     const cellId = `cell-${year}-${month}-${day}`;
-    
+            
+                    // Check if the cell exists for that date, or if it's out of bounds
                     const eventDayCell = document.getElementById(cellId);
                     if (eventDayCell) {
                         const color = colorMap[event.event_type] || "#dde0cf"; // Default to "other" color
                         eventDayCell.style.backgroundColor = color;
                         eventDayCell.style.color = "#000"; // Adjust text color for readability
                     } else {
-                        logToContainer(`Warning: No cell found for ID ${cellId}`);
+                        logToContainer(`Warning: No cell found for ID ${cellId}`, true);
                     }
                 }
-            });
+            });            
     
             logToContainer("Events processed successfully.");
         } catch (error) {
