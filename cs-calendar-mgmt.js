@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.42
+// @version      0.43
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -271,18 +271,18 @@ function initializeCalendarTool() {
     const updateCalendar = () => {
         monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`; // Include year
         renderCalendar(currentYear, currentMonthIndex);
-        fetchEventData(); // Reapply event highlighting after rendering the calendar
+        fetchEventData(); // Fetch and apply events for the current month
     };    
 
     cardBackButton.addEventListener('click', () => {
         // Prevent going backward past January 2025
         if (currentYear === 2025 && currentMonthIndex === 0) return;
-
+    
         currentMonthIndex = (currentMonthIndex === 0) ? 11 : currentMonthIndex - 1;
         if (currentMonthIndex === 11) currentYear--;
         updateCalendar();
     });
-
+    
     cardForwardButton.addEventListener('click', () => {
         currentMonthIndex = (currentMonthIndex === 11) ? 0 : currentMonthIndex + 1;
         if (currentMonthIndex === 0) currentYear++;
@@ -343,29 +343,29 @@ function initializeCalendarTool() {
     async function fetchEventData() {
         try {
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
-
+    
             // Log fetching attempt
             logToContainer(`Attempting to fetch data from ${endpoint}...`);
-
+    
             // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
-
+    
             // Validate response structure
             if (!response || typeof response !== "object") {
                 logToContainer("Error: Invalid response from PDA_httpGet.", true);
                 return;
             }
-
+    
             // Parse response content
             const status = response.status;
             const statusText = response.statusText;
             const responseText = response.responseText;
-
+    
             if (status !== 200) {
                 logToContainer(`Error: Received status ${status} - ${statusText}`, true);
                 return;
             }
-
+    
             let jsonResponse;
             try {
                 jsonResponse = JSON.parse(responseText);
@@ -373,44 +373,46 @@ function initializeCalendarTool() {
                 logToContainer("Error: Unable to parse response JSON.", true);
                 return;
             }
-
+    
             // Process the events array
             const events = jsonResponse.events || [];
             logToContainer(`Fetched ${events.length} events.`);
-
+    
             const validEvents = events.filter((event) => {
                 if (!event || !event.event_start_date || !event.event_type) {
                     logToContainer(`Skipping invalid event: ${JSON.stringify(event)}`, true);
                     return false;
                 }
-
+    
                 const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
-                const validYear = eventYear >= 2025;
+                const eventMonth = parseInt(event.event_start_date.split("-")[1], 10) - 1; // 0-based month
+                const validYear = eventYear === currentYear;
+                const validMonth = eventMonth === currentMonthIndex;
                 const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-
-                if (!validYear || !validType) {
+    
+                if (!validYear || !validMonth || !validType) {
                     logToContainer(`Skipping out-of-scope event: ${event.event_title || "Unknown"}`, true);
                     return false;
                 }
                 return true;
             });
-
+    
             if (validEvents.length === 0) {
-                logToContainer("No valid events found for processing.");
+                logToContainer("No valid events found for this month.");
                 return;
             }
-
+    
             // Highlight dates for each valid event
             validEvents.forEach((event) => {
                 const startDate = new Date(event.event_start_date);
                 const endDate = new Date(event.event_end_date);
-
+    
                 for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                     const year = d.getFullYear();
                     const month = (d.getMonth() + 1).toString().padStart(2, "0");
                     const day = d.getDate().toString().padStart(2, "0");
                     const cellId = `cell-${year}-${month}-${day}`;
-
+    
                     const eventDayCell = document.getElementById(cellId);
                     if (eventDayCell) {
                         const color = colorMap[event.event_type] || "#dde0cf"; // Default to "other" color
@@ -421,12 +423,12 @@ function initializeCalendarTool() {
                     }
                 }
             });
-
+    
             logToContainer("Events processed successfully.");
         } catch (error) {
             logToContainer(`Fetch Error: ${error.message}`, true);
         }
-    }
+    }    
 
     // Update initialization for event logging
     modalButton.addEventListener("click", () => {
