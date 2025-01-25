@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.39
+// @version      0.40
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -162,6 +162,12 @@ function initializeCalendarTool() {
     const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
 
     const renderCalendar = (year, month) => {
+        // Clear all event highlights from previous months
+        Array.from(calendarGrid.querySelectorAll('.day.current')).forEach(dayCell => {
+            dayCell.style.backgroundColor = '#eff4f1'; // Default background color
+            dayCell.style.color = '#333333'; // Default text color
+        });
+
         calendarGrid.innerHTML = ''; // Clear previous grid
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = getDaysInMonth(year, month);
@@ -265,7 +271,8 @@ function initializeCalendarTool() {
     const updateCalendar = () => {
         monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`; // Include year
         renderCalendar(currentYear, currentMonthIndex);
-    };
+        fetchEventData(); // Reapply event highlighting after rendering the calendar
+    };    
 
     cardBackButton.addEventListener('click', () => {
         // Prevent going backward past January 2025
@@ -343,22 +350,30 @@ function initializeCalendarTool() {
                 eventDisplayContainer.textContent += "Fetched " + events.length + " events from the API.\n";
 
                 // Filter and process events
-                const validEvents = events.filter(event => {
-                    if (!event || !event.event_start_date || !event.event_type) {
-                        eventDisplayContainer.textContent += "Skipping invalid event: " + JSON.stringify(event) + "\n";
-                        return false;
+                validEvents.forEach(event => {
+                    const startDate = new Date(event.event_start_date);
+                    const endDate = new Date(event.event_end_date);
+                
+                    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                        const year = d.getFullYear();
+                        const month = d.getMonth();
+                        
+                        // Process events only if they belong to the currently displayed year and month
+                        if (year === currentYear && month === currentMonthIndex) {
+                            const day = d.getDate().toString().padStart(2, "0");
+                            const cellId = `cell-${year}-${(month + 1).toString().padStart(2, "0")}-${day}`;
+                
+                            const eventDayCell = document.getElementById(cellId);
+                            if (eventDayCell) {
+                                const color = colorMap[event.event_type] || "#dde0cf"; // Default to "other" color
+                                eventDayCell.style.backgroundColor = color;
+                                eventDayCell.style.color = "#000"; // Adjust text color for readability
+                            } else {
+                                eventDisplayContainer.textContent += `Warning: No cell found for ID ${cellId}\n`;
+                            }
+                        }
                     }
-
-                    const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
-                    const validYear = eventYear >= 2025;
-                    const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-
-                    if (!validYear || !validType) {
-                        eventDisplayContainer.textContent += "Skipping out-of-scope event: " + event.event_title + "\n";
-                        return false;
-                    }
-                    return true;
-                });
+                });                
 
                 if (validEvents.length === 0) {
                     eventDisplayContainer.textContent += "No valid events found for processing.\n";
