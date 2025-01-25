@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.41
+// @version      0.42
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -330,90 +330,108 @@ function initializeCalendarTool() {
     // Append the scrollable area to the modal
     modal.appendChild(eventDisplayContainer);
 
+    // Create a utility function for logging to eventDisplayContainer
+    function logToContainer(message, isError = false) {
+        const logEntry = document.createElement("div");
+        logEntry.textContent = message;
+        logEntry.style.color = isError ? "#ff0000" : "#333333"; // Red for errors, default for normal logs
+        eventDisplayContainer.appendChild(logEntry);
+        eventDisplayContainer.scrollTop = eventDisplayContainer.scrollHeight; // Auto-scroll to the bottom
+    }
+
     // Fetch and process data using PDA_httpGet
     async function fetchEventData() {
         try {
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
 
+            // Log fetching attempt
+            logToContainer(`Attempting to fetch data from ${endpoint}...`);
+
             // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
 
-            // Check if the response is valid
-            if (!response || typeof response !== 'object') {
-                eventDisplayContainer.textContent = "Error: Invalid response from PDA_httpGet.";
+            // Validate response structure
+            if (!response || typeof response !== "object") {
+                logToContainer("Error: Invalid response from PDA_httpGet.", true);
                 return;
             }
 
-            // Clear previous content in eventDisplayContainer
-            eventDisplayContainer.textContent = "";
+            // Parse response content
+            const status = response.status;
+            const statusText = response.statusText;
+            const responseText = response.responseText;
 
-            // Process the response
-            if (response.status === 200) {
-                const jsonResponse = JSON.parse(response.responseText);
+            if (status !== 200) {
+                logToContainer(`Error: Received status ${status} - ${statusText}`, true);
+                return;
+            }
 
-                // Access the 'events' array from the response
-                const events = jsonResponse.events || []; // Use an empty array if no events
+            let jsonResponse;
+            try {
+                jsonResponse = JSON.parse(responseText);
+            } catch (e) {
+                logToContainer("Error: Unable to parse response JSON.", true);
+                return;
+            }
 
-                eventDisplayContainer.textContent += "Fetched " + events.length + " events from the API.\n";
+            // Process the events array
+            const events = jsonResponse.events || [];
+            logToContainer(`Fetched ${events.length} events.`);
 
-                // Filter and process events
-                const validEvents = events.filter(event => {
-                    if (!event || !event.event_start_date || !event.event_type) {
-                        eventDisplayContainer.textContent += "Skipping invalid event: " + JSON.stringify(event) + "\n";
-                        return false;
-                    }
-
-                    const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
-                    const validYear = eventYear >= 2025;
-                    const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-
-                    if (!validYear || !validType) {
-                        eventDisplayContainer.textContent += "Skipping out-of-scope event: " + event.event_title + "\n";
-                        return false;
-                    }
-                    return true;
-                });
-
-                if (validEvents.length === 0) {
-                    eventDisplayContainer.textContent += "No valid events found for processing.\n";
-                    return;
+            const validEvents = events.filter((event) => {
+                if (!event || !event.event_start_date || !event.event_type) {
+                    logToContainer(`Skipping invalid event: ${JSON.stringify(event)}`, true);
+                    return false;
                 }
 
-                // Highlight dates for each valid event
-                validEvents.forEach(event => {
-                    const startDate = new Date(event.event_start_date);
-                    const endDate = new Date(event.event_end_date);
+                const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
+                const validYear = eventYear >= 2025;
+                const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
 
-                    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                        const year = d.getFullYear();
-                        const month = (d.getMonth() + 1).toString().padStart(2, "0");
-                        const day = d.getDate().toString().padStart(2, "0");
-                        const cellId = `cell-${year}-${month}-${day}`;
+                if (!validYear || !validType) {
+                    logToContainer(`Skipping out-of-scope event: ${event.event_title || "Unknown"}`, true);
+                    return false;
+                }
+                return true;
+            });
 
-                        const eventDayCell = document.getElementById(cellId);
-                        if (eventDayCell) {
-                            const color = colorMap[event.event_type] || "#dde0cf"; // Default to "other" color
-                            eventDayCell.style.backgroundColor = color;
-                            eventDayCell.style.color = "#000"; // Adjust text color for readability
-                        } else {
-                            eventDisplayContainer.textContent += `Warning: No cell found for ID ${cellId}\n`;
-                        }
-                    }
-                });
-
-                eventDisplayContainer.textContent += "Events processed successfully.\n";
-            } else {
-                eventDisplayContainer.textContent = `Error: ${response.status} - ${response.statusText}`;
+            if (validEvents.length === 0) {
+                logToContainer("No valid events found for processing.");
+                return;
             }
+
+            // Highlight dates for each valid event
+            validEvents.forEach((event) => {
+                const startDate = new Date(event.event_start_date);
+                const endDate = new Date(event.event_end_date);
+
+                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                    const year = d.getFullYear();
+                    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+                    const day = d.getDate().toString().padStart(2, "0");
+                    const cellId = `cell-${year}-${month}-${day}`;
+
+                    const eventDayCell = document.getElementById(cellId);
+                    if (eventDayCell) {
+                        const color = colorMap[event.event_type] || "#dde0cf"; // Default to "other" color
+                        eventDayCell.style.backgroundColor = color;
+                        eventDayCell.style.color = "#000"; // Adjust text color for readability
+                    } else {
+                        logToContainer(`Warning: No cell found for ID ${cellId}`);
+                    }
+                }
+            });
+
+            logToContainer("Events processed successfully.");
         } catch (error) {
-            eventDisplayContainer.textContent = `Fetch Error: ${error.message}`;
+            logToContainer(`Fetch Error: ${error.message}`, true);
         }
     }
-    
-    // Trigger fetchEventData after modal and elements are fully ready
-    modalButton.addEventListener('click', () => {
-        modal.style.display = 'flex';
-        fetchEventData(); // Now fetch and process data once the modal is opened
+
+    // Update initialization for event logging
+    modalButton.addEventListener("click", () => {
+        modal.style.display = "flex";
+        fetchEventData();
     });
 
     // END EVENT DISPLAY SECTION
