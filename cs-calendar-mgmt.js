@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.46
+// @version      0.47
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -342,95 +342,106 @@ function initializeCalendarTool() {
     // Fetch and process data using PDA_httpGet
     async function fetchEventData() {
         try {
-            const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
-    
-            // Make GET request using PDA_httpGet
-            const response = await PDA_httpGet(endpoint);
-    
-            // Validate response structure
-            if (!response || typeof response !== "object") {
-                logToContainer("Error: Invalid response from PDA_httpGet.", true);
-                return;
-            }
-    
-            // Parse response content
-            const status = response.status;
-            const statusText = response.statusText;
-            const responseText = response.responseText;
-    
-            if (status !== 200) {
-                logToContainer(`Error: Received status ${status} - ${statusText}`, true);
-                return;
-            }
-    
-            let jsonResponse;
-            try {
-                jsonResponse = JSON.parse(responseText);
-            } catch (e) {
-                logToContainer("Error: Unable to parse response JSON.", true);
-                return;
-            }
-    
-            // Process the events array
-            const events = jsonResponse.events || [];
-    
-            const validEvents = events.filter((event) => {
-                if (!event || !event.event_start_date || !event.event_type) {
-                    return false;
-                }
-    
-                const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
-                const eventMonth = parseInt(event.event_start_date.split("-")[1], 10) - 1; // 0-based month
-                const validYear = eventYear === currentYear;
-                const validMonth = eventMonth === currentMonthIndex;
-                const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-    
-                if (!validYear || !validMonth || !validType) {
-                    return false;
-                }
-                return true;
-            });
-    
-            if (validEvents.length === 0) {
-                logToContainer("No valid events found for this month.");
-                return;
-            }
-    
-            function parseDateAsUTC(dateString) {
-                const [year, month, day] = dateString.split("-").map(Number);
-                return new Date(Date.UTC(year, month - 1, day));
-            }
+            const storedEvents = localStorage.getItem("eventsData"); // Check if events data is stored in localStorage
             
-            function convertToLocalTime(utcDate) {
-                return parseDateAsUTC(utcDate); // No local conversion needed
-            }
-            
-            // Process events with corrected parsing
-            validEvents.forEach((event) => {
-                const startDate = parseDateAsUTC(event.event_start_date);
-                const endDate = parseDateAsUTC(event.event_end_date);
-                
-                for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
-                    const year = d.getUTCFullYear();
-                    const month = String(d.getUTCMonth() + 1).padStart(2, "0");
-                    const day = String(d.getUTCDate()).padStart(2, "0");
-                    const cellId = `cell-${year}-${month}-${day}`;
-                    
-                    const eventDayCell = document.getElementById(cellId);
-                    if (eventDayCell) {
-                        const color = colorMap[event.event_type] || "#dde0cf";
-                        eventDayCell.style.backgroundColor = color;
-                    } else {
-                        console.warn("No cell found for ID", cellId);
-                    }
+            if (storedEvents) {
+                // If events data is found in localStorage, use it
+                const events = JSON.parse(storedEvents);
+                processEvents(events); // Process the events just like in the API call
+                logToContainer("Loaded events from local storage.");
+            } else {
+                // If no data is found, make the API request
+                const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
+        
+                // Make GET request using PDA_httpGet
+                const response = await PDA_httpGet(endpoint);
+        
+                // Validate response structure
+                if (!response || typeof response !== "object") {
+                    logToContainer("Error: Invalid response from PDA_httpGet.", true);
+                    return;
                 }
-            });
-            
-    
+        
+                // Parse response content
+                const status = response.status;
+                const statusText = response.statusText;
+                const responseText = response.responseText;
+        
+                if (status !== 200) {
+                    logToContainer(`Error: Received status ${status} - ${statusText}`, true);
+                    return;
+                }
+        
+                let jsonResponse;
+                try {
+                    jsonResponse = JSON.parse(responseText);
+                } catch (e) {
+                    logToContainer("Error: Unable to parse response JSON.", true);
+                    return;
+                }
+        
+                const events = jsonResponse.events || [];
+        
+                // Store the fetched events in localStorage for future use
+                localStorage.setItem("eventsData", JSON.stringify(events));
+        
+                // Process events
+                processEvents(events);
+            }
         } catch (error) {
             logToContainer(`Fetch Error: ${error.message}`, true);
         }
-    }    
+    }
+
+    // Process and display the events
+    function processEvents(events) {
+        const validEvents = events.filter((event) => {
+            if (!event || !event.event_start_date || !event.event_type) {
+                return false;
+            }
+            const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
+            const eventMonth = parseInt(event.event_start_date.split("-")[1], 10) - 1; // 0-based month
+            const validYear = eventYear === currentYear;
+            const validMonth = eventMonth === currentMonthIndex;
+            const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
+
+            if (!validYear || !validMonth || !validType) {
+                return false;
+            }
+            return true;
+        });
+
+        if (validEvents.length === 0) {
+            logToContainer("No valid events found for this month.");
+            return;
+        }
+
+        validEvents.forEach((event) => {
+            const startDate = parseDateAsUTC(event.event_start_date);
+            const endDate = parseDateAsUTC(event.event_end_date);
+            
+            for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
+                const year = d.getUTCFullYear();
+                const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+                const day = String(d.getUTCDate()).padStart(2, "0");
+                const cellId = `cell-${year}-${month}-${day}`;
+                
+                const eventDayCell = document.getElementById(cellId);
+                if (eventDayCell) {
+                    const color = colorMap[event.event_type] || "#dde0cf";
+                    eventDayCell.style.backgroundColor = color;
+                } else {
+                    console.warn("No cell found for ID", cellId);
+                }
+            }
+        });
+    }
+
+    // Handle clearing of local storage when the back button is clicked
+    backButton.addEventListener("click", () => {
+        modal.style.display = 'none';
+        localStorage.removeItem("eventsData"); // Clear events data when modal is closed
+    });
 
     // Update initialization for event logging
     modalButton.addEventListener("click", () => {
