@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.4
+// @version      0.1.5
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -252,15 +252,15 @@ function initializeCalendarTool() {
             calendarGrid.appendChild(dayElem);
     
             // Logic to identify week boundaries
-            if (index % 7 === 0) {
-                // Start of a new week
-                if (currentWeekStart !== null) {
-                    // Mark the end of the previous week
-                    currentWeekEnd = dayElem;
-                    currentWeekEnd.setAttribute("data-week-end", "true");
-                    currentWeekEnd.appendChild(createBoundaryText("end"));
-                }
-                // Mark the start of this week
+            if (index % 7 === 0 && currentWeekStart !== null) {
+                // Mark the end of the previous week (one cell before the new week's start)
+                currentWeekEnd = calendarGrid.children[index - 1];
+                currentWeekEnd.setAttribute("data-week-end", "true");
+                currentWeekEnd.appendChild(createBoundaryText("end"));
+            }
+    
+            // Mark the start of this week
+            if (d.isCurrentMonth) {
                 currentWeekStart = dayElem;
                 currentWeekStart.setAttribute("data-week-start", "true");
                 currentWeekStart.appendChild(createBoundaryText("start"));
@@ -278,7 +278,7 @@ function initializeCalendarTool() {
             boundaryText.style.padding = '2px';
             return boundaryText;
         }
-    };    
+    };     
 
     let currentMonthIndex = 0;
     let currentYear = 2025;
