@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.45
+// @version      0.46
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -396,36 +396,36 @@ function initializeCalendarTool() {
                 return;
             }
     
-            // Convert UTC-0 time to local time
-            function convertToLocalTime(utcDate) {
-                const date = new Date(utcDate);
-                const localDate = new Date(date.toLocaleString()); // Automatically converts to local timezone
-                return localDate;
+            function parseDateAsUTC(dateString) {
+                const [year, month, day] = dateString.split("-").map(Number);
+                return new Date(Date.UTC(year, month - 1, day));
             }
-
-            // Use this conversion method when processing event start and end dates
+            
+            function convertToLocalTime(utcDate) {
+                return parseDateAsUTC(utcDate); // No local conversion needed
+            }
+            
+            // Process events with corrected parsing
             validEvents.forEach((event) => {
-                const startDate = convertToLocalTime(event.event_start_date);
-                const endDate = convertToLocalTime(event.event_end_date);
+                const startDate = parseDateAsUTC(event.event_start_date);
+                const endDate = parseDateAsUTC(event.event_end_date);
                 
-                // Ensure the start date is correctly handled at month boundaries
-                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                    const year = d.getFullYear();
-                    const month = (d.getMonth() + 1).toString().padStart(2, "0"); // Account for month transition
-                    const day = d.getDate().toString().padStart(2, "0");
+                for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
+                    const year = d.getUTCFullYear();
+                    const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+                    const day = String(d.getUTCDate()).padStart(2, "0");
                     const cellId = `cell-${year}-${month}-${day}`;
                     
-                    // Check if the cell exists for that date, or if it's out of bounds
                     const eventDayCell = document.getElementById(cellId);
                     if (eventDayCell) {
-                        const color = colorMap[event.event_type] || "#dde0cf"; // Default to "other" color
+                        const color = colorMap[event.event_type] || "#dde0cf";
                         eventDayCell.style.backgroundColor = color;
-                        eventDayCell.style.color = "#000"; // Adjust text color for readability
                     } else {
-                        logToContainer(`Warning: No cell found for ID ${cellId}`, true);
+                        console.warn("No cell found for ID", cellId);
                     }
                 }
             });
+            
     
         } catch (error) {
             logToContainer(`Fetch Error: ${error.message}`, true);
