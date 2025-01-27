@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.2
+// @version      0.1.3
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -166,12 +166,6 @@ function initializeCalendarTool() {
         Array.from(calendarGrid.querySelectorAll('.day.current')).forEach(dayCell => {
             dayCell.style.backgroundColor = '#eff4f1'; // Default background color
             dayCell.style.color = '#333333'; // Default text color
-        });
-    
-        // Clear any event-related styling (if event classes or ids are used)
-        Array.from(calendarGrid.querySelectorAll('.day.event')).forEach(dayCell => {
-            dayCell.classList.remove('event'); // Remove event-related class
-            dayCell.style.backgroundColor = ''; // Remove event background color
         });
         
         calendarGrid.innerHTML = ''; // Clear previous grid
@@ -395,11 +389,7 @@ function initializeCalendarTool() {
 
     // Process and display the events
     function processEvents(events) {
-        // Clear any previous event highlights
-        Array.from(calendarGrid.querySelectorAll('.day.current')).forEach(dayCell => {
-            dayCell.style.backgroundColor = '#eff4f1'; // Reset to default background color
-        });
-
+        // Filter out invalid events
         const validEvents = events.filter((event) => {
             if (!event || !event.event_start_date || !event.event_type) {
                 return false;
@@ -416,27 +406,26 @@ function initializeCalendarTool() {
             return true;
         });
 
+        // If no valid events, return early
         if (validEvents.length === 0) {
             return;
         }
 
+        // If there are valid events, just loop through without modifying any cells
         validEvents.forEach((event) => {
             const startDate = parseDateAsUTC(event.event_start_date);
             const endDate = parseDateAsUTC(event.event_end_date);
             
+            // We're not doing anything with the event days, so no coloring or cell modification happens
             for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
+                // You could use this loop if you plan to implement a new visual identification method later
                 const year = d.getUTCFullYear();
                 const month = String(d.getUTCMonth() + 1).padStart(2, "0");
                 const day = String(d.getUTCDate()).padStart(2, "0");
                 const cellId = `cell-${year}-${month}-${day}`;
-                
-                const eventDayCell = document.getElementById(cellId);
-                if (eventDayCell) {
-                    const color = colorMap[event.event_type] || "#dde0cf";
-                    eventDayCell.style.backgroundColor = color;
-                } else {
-                    console.warn("No cell found for ID", cellId);
-                }
+
+                // Just log the event days if needed, for debugging
+                console.log(`Event day: ${cellId}`);
             }
         });
     }
