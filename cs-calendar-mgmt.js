@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.9
+// @version      0.1.10
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -255,7 +255,7 @@ function initializeCalendarTool() {
             if (d.isCurrentMonth && index % 7 === 0) {
                 // Start of a new week
                 if (currentWeekStart !== null) {
-                    // Mark the end of the previous week
+                    // Mark the end of the previous week (previous cell)
                     currentWeekEnd = dayElem;
                     currentWeekEnd.setAttribute("data-week-end", "true");
                     currentWeekEnd.appendChild(createBoundaryText("end"));
@@ -277,6 +277,18 @@ function initializeCalendarTool() {
                 dayElem.setAttribute("data-month-end", "true");
                 dayElem.appendChild(createBoundaryText("end of month"));
             }
+    
+            // Mark the day before the week start as the end of the week
+            if (index % 7 !== 0 && d.isCurrentMonth && days[index - 1].isCurrentMonth) {
+                const prevDayElem = calendarGrid.children[index - 1];
+                // Ensure it's not a peek day or a start/end of month
+                if (!prevDayElem.hasAttribute('data-month-start') && 
+                    !prevDayElem.hasAttribute('data-month-end') && 
+                    !prevDayElem.hasAttribute('data-week-start')) {
+                    prevDayElem.setAttribute("data-week-end", "true");
+                    prevDayElem.appendChild(createBoundaryText("end"));
+                }
+            }
         });
     
         // Utility function to create boundary text
@@ -292,8 +304,8 @@ function initializeCalendarTool() {
             boundaryText.style.padding = '2px';
             return boundaryText;
         }
-    };        
-
+    };
+    
     let currentMonthIndex = 0;
     let currentYear = 2025;
 
