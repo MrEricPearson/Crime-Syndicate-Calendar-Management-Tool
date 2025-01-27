@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.3
+// @version      0.1.4
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -167,15 +167,15 @@ function initializeCalendarTool() {
             dayCell.style.backgroundColor = '#eff4f1'; // Default background color
             dayCell.style.color = '#333333'; // Default text color
         });
-        
+    
         calendarGrid.innerHTML = ''; // Clear previous grid
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = getDaysInMonth(year, month);
         const daysInPrevMonth = getDaysInMonth(year, month - 1);
-        
+    
         const totalCells = 42; // 6 rows * 7 days
         const days = [];
-        
+    
         // Fill previous month's overflow days
         for (let i = firstDay - 1; i >= 0; i--) {
             days.push({
@@ -184,7 +184,7 @@ function initializeCalendarTool() {
                 isCurrentMonth: false, // Mark as not part of the current month
             });
         }
-        
+    
         // Fill current month's days
         for (let i = 1; i <= daysInMonth; i++) {
             days.push({
@@ -193,7 +193,7 @@ function initializeCalendarTool() {
                 isCurrentMonth: true, // Mark as part of the current month
             });
         }
-        
+    
         // Fill next month's overflow days
         while (days.length < totalCells) {
             days.push({
@@ -202,14 +202,17 @@ function initializeCalendarTool() {
                 isCurrentMonth: false, // Mark as not part of the current month
             });
         }
-        
+    
+        let currentWeekStart = null;
+        let currentWeekEnd = null;
+    
         days.forEach((d, index) => {
             const dayElem = document.createElement('div');
             dayElem.className = `day ${d.class}`;
             dayElem.textContent = d.day;
-        
+    
             let cellId = null;
-        
+    
             // Assign unique identifier only if the day belongs to the current month
             if (d.isCurrentMonth) {
                 const cellDate = new Date(year, month, d.day);
@@ -219,7 +222,7 @@ function initializeCalendarTool() {
                 cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
                 dayElem.id = cellId;
             }
-        
+    
             // Apply default styles for days
             if (d.class === 'prev' || d.class === 'next') {
                 dayElem.style.backgroundColor = '#ecf1ed';
@@ -228,26 +231,53 @@ function initializeCalendarTool() {
                 dayElem.style.backgroundColor = '#eff4f1';
                 dayElem.style.color = '#333333';
             }
-        
+    
             // General styles for all day elements
             dayElem.style.height = '4em';
             dayElem.style.display = 'block';
             dayElem.style.position = 'relative';
             dayElem.style.borderRadius = '8px';
-        
+    
             // Create and position the day number
             const dateNumber = document.createElement('span');
             dateNumber.textContent = d.day;
             dateNumber.style.position = 'absolute';
             dateNumber.style.bottom = '5px';
             dateNumber.style.left = '5px';
-        
+    
             // Clear text content to avoid duplicate numbers
             dayElem.textContent = '';
             dayElem.appendChild(dateNumber);
-        
+    
             calendarGrid.appendChild(dayElem);
+    
+            // Logic to identify week boundaries
+            if (index % 7 === 0) {
+                // Start of a new week
+                if (currentWeekStart !== null) {
+                    // Mark the end of the previous week
+                    currentWeekEnd = dayElem;
+                    currentWeekEnd.setAttribute("data-week-end", "true");
+                    currentWeekEnd.appendChild(createBoundaryText("end"));
+                }
+                // Mark the start of this week
+                currentWeekStart = dayElem;
+                currentWeekStart.setAttribute("data-week-start", "true");
+                currentWeekStart.appendChild(createBoundaryText("start"));
+            }
         });
+    
+        // Utility function to create boundary text
+        function createBoundaryText(type) {
+            const boundaryText = document.createElement('span');
+            boundaryText.textContent = type === "start" ? "Start of Week" : "End of Week";
+            boundaryText.style.position = 'absolute';
+            boundaryText.style.top = '0';
+            boundaryText.style.right = '0';
+            boundaryText.style.backgroundColor = 'yellow';
+            boundaryText.style.padding = '2px';
+            return boundaryText;
+        }
     };    
 
     let currentMonthIndex = 0;
