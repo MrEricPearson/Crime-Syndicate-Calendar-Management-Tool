@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.12
+// @version      0.1.13
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -281,6 +281,15 @@ function initializeCalendarTool() {
             }
         });
     
+        // Set the height and width of the calendar grid container based on its size
+        const calendarGridHeight = calendarGrid.offsetHeight;
+        const calendarGridWidth = calendarGrid.offsetWidth;
+    
+        // Apply dimensions to calendar container or cell parent container
+        const parentContainer = document.querySelector('.calendar-parent-container'); // Assuming you have this container
+        parentContainer.style.height = `${calendarGridHeight}px`;
+        parentContainer.style.width = `${calendarGridWidth}px`;
+    
         // Utility function to create boundary text
         function createBoundaryText(type) {
             const boundaryText = document.createElement('span');
@@ -294,34 +303,7 @@ function initializeCalendarTool() {
             boundaryText.style.padding = '2px';
             return boundaryText;
         }
-    };  
-    
-    function setCalendarDimensions() {
-        // Get the calendar grid container
-        const calendarGrid = document.querySelector('.calendar-grid');  // Update the class name if needed
-        
-        // Get the dimensions of the calendar grid container
-        const gridWidth = calendarGrid.offsetWidth;
-        const gridHeight = calendarGrid.offsetHeight;
-    
-        console.log('Calendar Grid Width:', gridWidth);
-        console.log('Calendar Grid Height:', gridHeight);
-    
-        // You can now use these values to position event bars
-        // Example of setting the height and width for positioning child elements
-        const eventBars = document.querySelectorAll('.event-bar'); // Assuming event bars have this class
-        
-        eventBars.forEach(eventBar => {
-            eventBar.style.position = 'absolute';
-            // Here you can set the width and height of the bars based on the dimensions
-            eventBar.style.width = `${gridWidth / 7}px`;  // Example for each day taking equal width
-            eventBar.style.height = '20px';  // Example height for the event bars
-            // Additional positioning logic goes here
-        });
-    }
-    
-    // Call the function after rendering the calendar
-    setCalendarDimensions();    
+    };    
     
     let currentMonthIndex = 0;
     let currentYear = 2025;
