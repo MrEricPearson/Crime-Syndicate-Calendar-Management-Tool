@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.48
+// @version      0.49
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -247,7 +247,7 @@ function initializeCalendarTool() {
             dayElem.appendChild(dateNumber);
     
             // Display cellId within the cell if it exists (debugging feature)
-            if (cellId) {
+            /*if (cellId) {
                 // Start of debugging addition
                 const cellIdText = document.createElement('span');
                 cellIdText.textContent = cellId;
@@ -259,7 +259,7 @@ function initializeCalendarTool() {
                 cellIdText.style.color = '#555555';
                 dayElem.appendChild(cellIdText);
                 // End of debugging addition
-            }
+            }*/
     
             calendarGrid.appendChild(dayElem);
         });
@@ -348,7 +348,6 @@ function initializeCalendarTool() {
                 // If events data is found in localStorage, use it
                 const events = JSON.parse(storedEvents);
                 processEvents(events); // Process the events just like in the API call
-                logToContainer("Loaded events from local storage.");
             } else {
                 // If no data is found, make the API request
                 const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
@@ -422,7 +421,6 @@ function initializeCalendarTool() {
         });
 
         if (validEvents.length === 0) {
-            logToContainer("No valid events found for this month.");
             return;
         }
 
