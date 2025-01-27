@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.6
+// @version      0.1.7
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -252,28 +252,39 @@ function initializeCalendarTool() {
             calendarGrid.appendChild(dayElem);
     
             // Logic to identify week boundaries
-            if (d.isCurrentMonth) {
-                if (index % 7 === 0) {
-                    // Start of a new week
-                    if (currentWeekStart !== null) {
-                        // Mark the end of the previous week (one cell before the start of the new week)
-                        currentWeekEnd = calendarGrid.children[index - 1];
-                        currentWeekEnd.setAttribute("data-week-end", "true");
-                        currentWeekEnd.appendChild(createBoundaryText("end"));
-                    }
-    
-                    // Mark the start of this week
-                    currentWeekStart = dayElem;
-                    currentWeekStart.setAttribute("data-week-start", "true");
-                    currentWeekStart.appendChild(createBoundaryText("start"));
+            if (index % 7 === 0) {
+                // Start of a new week
+                if (currentWeekStart !== null) {
+                    // Mark the end of the previous week
+                    currentWeekEnd = dayElem;
+                    currentWeekEnd.setAttribute("data-week-end", "true");
+                    currentWeekEnd.appendChild(createBoundaryText("end"));
                 }
+                // Mark the start of this week
+                currentWeekStart = dayElem;
+                currentWeekStart.setAttribute("data-week-start", "true");
+                currentWeekStart.appendChild(createBoundaryText("start"));
+            }
+    
+            // Detect and label the start of the month
+            if (d.day === 1) {
+                dayElem.setAttribute("data-month-start", "true");
+                dayElem.appendChild(createBoundaryText("start of month"));
+            }
+    
+            // Detect and label the end of the month
+            if (d.day === daysInMonth) {
+                dayElem.setAttribute("data-month-end", "true");
+                dayElem.appendChild(createBoundaryText("end of month"));
             }
         });
     
         // Utility function to create boundary text
         function createBoundaryText(type) {
             const boundaryText = document.createElement('span');
-            boundaryText.textContent = type === "start" ? "Start of Week" : "End of Week";
+            boundaryText.textContent = type === "start" ? "Start of Week" : 
+                                      type === "end" ? "End of Week" :
+                                      type === "start of month" ? "Start of Month" : "End of Month";
             boundaryText.style.position = 'absolute';
             boundaryText.style.top = '0';
             boundaryText.style.right = '0';
