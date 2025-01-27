@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.14
+// @version      0.1.15
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -161,149 +161,141 @@ function initializeCalendarTool() {
 
     const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
 
-    const renderCalendar = (year, month) => {
-        // Clear all event highlights from previous months
-        Array.from(calendarGrid.querySelectorAll('.day.current')).forEach(dayCell => {
-            dayCell.style.backgroundColor = '#eff4f1'; // Default background color
-            dayCell.style.color = '#333333'; // Default text color
+const renderCalendar = (year, month) => {
+    // Clear all event highlights from previous months
+    Array.from(calendarGrid.querySelectorAll('.day.current')).forEach(dayCell => {
+        dayCell.style.backgroundColor = '#eff4f1'; // Default background color
+        dayCell.style.color = '#333333'; // Default text color
+    });
+
+    calendarGrid.innerHTML = ''; // Clear previous grid
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = getDaysInMonth(year, month);
+    const daysInPrevMonth = getDaysInMonth(year, month - 1);
+
+    const totalCells = 42; // 6 rows * 7 days
+    const days = [];
+
+    // Fill previous month's overflow days
+    for (let i = firstDay - 1; i >= 0; i--) {
+        days.push({
+            day: daysInPrevMonth - i,
+            class: 'prev',
+            isCurrentMonth: false, // Mark as not part of the current month
         });
-    
-        calendarGrid.innerHTML = ''; // Clear previous grid
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = getDaysInMonth(year, month);
-        const daysInPrevMonth = getDaysInMonth(year, month - 1);
-    
-        const totalCells = 42; // 6 rows * 7 days
-        const days = [];
-    
-        // Fill previous month's overflow days
-        for (let i = firstDay - 1; i >= 0; i--) {
-            days.push({
-                day: daysInPrevMonth - i,
-                class: 'prev',
-                isCurrentMonth: false, // Mark as not part of the current month
-            });
+    }
+
+    // Fill current month's days
+    for (let i = 1; i <= daysInMonth; i++) {
+        days.push({
+            day: i,
+            class: 'current',
+            isCurrentMonth: true, // Mark as part of the current month
+        });
+    }
+
+    // Fill next month's overflow days
+    while (days.length < totalCells) {
+        days.push({
+            day: days.length - daysInMonth - firstDay + 1,
+            class: 'next',
+            isCurrentMonth: false, // Mark as not part of the current month
+        });
+    }
+
+    let currentWeekStart = null;
+    let currentWeekEnd = null;
+
+    days.forEach((d, index) => {
+        const dayElem = document.createElement('div');
+        dayElem.className = `day ${d.class}`;
+        dayElem.textContent = d.day;
+
+        let cellId = null;
+
+        // Assign unique identifier only if the day belongs to the current month
+        if (d.isCurrentMonth) {
+            const cellDate = new Date(year, month, d.day);
+            const cellYear = cellDate.getFullYear();
+            const cellMonth = String(cellDate.getMonth() + 1).padStart(2, '0'); // Add 1 since months are 0-based
+            const cellDay = String(d.day).padStart(2, '0');
+            cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
+            dayElem.id = cellId;
         }
-    
-        // Fill current month's days
-        for (let i = 1; i <= daysInMonth; i++) {
-            days.push({
-                day: i,
-                class: 'current',
-                isCurrentMonth: true, // Mark as part of the current month
-            });
+
+        // Apply default styles for days
+        if (d.class === 'prev' || d.class === 'next') {
+            dayElem.style.backgroundColor = '#ecf1ed';
+            dayElem.style.color = '#d3d8d4';
+        } else if (d.class === 'current') {
+            dayElem.style.backgroundColor = '#eff4f1';
+            dayElem.style.color = '#333333';
         }
-    
-        // Fill next month's overflow days
-        while (days.length < totalCells) {
-            days.push({
-                day: days.length - daysInMonth - firstDay + 1,
-                class: 'next',
-                isCurrentMonth: false, // Mark as not part of the current month
-            });
-        }
-    
-        let currentWeekStart = null;
-    
-        days.forEach((d, index) => {
-            const dayElem = document.createElement('div');
-            dayElem.className = `day ${d.class}`;
-            dayElem.textContent = d.day;
-    
-            let cellId = null;
-    
-            // Assign unique identifier only if the day belongs to the current month
-            if (d.isCurrentMonth) {
-                const cellDate = new Date(year, month, d.day);
-                const cellYear = cellDate.getFullYear();
-                const cellMonth = String(cellDate.getMonth() + 1).padStart(2, '0'); // Add 1 since months are 0-based
-                const cellDay = String(d.day).padStart(2, '0');
-                cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
-                dayElem.id = cellId;
-            }
-    
-            // Apply default styles for days
-            if (d.class === 'prev' || d.class === 'next') {
-                dayElem.style.backgroundColor = '#ecf1ed';
-                dayElem.style.color = '#d3d8d4';
-            } else if (d.class === 'current') {
-                dayElem.style.backgroundColor = '#eff4f1';
-                dayElem.style.color = '#333333';
-            }
-    
-            // General styles for all day elements
-            dayElem.style.height = '4em';
-            dayElem.style.display = 'block';
-            dayElem.style.position = 'relative';
-            dayElem.style.borderRadius = '8px';
-    
-            // Create and position the day number
-            const dateNumber = document.createElement('span');
-            dateNumber.textContent = d.day;
-            dateNumber.style.position = 'absolute';
-            dateNumber.style.bottom = '5px';
-            dateNumber.style.left = '5px';
-    
-            // Clear text content to avoid duplicate numbers
-            dayElem.textContent = '';
-            dayElem.appendChild(dateNumber);
-    
-            calendarGrid.appendChild(dayElem);
-    
-            // Logic to identify week boundaries only for current month days
-            if (d.isCurrentMonth && index % 7 === 0) {
-                // Start of a new week
-                if (currentWeekStart !== null) {
-                    // Mark the end of the previous week (Saturday, which is index - 1)
-                    const prevDayElem = calendarGrid.children[index - 1];
-                    if (!prevDayElem.classList.contains('prev') && !prevDayElem.classList.contains('next')) {
-                        prevDayElem.setAttribute("data-week-end", "true");
-                        prevDayElem.appendChild(createBoundaryText("end"));
-                    }
+
+        // General styles for all day elements
+        dayElem.style.height = '4em';
+        dayElem.style.display = 'block';
+        dayElem.style.position = 'relative';
+        dayElem.style.borderRadius = '8px';
+
+        // Create and position the day number
+        const dateNumber = document.createElement('span');
+        dateNumber.textContent = d.day;
+        dateNumber.style.position = 'absolute';
+        dateNumber.style.bottom = '5px';
+        dateNumber.style.left = '5px';
+
+        // Clear text content to avoid duplicate numbers
+        dayElem.textContent = '';
+        dayElem.appendChild(dateNumber);
+
+        calendarGrid.appendChild(dayElem);
+
+        // Logic to identify week boundaries only for current month days
+        if (d.isCurrentMonth && index % 7 === 0) {
+            // Start of a new week
+            if (currentWeekStart !== null) {
+                // Mark the end of the previous week (Saturday, which is index - 1)
+                const prevDayElem = calendarGrid.children[index - 1];
+                if (!prevDayElem.classList.contains('prev') && !prevDayElem.classList.contains('next')) {
+                    prevDayElem.setAttribute("data-week-end", "true");
+                    prevDayElem.appendChild(createBoundaryText("end"));
                 }
-                // Mark the start of this week
-                currentWeekStart = dayElem;
-                currentWeekStart.setAttribute("data-week-start", "true");
-                currentWeekStart.appendChild(createBoundaryText("start"));
             }
-    
-            // Detect and label the start of the month only if it's part of the current month
-            if (d.day === 1 && d.isCurrentMonth) {
-                dayElem.setAttribute("data-month-start", "true");
-                dayElem.appendChild(createBoundaryText("start of month"));
-            }
-    
-            // Detect and label the end of the month only if it's part of the current month
-            if (d.day === daysInMonth && d.isCurrentMonth) {
-                dayElem.setAttribute("data-month-end", "true");
-                dayElem.appendChild(createBoundaryText("end of month"));
-            }
-        });
-    
-        // Set the height and width of the calendar grid container based on its size
-        const calendarGridHeight = calendarGrid.offsetHeight;
-        const calendarGridWidth = calendarGrid.offsetWidth;
-    
-        // Apply dimensions to calendar container or card
-        const parentContainer = card || calendarGrid;
-        parentContainer.style.height = `${calendarGridHeight}px`;
-        parentContainer.style.width = `${calendarGridWidth}px`;
-    
-    
-        // Utility function to create boundary text
-        function createBoundaryText(type) {
-            const boundaryText = document.createElement('span');
-            boundaryText.textContent = type === "start" ? "Start of Week" : 
-                                      type === "end" ? "End of Week" :
-                                      type === "start of month" ? "Start of Month" : "End of Month";
-            boundaryText.style.position = 'absolute';
-            boundaryText.style.top = '0';
-            boundaryText.style.right = '0';
-            boundaryText.style.backgroundColor = 'yellow';
-            boundaryText.style.padding = '2px';
-            return boundaryText;
+            // Mark the start of this week
+            currentWeekStart = dayElem;
+            currentWeekStart.setAttribute("data-week-start", "true");
+            currentWeekStart.appendChild(createBoundaryText("start"));
         }
-    };      
+
+        // Detect and label the start of the month only if it's part of the current month
+        if (d.day === 1 && d.isCurrentMonth) {
+            dayElem.setAttribute("data-month-start", "true");
+            dayElem.appendChild(createBoundaryText("start of month"));
+        }
+
+        // Detect and label the end of the month only if it's part of the current month
+        if (d.day === daysInMonth && d.isCurrentMonth) {
+            dayElem.setAttribute("data-month-end", "true");
+            dayElem.appendChild(createBoundaryText("end of month"));
+        }
+    });
+
+    // Utility function to create boundary text
+    function createBoundaryText(type) {
+        const boundaryText = document.createElement('span');
+        boundaryText.textContent = type === "start" ? "Start of Week" : 
+                                  type === "end" ? "End of Week" :
+                                  type === "start of month" ? "Start of Month" : "End of Month";
+        boundaryText.style.position = 'absolute';
+        boundaryText.style.top = '0';
+        boundaryText.style.right = '0';
+        boundaryText.style.backgroundColor = 'yellow';
+        boundaryText.style.padding = '2px';
+        return boundaryText;
+    }
+};
+
     
     let currentMonthIndex = 0;
     let currentYear = 2025;
