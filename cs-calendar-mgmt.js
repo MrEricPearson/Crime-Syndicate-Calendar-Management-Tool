@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.16
+// @version      0.1.17
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -453,50 +453,62 @@ function initializeCalendarTool() {
         
         // Create a Date object in UTC
         return new Date(Date.UTC(year, month, day));
-    }    
-
-    // Process and display the events
-    function processEvents(events) {
-        // Filter out invalid events
-        const validEvents = events.filter((event) => {
-            if (!event || !event.event_start_date || !event.event_type) {
-                return false;
-            }
-            const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
-            const eventMonth = parseInt(event.event_start_date.split("-")[1], 10) - 1; // 0-based month
-            const validYear = eventYear === currentYear;
-            const validMonth = eventMonth === currentMonthIndex;
-            const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-
-            if (!validYear || !validMonth || !validType) {
-                return false;
-            }
-            return true;
-        });
-
-        // If no valid events, return early
-        if (validEvents.length === 0) {
-            return;
-        }
-
-        // If there are valid events, just loop through without modifying any cells
-        validEvents.forEach((event) => {
-            const startDate = parseDateAsUTC(event.event_start_date);
-            const endDate = parseDateAsUTC(event.event_end_date);
-            
-            // We're not doing anything with the event days, so no coloring or cell modification happens
-            for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
-                // You could use this loop if you plan to implement a new visual identification method later
-                const year = d.getUTCFullYear();
-                const month = String(d.getUTCMonth() + 1).padStart(2, "0");
-                const day = String(d.getUTCDate()).padStart(2, "0");
-                const cellId = `cell-${year}-${month}-${day}`;
-
-                // Just log the event days if needed, for debugging
-                console.log(`Event day: ${cellId}`);
-            }
-        });
     }
+    
+    function processEvents(events, calendarGrid, colorMap) {
+        // Clear existing event bars
+        Array.from(calendarGrid.querySelectorAll('.event-bar')).forEach(bar => bar.remove());
+    
+        events.forEach(event => {
+            const { startDate, endDate, event_type } = event;
+            const color = colorMap[event_type] || colorMap.other;
+    
+            // Use parseDateAsUTC to ensure dates are treated as UTC
+            const startDateObj = parseDateAsUTC(startDate);
+            const endDateObj = parseDateAsUTC(endDate);
+    
+            // Iterate over each day in the event range
+            let currentDate = new Date(startDateObj); // Start from the parsed start date
+            while (currentDate <= endDateObj) {
+                const year = currentDate.getUTCFullYear();
+                const month = String(currentDate.getUTCMonth() + 1).padStart(2, '0'); // UTC month
+                const day = String(currentDate.getUTCDate()).padStart(2, '0'); // UTC day
+                const cellId = `cell-${year}-${month}-${day}`;
+                const cell = document.getElementById(cellId);
+    
+                if (cell) {
+                    const weekStart = cell.hasAttribute('data-week-start');
+                    const weekEnd = cell.hasAttribute('data-week-end');
+    
+                    // Create or extend event bar
+                    let bar = cell.querySelector('.event-bar');
+                    if (!bar) {
+                        bar = document.createElement('div');
+                        bar.className = 'event-bar';
+                        bar.style.position = 'absolute';
+                        bar.style.height = '10px'; // Adjust height for visibility
+                        bar.style.backgroundColor = color;
+                        bar.style.bottom = '5px';
+                        bar.style.left = '0';
+                        bar.style.right = '0';
+                        bar.style.borderRadius = '5px'; // Add rounding for a sleek look
+                        cell.appendChild(bar);
+                    }
+    
+                    // Handle week boundary conditions
+                    if (weekEnd) {
+                        bar.style.right = '50%'; // Stop at the midpoint of the cell
+                    }
+                    if (weekStart) {
+                        bar.style.left = '50%'; // Start at the midpoint of the cell
+                    }
+                }
+    
+                // Move to the next day in UTC
+                currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+            }
+        });
+    }    
 
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
