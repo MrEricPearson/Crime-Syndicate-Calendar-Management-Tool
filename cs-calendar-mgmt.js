@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.17
+// @version      0.1.18
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -9,6 +9,8 @@
 // @match        https://www.torn.com/factions.php*
 // @grant        none
 // ==/UserScript==
+
+let calendarGrid = null; // Declare globally
 
 function initializeCalendarTool() {
     // Map event types to their respective background colors
@@ -147,10 +149,11 @@ function initializeCalendarTool() {
     cardHeader.appendChild(monthTitle);
     cardHeader.appendChild(cardForwardButton);
 
-    const calendarGrid = document.createElement('div');
+    calendarGrid = document.createElement('div'); // Set global variable
     calendarGrid.style.display = 'grid';
     calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
     calendarGrid.style.gridGap = '5px';
+    
     card.appendChild(cardHeader);
     card.appendChild(calendarGrid);
 
@@ -456,6 +459,8 @@ function initializeCalendarTool() {
     }
     
     function processEvents(events, calendarGrid, colorMap) {
+        if (!calendarGrid) return; // Safeguard to prevent execution when calendarGrid is null
+    
         // Clear existing event bars
         Array.from(calendarGrid.querySelectorAll('.event-bar')).forEach(bar => bar.remove());
     
