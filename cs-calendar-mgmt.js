@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.18
+// @version      0.1.19
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -463,6 +463,7 @@ function initializeCalendarTool() {
     
         // Clear existing event bars
         Array.from(calendarGrid.querySelectorAll('.event-bar')).forEach(bar => bar.remove());
+        console.log("Cleared existing event bars");
     
         events.forEach(event => {
             const { startDate, endDate, event_type } = event;
@@ -471,6 +472,8 @@ function initializeCalendarTool() {
             // Use parseDateAsUTC to ensure dates are treated as UTC
             const startDateObj = parseDateAsUTC(startDate);
             const endDateObj = parseDateAsUTC(endDate);
+    
+            console.log(`Processing event ${event.id}: Start Date: ${startDateObj}, End Date: ${endDateObj}, Type: ${event_type}`);
     
             // Iterate over each day in the event range
             let currentDate = new Date(startDateObj); // Start from the parsed start date
@@ -481,9 +484,12 @@ function initializeCalendarTool() {
                 const cellId = `cell-${year}-${month}-${day}`;
                 const cell = document.getElementById(cellId);
     
+                console.log(`Checking cell: ${cellId} for event ${event.id}`);
                 if (cell) {
                     const weekStart = cell.hasAttribute('data-week-start');
                     const weekEnd = cell.hasAttribute('data-week-end');
+                    
+                    console.log(`Found cell for ${cellId}. weekStart: ${weekStart}, weekEnd: ${weekEnd}`);
     
                     // Create or extend event bar
                     let bar = cell.querySelector('.event-bar');
@@ -498,15 +504,21 @@ function initializeCalendarTool() {
                         bar.style.right = '0';
                         bar.style.borderRadius = '5px'; // Add rounding for a sleek look
                         cell.appendChild(bar);
+    
+                        console.log(`Created new event bar for event ${event.id} in cell ${cellId}`);
                     }
     
                     // Handle week boundary conditions
                     if (weekEnd) {
                         bar.style.right = '50%'; // Stop at the midpoint of the cell
+                        console.log(`Event ${event.id} reaches week end boundary, setting right to 50%`);
                     }
                     if (weekStart) {
                         bar.style.left = '50%'; // Start at the midpoint of the cell
+                        console.log(`Event ${event.id} reaches week start boundary, setting left to 50%`);
                     }
+                } else {
+                    console.log(`Cell not found for date ${cellId} in event ${event.id}`);
                 }
     
                 // Move to the next day in UTC
