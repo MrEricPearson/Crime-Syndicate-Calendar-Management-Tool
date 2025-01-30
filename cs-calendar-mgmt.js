@@ -2,7 +2,7 @@
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
 // @version      0.1.32
-// @description  Adds a calendar tool to display, create, manage and edit faction events.
+// @description  Adds a calendar tool to display, create, manage, and edit faction events.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @updateURL    https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
