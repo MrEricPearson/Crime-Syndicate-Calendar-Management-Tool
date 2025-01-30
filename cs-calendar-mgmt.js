@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.34
+// @version      0.1.35
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -466,38 +466,40 @@ function initializeCalendarTool() {
                 }
             }
     
-            // Process event days in sequence
+            // Now, we need to check for conflicts across the entire event's days
+            let eventLayer = 0;
+            let conflictFound = false;
+    
+            // Check all layers for conflicts across the entire event's days
+            eventDays.forEach(({ cellId, objectId }) => {
+                for (let layer = 0; layer <= maxLayer; layer++) {
+                    if (eventBarLayerMap.get(cellId + `-layer-${layer}`)) {
+                        conflictFound = true;
+                        break;
+                    }
+                }
+            });
+    
+            // If there's a conflict, find the next available layer for the entire event
+            if (conflictFound) {
+                while (eventLayer <= maxLayer && eventBarLayerMap.get(eventDays[0].cellId + `-layer-${eventLayer}`)) {
+                    eventLayer++;
+                }
+            }
+    
+            // If we've exceeded the max number of layers, skip this event
+            if (eventLayer > maxLayer) return;
+    
+            // Assign this event to the selected layer for all its days
+            eventDays.forEach(({ cellId }) => {
+                eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true); // Mark each cell as occupied by this event group
+            });
+    
+            // Create event bars for each event day
             eventDays.forEach(({ cellId, objectId }, index) => {
                 console.log(`Event day: ${cellId}`);
                 const eventCell = document.getElementById(cellId);
                 if (!eventCell) return;
-    
-                // Check if this event's days conflict with existing layers for previous groups
-                let eventLayer = 0;
-                let groupConflict = false;
-    
-                // Check all layers for conflicts on the same day for the same group (objectId)
-                for (let layer = 0; layer <= maxLayer; layer++) {
-                    // Check if the cell has already been assigned a bar in this layer
-                    if (eventBarLayerMap.get(cellId + `-layer-${layer}`)) {
-                        groupConflict = true;
-                        break;
-                    }
-                }
-    
-                // If there is a conflict, we promote the group to the next available layer
-                if (groupConflict) {
-                    // Find the next available layer for the group (objectId)
-                    while (eventLayer <= maxLayer && eventBarLayerMap.get(cellId + `-layer-${eventLayer}`)) {
-                        eventLayer++;
-                    }
-                }
-    
-                // If we've exceeded the max number of layers, skip this event
-                if (eventLayer > maxLayer) return;
-    
-                // Mark the layer as occupied for this event
-                eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true);
     
                 // Create a new event bar for this event
                 let eventBar = document.createElement("div");
@@ -563,7 +565,7 @@ function initializeCalendarTool() {
         });
     
         console.log("=== End of Event Days ===");
-    }     
+    }       
     
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
