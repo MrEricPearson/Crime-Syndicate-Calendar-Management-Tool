@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.32
-// @description  Adds a calendar tool to display, create, manage, and edit faction events.
+// @version      0.1.33
+// @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @updateURL    https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -438,7 +438,7 @@ function initializeCalendarTool() {
     
         console.log("=== Matching Event Days for Current Month ===");
     
-        // Track event bars for each cell (date) and layer for stacking
+        // Track event bars for each cell (date), their associated objectId, and layer for stacking
         const eventBarLayerMap = new Map();
         const maxLayer = 3; // Define the maximum number of layers
     
@@ -446,10 +446,11 @@ function initializeCalendarTool() {
             const startDate = parseDateAsUTC(event.event_start_date);
             const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate; // Default to single-day event
             const eventColor = colorMap[event.event_type] || "#000"; // Default to black if event type is missing
+            const eventObjectId = event._id; // Assuming event has a unique `_id`
     
             let eventDays = [];
     
-            // Collect all event days into a set
+            // Collect all event days
             for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
                 const year = d.getUTCFullYear();
                 const month = d.getUTCMonth();
@@ -459,29 +460,29 @@ function initializeCalendarTool() {
                     const formattedMonth = String(month + 1).padStart(2, "0"); // 1-based month
                     const formattedDay = String(day).padStart(2, "0");
                     const cellId = `cell-${year}-${formattedMonth}-${formattedDay}`;
-                    eventDays.push(cellId);
+                    eventDays.push({ cellId, objectId: eventObjectId });
                 }
             }
     
-            // Process event days in sequence, grouped as a set
-            eventDays.forEach((cellId, index) => {
+            // Process event days in sequence
+            eventDays.forEach(({ cellId, objectId }, index) => {
                 console.log(`Event day: ${cellId}`);
                 const eventCell = document.getElementById(cellId);
                 if (!eventCell) return;
     
-                // Check the current event layer for this cell
-                let eventLayer = eventBarLayerMap.get(cellId) || 0; // Default to layer 0 (bottom)
+                // Check the current event layer for this cell (grouped by objectId)
+                let eventLayer = eventBarLayerMap.get(cellId + `-object-${objectId}`) || 0; // Default to layer 0 (bottom)
     
                 // If the layer is occupied, promote the event to the next available layer
-                while (eventLayer <= maxLayer && eventBarLayerMap.get(cellId + `-layer-${eventLayer}`)) {
+                while (eventLayer <= maxLayer && eventBarLayerMap.get(cellId + `-layer-${eventLayer}-object-${objectId}`)) {
                     eventLayer++;
                 }
     
                 // If we have reached maxLayer, the event is not stackable, so skip it
                 if (eventLayer > maxLayer) return;
     
-                // Mark this layer as occupied for this day
-                eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true);
+                // Mark this layer as occupied for this objectId on this day
+                eventBarLayerMap.set(cellId + `-layer-${eventLayer}-object-${objectId}`, true);
     
                 // Create a new event bar for this event
                 let eventBar = document.createElement("div");
