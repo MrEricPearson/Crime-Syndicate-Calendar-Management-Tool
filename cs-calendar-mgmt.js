@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.37
+// @version      0.1.38
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -233,7 +233,7 @@ function initializeCalendarTool() {
             }
     
             // General styles for all day elements
-            dayElem.style.height = '4em';
+            dayElem.style.height = '4.5em';
             dayElem.style.display = 'block';
             dayElem.style.position = 'relative';
             dayElem.style.borderRadius = '8px';
@@ -436,13 +436,16 @@ function initializeCalendarTool() {
             return;
         }
     
-        console.log("=== Matching Event Days for Current Month ===");
+        console.log("=== Analyzing Event Group Levels for Current Month ===");
     
         // Track event bars for each cell (date), their associated objectId, and layer for stacking
         const eventBarLayerMap = new Map();
         const eventBarDayMap = new Map();  // Track which days are already assigned to a layer
     
         const maxLayer = 3; // Define the maximum number of layers
+    
+        // Debugging output for groups and layers
+        let eventAnalysisOutput = []; // Store analysis results for logging
     
         validEvents.forEach((event) => {
             const startDate = parseDateAsUTC(event.event_start_date);
@@ -491,6 +494,13 @@ function initializeCalendarTool() {
             // If we've exceeded the max number of layers, skip this event
             if (eventLayer > maxLayer) return;
     
+            // Store event analysis info for debugging
+            eventAnalysisOutput.push({
+                eventObjectId,
+                eventDays,
+                determinedLayer: eventLayer
+            });
+    
             // Assign this event to the selected layer for all its days
             eventDays.forEach(({ cellId }) => {
                 eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true); // Mark each cell as occupied by this event group
@@ -498,11 +508,9 @@ function initializeCalendarTool() {
     
             // Create event bars for each event day
             eventDays.forEach(({ cellId, objectId }, index) => {
-                console.log(`Event day: ${cellId}`);
                 const eventCell = document.getElementById(cellId);
                 if (!eventCell) return;
     
-                // Create a new event bar for this event
                 let eventBar = document.createElement("div");
                 eventBar.className = "event-bar";
                 eventCell.appendChild(eventBar);
@@ -565,8 +573,17 @@ function initializeCalendarTool() {
             });
         });
     
+        // Log event analysis output for debugging purposes
+        console.log("=== Event Group Level Analysis ===");
+        eventAnalysisOutput.forEach((eventInfo) => {
+            console.log(`Event Object ID: ${eventInfo.eventObjectId}`);
+            console.log("Event Days:", eventInfo.eventDays.map((day) => day.cellId));
+            console.log("Assigned Layer:", eventInfo.determinedLayer);
+            console.log("====================================");
+        });
+    
         console.log("=== End of Event Days ===");
-    }         
+    }            
     
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
