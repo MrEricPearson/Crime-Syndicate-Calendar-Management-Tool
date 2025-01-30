@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.28
+// @version      0.1.29
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -427,29 +427,32 @@ function initializeCalendarTool() {
             const validYear = eventYear === currentYear;
             const validMonth = eventMonth === currentMonthIndex;
             const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-
+    
             return validYear && validMonth && validType;
         });
-
+    
         // If no valid events, return early
         if (validEvents.length === 0) {
             return;
         }
-
+    
         console.log("=== Matching Event Days for Current Month ===");
-
+    
+        // Track how many events exist per cell (stacking logic)
+        const eventCountMap = new Map();
+    
         validEvents.forEach((event) => {
             const startDate = parseDateAsUTC(event.event_start_date);
             const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate; // Default to single-day event
             const eventColor = colorMap[event.event_type] || "#000"; // Default to black if event type is missing
-
+    
             let eventDays = [];
-
+    
             for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
                 const year = d.getUTCFullYear();
                 const month = d.getUTCMonth();
                 const day = d.getUTCDate();
-
+    
                 if (year === currentYear && month === currentMonthIndex) {
                     const formattedMonth = String(month + 1).padStart(2, "0"); // 1-based month
                     const formattedDay = String(day).padStart(2, "0");
@@ -457,37 +460,39 @@ function initializeCalendarTool() {
                     eventDays.push(cellId);
                 }
             }
-
+    
             // Process event days in sequence
             eventDays.forEach((cellId, index) => {
                 console.log(`Event day: ${cellId}`);
                 const eventCell = document.getElementById(cellId);
                 if (!eventCell) return;
-
-                // Create event bar if it doesn't exist
-                let eventBar = eventCell.querySelector(".event-bar");
-                if (!eventBar) {
-                    eventBar = document.createElement("div");
-                    eventBar.className = "event-bar";
-                    eventCell.appendChild(eventBar);
-                }
-
-                // Apply default (normal state) styles
+    
+                // Track event stacking count for this cell
+                const eventStackCount = eventCountMap.get(cellId) || 0;
+                eventCountMap.set(cellId, eventStackCount + 1);
+    
+                // Create new event bar for stacked events
+                let eventBar = document.createElement("div");
+                eventBar.className = "event-bar";
+                eventCell.appendChild(eventBar);
+    
+                // Apply default styles
                 eventBar.style.cssText = `
                     height: 20px;
                     position: absolute;
-                    bottom: 22px;
+                    bottom: ${22 + eventStackCount * 24}px;  /* Stacks bars with spacing */
                     left: 0px;
                     background: ${eventColor};
                     width: calc(100% + 5px);
                     margin-top: 2px;
                 `;
-
+    
                 // First event day
                 if (index === 0) {
                     if (eventCell.getAttribute("data-week-end") === "true") {
-                        // If first event day is also a week-end, adjust width
                         eventBar.style.cssText += `
+                            border-top-left-radius: 12px;
+                            border-bottom-left-radius: 12px;
                             width: calc(100% + 3px);
                             left: 0px;
                         `;
@@ -500,7 +505,7 @@ function initializeCalendarTool() {
                         `;
                     }
                 }
-
+    
                 // Last event day
                 if (index === eventDays.length - 1) {
                     eventBar.style.cssText += `
@@ -509,7 +514,7 @@ function initializeCalendarTool() {
                         width: calc(100% - 2px);
                     `;
                 }
-
+    
                 // Single-day event (first and last are the same)
                 if (eventDays.length === 1) {
                     eventBar.style.cssText += `
@@ -521,16 +526,16 @@ function initializeCalendarTool() {
                         left: 2px;
                     `;
                 }
-
+    
                 // Handle week-ending events
                 if (eventCell.getAttribute("data-week-end") === "true") {
                     eventBar.style.width = "100%";
                 }
             });
         });
-
+    
         console.log("=== End of Event Days ===");
-    }
+    }    
     
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
