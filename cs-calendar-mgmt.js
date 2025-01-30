@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.41
+// @version      0.1.42
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -292,11 +292,12 @@ function initializeCalendarTool() {
         });
     
         // Adjust the height of all cells in rows with extra layers
+        const rowCells = Array.from(calendarGrid.children); // Convert HTMLCollection to array
         rowHeights.forEach((height, rowIndex) => {
             const startIndex = rowIndex * 7;
-            const rowCells = calendarGrid.children.slice(startIndex, startIndex + 7);
+            const rowCellsInRow = rowCells.slice(startIndex, startIndex + 7);
     
-            rowCells.forEach(cell => {
+            rowCellsInRow.forEach(cell => {
                 cell.style.height = `${height}em`;
             });
         });
