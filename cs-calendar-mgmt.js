@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.36
+// @version      0.1.37
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -470,9 +470,9 @@ function initializeCalendarTool() {
             let eventLayer = 0;
             let conflictFound = false;
     
-            // Check all layers for conflicts across the entire event's days
+            // Check for conflicts with adjacent events
             eventDays.forEach(({ cellId, objectId }) => {
-                // If any day has been assigned a layer, that means there is a conflict
+                // Check for conflict with events placed before and after
                 for (let layer = 0; layer <= maxLayer; layer++) {
                     if (eventBarLayerMap.get(cellId + `-layer-${layer}`)) {
                         conflictFound = true;
@@ -566,7 +566,7 @@ function initializeCalendarTool() {
         });
     
         console.log("=== End of Event Days ===");
-    }       
+    }         
     
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
