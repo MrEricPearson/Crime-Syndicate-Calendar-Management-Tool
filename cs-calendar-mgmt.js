@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.29
+// @version      0.1.30
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -438,8 +438,8 @@ function initializeCalendarTool() {
     
         console.log("=== Matching Event Days for Current Month ===");
     
-        // Track how many events exist per cell (stacking logic)
-        const eventCountMap = new Map();
+        // Track event bars for each cell (date) and layer for stacking
+        const eventBarLayerMap = new Map();
     
         validEvents.forEach((event) => {
             const startDate = parseDateAsUTC(event.event_start_date);
@@ -448,6 +448,7 @@ function initializeCalendarTool() {
     
             let eventDays = [];
     
+            // Collect all event days
             for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
                 const year = d.getUTCFullYear();
                 const month = d.getUTCMonth();
@@ -467,11 +468,11 @@ function initializeCalendarTool() {
                 const eventCell = document.getElementById(cellId);
                 if (!eventCell) return;
     
-                // Track event stacking count for this cell
-                const eventStackCount = eventCountMap.get(cellId) || 0;
-                eventCountMap.set(cellId, eventStackCount + 1);
+                // Check the current event layer for this cell
+                let eventLayer = eventBarLayerMap.get(cellId) || 0; // default to 0 if not found
+                eventBarLayerMap.set(cellId, eventLayer + 1); // increment for next event
     
-                // Create new event bar for stacked events
+                // Create a new event bar for this event
                 let eventBar = document.createElement("div");
                 eventBar.className = "event-bar";
                 eventCell.appendChild(eventBar);
@@ -480,7 +481,7 @@ function initializeCalendarTool() {
                 eventBar.style.cssText = `
                     height: 20px;
                     position: absolute;
-                    bottom: ${22 + eventStackCount * 24}px;  /* Stacks bars with spacing */
+                    bottom: ${22 + eventLayer * 24}px;  /* Stacks events with vertical spacing */
                     left: 0px;
                     background: ${eventColor};
                     width: calc(100% + 5px);
