@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.39
+// @version      0.1.40
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -205,6 +205,7 @@ function initializeCalendarTool() {
     
         let currentWeekStart = null;
         let currentWeekEnd = null;
+        let rowHeights = new Array(6).fill(4.5); // Initialize row heights (in em)
     
         days.forEach((d, index) => {
             const dayElem = document.createElement('div');
@@ -275,6 +276,23 @@ function initializeCalendarTool() {
             if (d.day === daysInMonth && d.isCurrentMonth) {
                 dayElem.setAttribute("data-month-end", "true");
             }
+    
+            // Check for any event layers that are added to this cell, and adjust the row height accordingly
+            const eventLayerCount = eventBarLayerMap.get(cellId) ? eventBarLayerMap.get(cellId).length : 0;
+            if (eventLayerCount > 1) {
+                const rowIndex = Math.floor(index / 7); // Determine which row the cell belongs to
+                rowHeights[rowIndex] = Math.max(rowHeights[rowIndex], 4.5 + 22); // Increase row height
+            }
+        });
+    
+        // Adjust the height of all cells in rows with extra layers
+        rowHeights.forEach((height, rowIndex) => {
+            const startIndex = rowIndex * 7;
+            const rowCells = calendarGrid.children.slice(startIndex, startIndex + 7);
+    
+            rowCells.forEach(cell => {
+                cell.style.height = `${height}em`;
+            });
         });
     };    
     
