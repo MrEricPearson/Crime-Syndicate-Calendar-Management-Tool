@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.40
+// @version      0.1.41
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -206,6 +206,9 @@ function initializeCalendarTool() {
         let currentWeekStart = null;
         let currentWeekEnd = null;
         let rowHeights = new Array(6).fill(4.5); // Initialize row heights (in em)
+        
+        // Assuming eventGroupsMap holds the event groupings for each day
+        const eventGroupsMap = {}; // Keyed by cellId, holds arrays of event groups
     
         days.forEach((d, index) => {
             const dayElem = document.createElement('div');
@@ -277,11 +280,14 @@ function initializeCalendarTool() {
                 dayElem.setAttribute("data-month-end", "true");
             }
     
-            // Check for any event layers that are added to this cell, and adjust the row height accordingly
-            const eventLayerCount = eventBarLayerMap.get(cellId) ? eventBarLayerMap.get(cellId).length : 0;
-            if (eventLayerCount > 1) {
-                const rowIndex = Math.floor(index / 7); // Determine which row the cell belongs to
-                rowHeights[rowIndex] = Math.max(rowHeights[rowIndex], 4.5 + 22); // Increase row height
+            // Track event groups assigned to each cell (if any)
+            if (eventGroupsMap[cellId]) {
+                // Increase row height if there are multiple event groups for this day
+                const eventLayerCount = eventGroupsMap[cellId].length;
+                if (eventLayerCount > 1) {
+                    const rowIndex = Math.floor(index / 7); // Determine which row the cell belongs to
+                    rowHeights[rowIndex] = Math.max(rowHeights[rowIndex], 4.5 + 22); // Increase row height
+                }
             }
         });
     
@@ -294,7 +300,7 @@ function initializeCalendarTool() {
                 cell.style.height = `${height}em`;
             });
         });
-    };    
+    };       
     
     let currentMonthIndex = 0;
     let currentYear = 2025;
