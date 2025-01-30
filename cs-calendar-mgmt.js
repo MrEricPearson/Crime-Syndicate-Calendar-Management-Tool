@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.38
+// @version      0.1.39
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -438,6 +438,13 @@ function initializeCalendarTool() {
     
         console.log("=== Analyzing Event Group Levels for Current Month ===");
     
+        // Sort events by start date (chronologically)
+        validEvents.sort((a, b) => {
+            const dateA = new Date(a.event_start_date);
+            const dateB = new Date(b.event_start_date);
+            return dateA - dateB; // Sort in ascending order (earliest first)
+        });
+    
         // Track event bars for each cell (date), their associated objectId, and layer for stacking
         const eventBarLayerMap = new Map();
         const eventBarDayMap = new Map();  // Track which days are already assigned to a layer
@@ -562,7 +569,6 @@ function initializeCalendarTool() {
                         border-top-left-radius: 12px;
                         border-bottom-left-radius: 12px;
                         width: calc(100% - 2px);
-                        left: 2px;
                     `;
                 }
     
@@ -583,7 +589,7 @@ function initializeCalendarTool() {
         });
     
         console.log("=== End of Event Days ===");
-    }            
+    }          
     
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
