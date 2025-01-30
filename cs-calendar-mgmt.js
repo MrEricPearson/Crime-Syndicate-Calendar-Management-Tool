@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.30
+// @version      0.1.31
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -440,6 +440,7 @@ function initializeCalendarTool() {
     
         // Track event bars for each cell (date) and layer for stacking
         const eventBarLayerMap = new Map();
+        const maxLayer = 3; // Define the maximum number of layers
     
         validEvents.forEach((event) => {
             const startDate = parseDateAsUTC(event.event_start_date);
@@ -469,8 +470,18 @@ function initializeCalendarTool() {
                 if (!eventCell) return;
     
                 // Check the current event layer for this cell
-                let eventLayer = eventBarLayerMap.get(cellId) || 0; // default to 0 if not found
-                eventBarLayerMap.set(cellId, eventLayer + 1); // increment for next event
+                let eventLayer = eventBarLayerMap.get(cellId) || 0; // Default to layer 0 (bottom)
+    
+                // If the layer is occupied, promote the event to the next available layer
+                while (eventLayer <= maxLayer && eventBarLayerMap.get(cellId + `-layer-${eventLayer}`)) {
+                    eventLayer++;
+                }
+    
+                // If we have reached maxLayer, the event is not stackable, so skip it
+                if (eventLayer > maxLayer) return;
+    
+                // Mark this layer as occupied for this day
+                eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true);
     
                 // Create a new event bar for this event
                 let eventBar = document.createElement("div");
