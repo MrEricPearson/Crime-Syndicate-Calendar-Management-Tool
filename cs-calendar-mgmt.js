@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.19
+// @version      0.1.20
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -9,8 +9,6 @@
 // @match        https://www.torn.com/factions.php*
 // @grant        none
 // ==/UserScript==
-
-let calendarGrid = null; // Declare globally
 
 function initializeCalendarTool() {
     // Map event types to their respective background colors
@@ -149,11 +147,10 @@ function initializeCalendarTool() {
     cardHeader.appendChild(monthTitle);
     cardHeader.appendChild(cardForwardButton);
 
-    calendarGrid = document.createElement('div'); // Set global variable
+    const calendarGrid = document.createElement('div');
     calendarGrid.style.display = 'grid';
     calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
     calendarGrid.style.gridGap = '5px';
-    
     card.appendChild(cardHeader);
     card.appendChild(calendarGrid);
 
@@ -165,7 +162,6 @@ function initializeCalendarTool() {
     const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
 
     const renderCalendar = (year, month) => {
-
         // Clear all event highlights from previous months
         Array.from(calendarGrid.querySelectorAll('.day.current')).forEach(dayCell => {
             dayCell.style.backgroundColor = '#eff4f1'; // Default background color
@@ -207,29 +203,8 @@ function initializeCalendarTool() {
             });
         }
     
-        // Dynamically observe and update calendarGrid size
-        const observeCalendarGrid = () => {
-            const observer = new ResizeObserver(entries => {
-                for (let entry of entries) {
-                    const { height, width } = entry.contentRect;
-    
-                    // Apply dynamic classes for height and width
-                    calendarGrid.classList.remove(
-                        ...Array.from(calendarGrid.classList).filter(cls => cls.startsWith('height-') || cls.startsWith('width-'))
-                    );
-                    calendarGrid.classList.add(`height-${Math.round(height)}`, `width-${Math.round(width)}`);
-    
-                    // Ensure child elements can use absolute positioning
-                    calendarGrid.style.position = 'relative';
-                }
-            });
-    
-            observer.observe(calendarGrid);
-        };
-    
-        observeCalendarGrid();
-    
         let currentWeekStart = null;
+        let currentWeekEnd = null;
     
         days.forEach((d, index) => {
             const dayElem = document.createElement('div');
@@ -310,8 +285,8 @@ function initializeCalendarTool() {
         function createBoundaryText(type) {
             const boundaryText = document.createElement('span');
             boundaryText.textContent = type === "start" ? "Start of Week" : 
-                                    type === "end" ? "End of Week" :
-                                    type === "start of month" ? "Start of Month" : "End of Month";
+                                      type === "end" ? "End of Week" :
+                                      type === "start of month" ? "Start of Month" : "End of Month";
             boundaryText.style.position = 'absolute';
             boundaryText.style.top = '0';
             boundaryText.style.right = '0';
@@ -456,76 +431,50 @@ function initializeCalendarTool() {
         
         // Create a Date object in UTC
         return new Date(Date.UTC(year, month, day));
-    }
-    
-    function processEvents(events, calendarGrid, colorMap) {
-        if (!calendarGrid) return; // Safeguard to prevent execution when calendarGrid is null
-    
-        // Clear existing event bars
-        Array.from(calendarGrid.querySelectorAll('.event-bar')).forEach(bar => bar.remove());
-        console.log("Cleared existing event bars");
-    
-        events.forEach(event => {
-            const { startDate, endDate, event_type } = event;
-            const color = colorMap[event_type] || colorMap.other;
-    
-            // Use parseDateAsUTC to ensure dates are treated as UTC
-            const startDateObj = parseDateAsUTC(startDate);
-            const endDateObj = parseDateAsUTC(endDate);
-    
-            console.log(`Processing event ${event.id}: Start Date: ${startDateObj}, End Date: ${endDateObj}, Type: ${event_type}`);
-    
-            // Iterate over each day in the event range
-            let currentDate = new Date(startDateObj); // Start from the parsed start date
-            while (currentDate <= endDateObj) {
-                const year = currentDate.getUTCFullYear();
-                const month = String(currentDate.getUTCMonth() + 1).padStart(2, '0'); // UTC month
-                const day = String(currentDate.getUTCDate()).padStart(2, '0'); // UTC day
+    }    
+
+    // Process and display the events
+    function processEvents(events) {
+        // Filter out invalid events
+        const validEvents = events.filter((event) => {
+            if (!event || !event.event_start_date || !event.event_type) {
+                return false;
+            }
+            const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
+            const eventMonth = parseInt(event.event_start_date.split("-")[1], 10) - 1; // 0-based month
+            const validYear = eventYear === currentYear;
+            const validMonth = eventMonth === currentMonthIndex;
+            const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
+
+            if (!validYear || !validMonth || !validType) {
+                return false;
+            }
+            return true;
+        });
+
+        // If no valid events, return early
+        if (validEvents.length === 0) {
+            return;
+        }
+
+        // If there are valid events, just loop through without modifying any cells
+        validEvents.forEach((event) => {
+            const startDate = parseDateAsUTC(event.event_start_date);
+            const endDate = parseDateAsUTC(event.event_end_date);
+            
+            // We're not doing anything with the event days, so no coloring or cell modification happens
+            for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
+                // You could use this loop if you plan to implement a new visual identification method later
+                const year = d.getUTCFullYear();
+                const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+                const day = String(d.getUTCDate()).padStart(2, "0");
                 const cellId = `cell-${year}-${month}-${day}`;
-                const cell = document.getElementById(cellId);
-    
-                console.log(`Checking cell: ${cellId} for event ${event.id}`);
-                if (cell) {
-                    const weekStart = cell.hasAttribute('data-week-start');
-                    const weekEnd = cell.hasAttribute('data-week-end');
-                    
-                    console.log(`Found cell for ${cellId}. weekStart: ${weekStart}, weekEnd: ${weekEnd}`);
-    
-                    // Create or extend event bar
-                    let bar = cell.querySelector('.event-bar');
-                    if (!bar) {
-                        bar = document.createElement('div');
-                        bar.className = 'event-bar';
-                        bar.style.position = 'absolute';
-                        bar.style.height = '10px'; // Adjust height for visibility
-                        bar.style.backgroundColor = color;
-                        bar.style.bottom = '5px';
-                        bar.style.left = '0';
-                        bar.style.right = '0';
-                        bar.style.borderRadius = '5px'; // Add rounding for a sleek look
-                        cell.appendChild(bar);
-    
-                        console.log(`Created new event bar for event ${event.id} in cell ${cellId}`);
-                    }
-    
-                    // Handle week boundary conditions
-                    if (weekEnd) {
-                        bar.style.right = '50%'; // Stop at the midpoint of the cell
-                        console.log(`Event ${event.id} reaches week end boundary, setting right to 50%`);
-                    }
-                    if (weekStart) {
-                        bar.style.left = '50%'; // Start at the midpoint of the cell
-                        console.log(`Event ${event.id} reaches week start boundary, setting left to 50%`);
-                    }
-                } else {
-                    console.log(`Cell not found for date ${cellId} in event ${event.id}`);
-                }
-    
-                // Move to the next day in UTC
-                currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+
+                // Just log the event days if needed, for debugging
+                console.log(`Event day: ${cellId}`);
             }
         });
-    }    
+    }
 
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
