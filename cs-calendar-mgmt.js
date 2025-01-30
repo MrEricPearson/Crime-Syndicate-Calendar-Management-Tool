@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.20
+// @version      0.1.21
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -445,36 +445,39 @@ function initializeCalendarTool() {
             const validYear = eventYear === currentYear;
             const validMonth = eventMonth === currentMonthIndex;
             const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-
-            if (!validYear || !validMonth || !validType) {
-                return false;
-            }
-            return true;
+    
+            return validYear && validMonth && validType;
         });
-
+    
         // If no valid events, return early
         if (validEvents.length === 0) {
             return;
         }
-
-        // If there are valid events, just loop through without modifying any cells
+    
+        console.log("=== Matching Event Days for Current Month ===");
+    
         validEvents.forEach((event) => {
             const startDate = parseDateAsUTC(event.event_start_date);
-            const endDate = parseDateAsUTC(event.event_end_date);
-            
-            // We're not doing anything with the event days, so no coloring or cell modification happens
+            const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate; // Default to 1-day event if no end date
+    
             for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
-                // You could use this loop if you plan to implement a new visual identification method later
                 const year = d.getUTCFullYear();
-                const month = String(d.getUTCMonth() + 1).padStart(2, "0");
-                const day = String(d.getUTCDate()).padStart(2, "0");
-                const cellId = `cell-${year}-${month}-${day}`;
-
-                // Just log the event days if needed, for debugging
-                console.log(`Event day: ${cellId}`);
+                const month = d.getUTCMonth();
+                const day = d.getUTCDate();
+    
+                // Ensure we only log events **within the selected month**
+                if (year === currentYear && month === currentMonthIndex) {
+                    const formattedMonth = String(month + 1).padStart(2, "0"); // 1-based month
+                    const formattedDay = String(day).padStart(2, "0");
+                    const cellId = `cell-${year}-${formattedMonth}-${formattedDay}`;
+    
+                    console.log(`Event day: ${cellId}`);
+                }
             }
         });
-    }
+    
+        console.log("=== End of Event Days ===");
+    }   
 
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
