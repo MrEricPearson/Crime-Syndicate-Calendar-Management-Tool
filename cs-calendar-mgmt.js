@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.23
+// @version      0.1.24
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -259,41 +259,23 @@ function initializeCalendarTool() {
                     const prevDayElem = calendarGrid.children[index - 1];
                     if (!prevDayElem.classList.contains('prev') && !prevDayElem.classList.contains('next')) {
                         prevDayElem.setAttribute("data-week-end", "true");
-                        prevDayElem.appendChild(createBoundaryText("end"));
                     }
                 }
                 // Mark the start of this week
                 currentWeekStart = dayElem;
                 currentWeekStart.setAttribute("data-week-start", "true");
-                currentWeekStart.appendChild(createBoundaryText("start"));
             }
     
             // Detect and label the start of the month only if it's part of the current month
             if (d.day === 1 && d.isCurrentMonth) {
                 dayElem.setAttribute("data-month-start", "true");
-                dayElem.appendChild(createBoundaryText("start of month"));
             }
     
             // Detect and label the end of the month only if it's part of the current month
             if (d.day === daysInMonth && d.isCurrentMonth) {
                 dayElem.setAttribute("data-month-end", "true");
-                dayElem.appendChild(createBoundaryText("end of month"));
             }
         });
-    
-        // Utility function to create boundary text
-        function createBoundaryText(type) {
-            const boundaryText = document.createElement('span');
-            boundaryText.textContent = type === "start" ? "Start of Week" : 
-                                      type === "end" ? "End of Week" :
-                                      type === "start of month" ? "Start of Month" : "End of Month";
-            boundaryText.style.position = 'absolute';
-            boundaryText.style.top = '0';
-            boundaryText.style.right = '0';
-            boundaryText.style.backgroundColor = 'yellow';
-            boundaryText.style.padding = '2px';
-            return boundaryText;
-        }
     };    
     
     let currentMonthIndex = 0;
@@ -460,113 +442,85 @@ function initializeCalendarTool() {
             const startDate = parseDateAsUTC(event.event_start_date);
             const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate; // Default to single-day event
     
-            let previousCellId = null;
-            let firstEventDay = null;
-            let lastEventDay = null;
+            let eventDays = [];
     
             for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
                 const year = d.getUTCFullYear();
                 const month = d.getUTCMonth();
                 const day = d.getUTCDate();
     
-                // Ensure we only modify events within the selected month
                 if (year === currentYear && month === currentMonthIndex) {
                     const formattedMonth = String(month + 1).padStart(2, "0"); // 1-based month
                     const formattedDay = String(day).padStart(2, "0");
                     const cellId = `cell-${year}-${formattedMonth}-${formattedDay}`;
-    
-                    console.log(`Event day: ${cellId}`);
-    
-                    // Find the cell element
-                    const eventCell = document.getElementById(cellId);
-                    if (eventCell) {
-                        // Create event bar if it doesn't exist
-                        let eventBar = eventCell.querySelector(".event-bar");
-                        if (!eventBar) {
-                            eventBar = document.createElement("div");
-                            eventBar.className = "event-bar";
-                            eventCell.appendChild(eventBar);
-                        }
-    
-                        // Apply default (normal state) styles
-                        eventBar.style.cssText = `
-                            height: 24px;
-                            position: absolute;
-                            bottom: 32px;
-                            left: 0px;
-                            background: blue;
-                            width: calc(100% + 5px);
-                        `;
-    
-                        // Check if this is the first event day in a sequence
-                        if (!firstEventDay) {
-                            firstEventDay = cellId;
-                            eventBar.style.cssText += `
-                                border-top-left-radius: 12px;
-                                border-bottom-left-radius: 12px;
-                                width: calc(100% - 7px);
-                                left: 12px;
-                            `;
-                        }
-    
-                        // Track the last event day in a sequence
-                        lastEventDay = cellId;
-    
-                        // Handle week-ending events
-                        if (eventCell.getAttribute("data-week-end") === "true") {
-                            eventBar.style.width = "100%";
-                        }
-    
-                        // Handle the case where this is a single-day event
-                        if (startDate.getTime() === endDate.getTime()) {
-                            eventBar.style.cssText += `
-                                border-top-right-radius: 12px;
-                                border-bottom-right-radius: 12px;
-                                border-top-left-radius: 12px;
-                                border-bottom-left-radius: 12px;
-                                width: calc(100% - 22px);
-                                left: 12px;
-                            `;
-                        }
-    
-                        // Handle last event day in a sequence
-                        if (previousCellId && cellId !== previousCellId) {
-                            const prevEventCell = document.getElementById(previousCellId);
-                            if (prevEventCell) {
-                                const prevEventBar = prevEventCell.querySelector(".event-bar");
-                                if (prevEventBar) {
-                                    prevEventBar.style.cssText += `
-                                        border-top-right-radius: 12px;
-                                        border-bottom-right-radius: 12px;
-                                        width: calc(100% - 12px);
-                                    `;
-                                }
-                            }
-                        }
-    
-                        previousCellId = cellId;
-                    }
+                    eventDays.push(cellId);
                 }
             }
     
-            // Apply last event day styles
-            if (lastEventDay) {
-                const lastEventCell = document.getElementById(lastEventDay);
-                if (lastEventCell) {
-                    const lastEventBar = lastEventCell.querySelector(".event-bar");
-                    if (lastEventBar) {
-                        lastEventBar.style.cssText += `
-                            border-top-right-radius: 12px;
-                            border-bottom-right-radius: 12px;
-                            width: calc(100% - 12px);
-                        `;
-                    }
+            // Process event days in sequence
+            eventDays.forEach((cellId, index) => {
+                console.log(`Event day: ${cellId}`);
+                const eventCell = document.getElementById(cellId);
+                if (!eventCell) return;
+    
+                // Create event bar if it doesn't exist
+                let eventBar = eventCell.querySelector(".event-bar");
+                if (!eventBar) {
+                    eventBar = document.createElement("div");
+                    eventBar.className = "event-bar";
+                    eventCell.appendChild(eventBar);
                 }
-            }
+    
+                // Apply default (normal state) styles
+                eventBar.style.cssText = `
+                    height: 24px;
+                    position: absolute;
+                    bottom: 32px;
+                    left: 0px;
+                    background: blue;
+                    width: calc(100% + 5px);
+                `;
+    
+                // First event day
+                if (index === 0) {
+                    eventBar.style.cssText += `
+                        border-top-left-radius: 12px;
+                        border-bottom-left-radius: 12px;
+                        width: calc(100% - 7px);
+                        left: 12px;
+                    `;
+                }
+    
+                // Last event day
+                if (index === eventDays.length - 1) {
+                    eventBar.style.cssText += `
+                        border-top-right-radius: 12px;
+                        border-bottom-right-radius: 12px;
+                        width: calc(100% - 12px);
+                    `;
+                }
+    
+                // Single-day event (first and last are the same)
+                if (eventDays.length === 1) {
+                    eventBar.style.cssText += `
+                        border-top-right-radius: 12px;
+                        border-bottom-right-radius: 12px;
+                        border-top-left-radius: 12px;
+                        border-bottom-left-radius: 12px;
+                        width: calc(100% - 22px);
+                        left: 12px;
+                    `;
+                }
+    
+                // Handle week-ending events
+                if (eventCell.getAttribute("data-week-end") === "true") {
+                    eventBar.style.width = "100%";
+                }
+            });
         });
     
         console.log("=== End of Event Days ===");
-    }
+    }    
     
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
