@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.1
+// @version      0.2.2
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -153,6 +153,37 @@ function initializeCalendarTool() {
     calendarGrid.style.gridGap = '5px';
     card.appendChild(cardHeader);
     card.appendChild(calendarGrid);
+
+    // Create an area to display event details below the calendar
+    const eventDisplayContainer = document.createElement('div');
+    eventDisplayContainer.style.width = '100%';
+    eventDisplayContainer.style.maxHeight = '200px'; // Allow scrolling for many events
+    eventDisplayContainer.style.overflowY = 'auto';
+    eventDisplayContainer.style.backgroundColor = '#f8f9fa';
+    eventDisplayContainer.style.border = '1px solid #ddd';
+    eventDisplayContainer.style.marginTop = '10px';
+    eventDisplayContainer.style.padding = '10px';
+    eventDisplayContainer.style.fontFamily = 'Arial, sans-serif';
+    eventDisplayContainer.style.fontSize = '14px';
+    eventDisplayContainer.style.color = '#333';
+
+    // Clear previous log functionality
+    eventDisplayContainer.innerHTML = ''; // Remove old console behavior
+
+    // Append to modal
+    modal.appendChild(eventDisplayContainer);    
+
+    // Create the wrapper element for scrollable content
+    const modalContentWrapper = document.createElement('div');
+    modalContentWrapper.style.overflowY = 'auto'; // Allow scrolling if content overflows
+
+    // Append card and eventDisplayContainer to the modalContentWrapper
+    modalContentWrapper.appendChild(card);
+    modalContentWrapper.appendChild(eventDisplayContainer);
+
+    // Append the modalContentWrapper to the modal
+    modal.appendChild(modalContentWrapper);
+
 
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -349,28 +380,6 @@ function initializeCalendarTool() {
     backButton.addEventListener('click', () => {
         modal.style.display = 'none';
     });
-
-    // START EVENT DISPLAY SECTION
-
-    // Create an area to display event details below the calendar
-    const eventDisplayContainer = document.createElement('div');
-    eventDisplayContainer.style.width = '100%';
-    eventDisplayContainer.style.maxHeight = '200px'; // Allow scrolling for many events
-    eventDisplayContainer.style.overflowY = 'auto';
-    eventDisplayContainer.style.backgroundColor = '#f8f9fa';
-    eventDisplayContainer.style.border = '1px solid #ddd';
-    eventDisplayContainer.style.marginTop = '10px';
-    eventDisplayContainer.style.padding = '10px';
-    eventDisplayContainer.style.fontFamily = 'Arial, sans-serif';
-    eventDisplayContainer.style.fontSize = '14px';
-    eventDisplayContainer.style.color = '#333';
-
-    // Clear previous log functionality
-    eventDisplayContainer.innerHTML = ''; // Remove old console behavior
-
-    // Append to modal
-    modal.appendChild(eventDisplayContainer);
-
 
     // Fetch and process data using PDA_httpGet
     async function fetchEventData() {
