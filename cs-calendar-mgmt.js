@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.7
+// @version      0.2.8
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -185,24 +185,6 @@ function initializeCalendarTool() {
     calendarGrid.style.display = 'grid';
     calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
     calendarGrid.style.gridGap = '5px';
-
-    // Create an area to display event details below the calendar
-    const eventDisplayContainer = document.createElement('div');
-    modal.appendChild(eventDisplayContainer);
-
-    eventDisplayContainer.style.width = '100%';
-    eventDisplayContainer.style.maxHeight = '200px'; // Allow scrolling for many events
-    eventDisplayContainer.style.overflowY = 'auto';
-    eventDisplayContainer.style.backgroundColor = '#f8f9fa';
-    eventDisplayContainer.style.border = '1px solid #ddd';
-    eventDisplayContainer.style.marginTop = '10px';
-    eventDisplayContainer.style.padding = '10px';
-    eventDisplayContainer.style.fontFamily = 'Arial, sans-serif';
-    eventDisplayContainer.style.fontSize = '14px';
-    eventDisplayContainer.style.color = '#333';
-
-    // Clear previous log functionality
-    eventDisplayContainer.innerHTML = ''; // Remove old console behavior
 
     // Hide the modal when backButton is clicked
     backButton.onclick = () => {
@@ -470,9 +452,6 @@ function initializeCalendarTool() {
 
     // Process and display the events
     function processEvents(events) {
-        // Clear the event display container before repopulating
-        eventDisplayContainer.innerHTML = '';
-
         // Filter out invalid events
         const validEvents = events.filter((event) => {
             if (!event || !event.event_start_date || !event.event_type) {
@@ -517,7 +496,7 @@ function initializeCalendarTool() {
         // Render events in `eventDisplayContainer`
         setTimeout(() => {
             [...upcomingEvents, ...pastEvents].forEach(event => {
-                eventDisplayContainer.appendChild(createEventElement(event, pastEvents.includes(event)));
+                modal.appendChild(createEventElement(event, pastEvents.includes(event)));
             });
         }, 0);        
 
