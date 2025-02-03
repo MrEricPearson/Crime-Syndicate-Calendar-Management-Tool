@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.10
+// @version      0.2.11
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -109,13 +109,6 @@ function initializeCalendarTool() {
     modalTitle.style.marginLeft = '-50px';
     modalTitle.style.zIndex = '1';
 
-    // Create the wrapper element for scrollable content
-    const modalContentWrapper = document.createElement('div');
-    modal.appendChild(modalContentWrapper);
-
-    modalContentWrapper.textContent = 'test';
-    modalContentWrapper.style.backgroundColor = '#000000';
-
     const card = document.createElement('div');
     modal.appendChild(card);
 
@@ -183,6 +176,13 @@ function initializeCalendarTool() {
     calendarGrid.style.display = 'grid';
     calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
     calendarGrid.style.gridGap = '5px';
+
+    // Create the wrapper element for scrollable content
+    const modalContentWrapper = document.createElement('div');
+    modal.appendChild(modalContentWrapper);
+
+    modalContentWrapper.textContent = 'test';
+    modalContentWrapper.style.backgroundColor = '#000000';
 
     // Hide the modal when backButton is clicked
     backButton.onclick = () => {
