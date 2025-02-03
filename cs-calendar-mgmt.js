@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.11
+// @version      0.2.12
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -176,13 +176,6 @@ function initializeCalendarTool() {
     calendarGrid.style.display = 'grid';
     calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
     calendarGrid.style.gridGap = '5px';
-
-    // Create the wrapper element for scrollable content
-    const modalContentWrapper = document.createElement('div');
-    modal.appendChild(modalContentWrapper);
-
-    modalContentWrapper.textContent = 'test';
-    modalContentWrapper.style.backgroundColor = '#000000';
 
     // Hide the modal when backButton is clicked
     backButton.onclick = () => {
@@ -491,7 +484,7 @@ function initializeCalendarTool() {
         upcomingEvents.sort((a, b) => new Date(a.event_start_date) - new Date(b.event_start_date));
         pastEvents.sort((a, b) => new Date(b.event_end_date) - new Date(a.event_end_date));
 
-        // Render events in `eventDisplayContainer`
+        // Render events
         setTimeout(() => {
             [...upcomingEvents, ...pastEvents].forEach(event => {
                 modal.appendChild(createEventElement(event, pastEvents.includes(event)));
@@ -662,7 +655,14 @@ function initializeCalendarTool() {
         eventRow.appendChild(details);
     
         return eventRow;
-    }    
+    }  
+    
+    // Create the wrapper element for scrollable content
+    const modalContentWrapper = document.createElement('div');
+    modal.appendChild(modalContentWrapper);
+
+    modalContentWrapper.textContent = 'test';
+    modalContentWrapper.style.backgroundColor = '#000000';
     
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
