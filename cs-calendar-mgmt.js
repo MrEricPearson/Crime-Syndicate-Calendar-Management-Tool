@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.1.42
+// @version      0.2.1
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -352,30 +352,25 @@ function initializeCalendarTool() {
 
     // START EVENT DISPLAY SECTION
 
-    // Create a scrollable area to display event details
+    // Create an area to display event details below the calendar
     const eventDisplayContainer = document.createElement('div');
-    eventDisplayContainer.style.width = '80%';
-    eventDisplayContainer.style.height = '100px'; // 5-line height
-    eventDisplayContainer.style.overflowY = 'scroll';
+    eventDisplayContainer.style.width = '100%';
+    eventDisplayContainer.style.maxHeight = '200px'; // Allow scrolling for many events
+    eventDisplayContainer.style.overflowY = 'auto';
     eventDisplayContainer.style.backgroundColor = '#f8f9fa';
     eventDisplayContainer.style.border = '1px solid #ddd';
-    eventDisplayContainer.style.marginTop = '20px';
+    eventDisplayContainer.style.marginTop = '10px';
     eventDisplayContainer.style.padding = '10px';
-    eventDisplayContainer.style.fontFamily = 'monospace';
-    eventDisplayContainer.style.fontSize = '0.9em';
+    eventDisplayContainer.style.fontFamily = 'Arial, sans-serif';
+    eventDisplayContainer.style.fontSize = '14px';
     eventDisplayContainer.style.color = '#333';
 
-    // Append the scrollable area to the modal
+    // Clear previous log functionality
+    eventDisplayContainer.innerHTML = ''; // Remove old console behavior
+
+    // Append to modal
     modal.appendChild(eventDisplayContainer);
 
-    // Create a utility function for logging to eventDisplayContainer
-    function logToContainer(message, isError = false) {
-        const logEntry = document.createElement("div");
-        logEntry.textContent = message;
-        logEntry.style.color = isError ? "#ff0000" : "#333333"; // Red for errors, default for normal logs
-        eventDisplayContainer.appendChild(logEntry);
-        eventDisplayContainer.scrollTop = eventDisplayContainer.scrollHeight; // Auto-scroll to the bottom
-    }
 
     // Fetch and process data using PDA_httpGet
     async function fetchEventData() {
@@ -442,6 +437,9 @@ function initializeCalendarTool() {
 
     // Process and display the events
     function processEvents(events) {
+        // Clear the event display container before repopulating
+        eventDisplayContainer.innerHTML = '';
+
         // Filter out invalid events
         const validEvents = events.filter((event) => {
             if (!event || !event.event_start_date || !event.event_type) {
@@ -452,62 +450,81 @@ function initializeCalendarTool() {
             const validYear = eventYear === currentYear;
             const validMonth = eventMonth === currentMonthIndex;
             const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-    
+
             return validYear && validMonth && validType;
         });
-    
+
         // If no valid events, return early
         if (validEvents.length === 0) {
             return;
         }
-    
+
         console.log("=== Analyzing Event Group Levels for Current Month ===");
-    
-        // Sort events by start date (chronologically)
+
+        // Separate past and upcoming events
+        const now = new Date();
+        const upcomingEvents = [];
+        const pastEvents = [];
+
+        validEvents.forEach(event => {
+            const startDate = parseDateAsUTC(event.event_start_date);
+            const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate;
+
+            if (endDate < now) {
+                pastEvents.push(event);
+            } else {
+                upcomingEvents.push(event);
+            }
+        });
+
+        // Sort events
+        upcomingEvents.sort((a, b) => new Date(a.event_start_date) - new Date(b.event_start_date));
+        pastEvents.sort((a, b) => new Date(b.event_end_date) - new Date(a.event_end_date));
+
+        // Render events in `eventDisplayContainer`
+        [...upcomingEvents, ...pastEvents].forEach(event => {
+            eventDisplayContainer.appendChild(createEventElement(event, pastEvents.includes(event)));
+        });
+
+        // === Retain existing calendar logic ===
+        
+        // Sort valid events by start date
         validEvents.sort((a, b) => {
             const dateA = new Date(a.event_start_date);
             const dateB = new Date(b.event_start_date);
             return dateA - dateB; // Sort in ascending order (earliest first)
         });
-    
-        // Track event bars for each cell (date), their associated objectId, and layer for stacking
+
         const eventBarLayerMap = new Map();
-        const eventBarDayMap = new Map();  // Track which days are already assigned to a layer
-    
-        const maxLayer = 3; // Define the maximum number of layers
-    
-        // Debugging output for groups and layers
-        let eventAnalysisOutput = []; // Store analysis results for logging
-    
+        const maxLayer = 3;
+
+        let eventAnalysisOutput = [];
+
         validEvents.forEach((event) => {
             const startDate = parseDateAsUTC(event.event_start_date);
-            const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate; // Default to single-day event
-            const eventColor = colorMap[event.event_type] || "#000"; // Default to black if event type is missing
-            const eventObjectId = event._id; // Assuming event has a unique `_id`
-    
+            const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate;
+            const eventColor = colorMap[event.event_type] || "#000";
+            const eventObjectId = event._id;
+
             let eventDays = [];
-    
-            // Collect all event days
+
             for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
                 const year = d.getUTCFullYear();
                 const month = d.getUTCMonth();
                 const day = d.getUTCDate();
-    
+
                 if (year === currentYear && month === currentMonthIndex) {
-                    const formattedMonth = String(month + 1).padStart(2, "0"); // 1-based month
+                    const formattedMonth = String(month + 1).padStart(2, "0");
                     const formattedDay = String(day).padStart(2, "0");
                     const cellId = `cell-${year}-${formattedMonth}-${formattedDay}`;
                     eventDays.push({ cellId, objectId: eventObjectId });
                 }
             }
-    
-            // Now, we need to check for conflicts across the entire event's days
+
             let eventLayer = 0;
             let conflictFound = false;
-    
-            // Check for conflicts with adjacent events
-            eventDays.forEach(({ cellId, objectId }) => {
-                // Check for conflict with events placed before and after
+
+            eventDays.forEach(({ cellId }) => {
                 for (let layer = 0; layer <= maxLayer; layer++) {
                     if (eventBarLayerMap.get(cellId + `-layer-${layer}`)) {
                         conflictFound = true;
@@ -515,50 +532,39 @@ function initializeCalendarTool() {
                     }
                 }
             });
-    
-            // If there's a conflict, find the next available layer for the entire event
+
             if (conflictFound) {
                 while (eventLayer <= maxLayer && eventBarLayerMap.get(eventDays[0].cellId + `-layer-${eventLayer}`)) {
                     eventLayer++;
                 }
             }
-    
-            // If we've exceeded the max number of layers, skip this event
+
             if (eventLayer > maxLayer) return;
-    
-            // Store event analysis info for debugging
-            eventAnalysisOutput.push({
-                eventObjectId,
-                eventDays,
-                determinedLayer: eventLayer
-            });
-    
-            // Assign this event to the selected layer for all its days
+
+            eventAnalysisOutput.push({ eventObjectId, eventDays, determinedLayer: eventLayer });
+
             eventDays.forEach(({ cellId }) => {
-                eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true); // Mark each cell as occupied by this event group
+                eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true);
             });
-    
-            // Create event bars for each event day
-            eventDays.forEach(({ cellId, objectId }, index) => {
+
+            eventDays.forEach(({ cellId }, index) => {
                 const eventCell = document.getElementById(cellId);
                 if (!eventCell) return;
-    
+
                 let eventBar = document.createElement("div");
                 eventBar.className = "event-bar";
                 eventCell.appendChild(eventBar);
-    
-                // Apply default styles
+
                 eventBar.style.cssText = `
-                    height: 20px;
+                    height: 12px;
                     position: absolute;
-                    bottom: ${22 + eventLayer * 24}px;  /* Stacks events with vertical spacing */
+                    bottom: ${21 + eventLayer * 13}px;
                     left: 0px;
                     background: ${eventColor};
                     width: calc(100% + 5px);
-                    margin-top: 2px;
+                    margin-top: 1px;
                 `;
-    
-                // First event day
+
                 if (index === 0) {
                     if (eventCell.getAttribute("data-week-end") === "true") {
                         eventBar.style.cssText += `
@@ -576,8 +582,7 @@ function initializeCalendarTool() {
                         `;
                     }
                 }
-    
-                // Last event day
+
                 if (index === eventDays.length - 1) {
                     eventBar.style.cssText += `
                         border-top-right-radius: 12px;
@@ -585,26 +590,20 @@ function initializeCalendarTool() {
                         width: calc(100% - 2px);
                     `;
                 }
-    
-                // Single-day event (first and last are the same)
+
                 if (eventDays.length === 1) {
                     eventBar.style.cssText += `
-                        border-top-right-radius: 12px;
-                        border-bottom-right-radius: 12px;
-                        border-top-left-radius: 12px;
-                        border-bottom-left-radius: 12px;
+                        border-radius: 12px;
                         width: calc(100% - 2px);
                     `;
                 }
-    
-                // Handle week-ending events
+
                 if (eventCell.getAttribute("data-week-end") === "true") {
                     eventBar.style.width = "100%";
                 }
             });
         });
-    
-        // Log event analysis output for debugging purposes
+
         console.log("=== Event Group Level Analysis ===");
         eventAnalysisOutput.forEach((eventInfo) => {
             console.log(`Event Object ID: ${eventInfo.eventObjectId}`);
@@ -612,9 +611,46 @@ function initializeCalendarTool() {
             console.log("Assigned Layer:", eventInfo.determinedLayer);
             console.log("====================================");
         });
-    
+
         console.log("=== End of Event Days ===");
-    }          
+    } 
+
+    function createEventElement(event, isPastEvent) {
+        const eventRow = document.createElement('div');
+        eventRow.style.display = 'flex';
+        eventRow.style.alignItems = 'center';
+        eventRow.style.marginBottom = '10px';
+        eventRow.style.padding = '5px 0';
+        eventRow.style.borderBottom = '1px solid #ddd';
+    
+        // Placeholder icon
+        const icon = document.createElement('div');
+        icon.textContent = '📌'; // Placeholder for now
+        icon.style.width = '30px';
+        icon.style.textAlign = 'center';
+    
+        // Event details
+        const details = document.createElement('div');
+        details.style.flexGrow = '1';
+        details.style.textAlign = 'left';
+    
+        details.innerHTML = `
+            <strong>${event.event_type}</strong><br>
+            ${event.event_start_date} >>> ${event.event_end_date || '??'}<br>
+            ${event.event_start_time || '--:--'} >>> ${event.event_end_time || '--:--'}
+        `;
+    
+        if (isPastEvent) {
+            details.innerHTML += `<br><em>Completed</em>`; // Status only for past events
+        } else if (event.event_status) {
+            details.innerHTML += `<br><em>${event.event_status}</em>`;
+        }
+    
+        eventRow.appendChild(icon);
+        eventRow.appendChild(details);
+    
+        return eventRow;
+    }    
     
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
