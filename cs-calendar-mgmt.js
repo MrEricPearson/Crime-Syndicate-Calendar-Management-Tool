@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.4
+// @version      0.2.5
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -22,6 +22,8 @@ function initializeCalendarTool() {
     };
 
     const topBar = document.createElement('div');
+    document.body.appendChild(topBar);
+
     topBar.style.position = 'fixed';
     topBar.style.top = '0';
     topBar.style.left = '0';
@@ -33,6 +35,8 @@ function initializeCalendarTool() {
     topBar.style.textAlign = 'right';
 
     const modalButton = document.createElement('button');
+    topBar.appendChild(modalButton);
+
     modalButton.textContent = 'Open Modal';
     modalButton.style.backgroundColor = '#007BFF';
     modalButton.style.color = '#fff';
@@ -42,7 +46,14 @@ function initializeCalendarTool() {
     modalButton.style.cursor = 'pointer';
     modalButton.style.borderRadius = '5px';
 
+    // Show the modal when the button is clicked
+    modalButton.onclick = () => {
+        modal.style.display = 'flex';
+    };
+
     const modal = document.createElement('div');
+    document.body.appendChild(modal);
+
     modal.style.position = 'fixed';
     modal.style.top = '0';
     modal.style.left = '0';
@@ -58,6 +69,8 @@ function initializeCalendarTool() {
     modal.style.paddingTop = '5%';
 
     const headerWrapper = document.createElement('div');
+    modal.appendChild(headerWrapper);
+
     headerWrapper.style.width = 'calc(80% + 40px)';
     headerWrapper.style.display = 'flex';
     headerWrapper.style.alignItems = 'center';
@@ -66,10 +79,13 @@ function initializeCalendarTool() {
     headerWrapper.style.padding = '0 20px';
 
     const backButton = document.createElement('button');
+    headerWrapper.appendChild(backButton);
+
     const backArrowImage = document.createElement('img');
+    backButton.appendChild(backArrowImage);
+
     backArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
     backArrowImage.height = 18;
-    backButton.appendChild(backArrowImage);
     backButton.style.backgroundColor = '#ffffff';
     backButton.style.color = '#131311';
     backButton.style.border = 'none';
@@ -81,6 +97,8 @@ function initializeCalendarTool() {
     backButton.style.zIndex = '100';
 
     const modalTitle = document.createElement('h2');
+    headerWrapper.appendChild(modalTitle);
+
     modalTitle.textContent = 'Faction Calendar';
     modalTitle.style.margin = '0';
     modalTitle.style.textAlign = 'center';
@@ -91,15 +109,16 @@ function initializeCalendarTool() {
     modalTitle.style.marginLeft = '-50px';
     modalTitle.style.zIndex = '1';
 
-    headerWrapper.appendChild(backButton);
-    headerWrapper.appendChild(modalTitle);
-
     // Create the wrapper element for scrollable content
     const modalContentWrapper = document.createElement('div');
+    modal.appendChild(modalContentWrapper);
+
     modalContentWrapper.style.overflowY = 'auto'; // Allow scrolling if content overflows
     modalContentWrapper.style.flexGrow = '1';  // Ensure the wrapper takes remaining space below the header
 
     const card = document.createElement('div');
+    modalContentWrapper.appendChild(card);
+
     card.style.backgroundColor = '#f4f9f5';
     card.style.color = '#333';
     card.style.padding = '20px';
@@ -108,6 +127,8 @@ function initializeCalendarTool() {
     card.style.width = '80%';
 
     const cardHeader = document.createElement('div');
+    card.appendChild(cardHeader);
+
     cardHeader.style.width = '100%';
     cardHeader.style.display = 'flex';
     cardHeader.style.alignItems = 'center';
@@ -115,10 +136,13 @@ function initializeCalendarTool() {
     cardHeader.style.marginBottom = '20px';
 
     const cardBackButton = document.createElement('button');
+    cardHeader.appendChild(cardBackButton);
+
     const cardBackArrowImage = document.createElement('img');
+    cardBackButton.appendChild(cardBackArrowImage);
+
     cardBackArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
     cardBackArrowImage.height = 12;
-    cardBackButton.appendChild(cardBackArrowImage);
     cardBackButton.style.backgroundColor = '#ffffff';
     cardBackButton.style.color = '#131311';
     cardBackButton.style.border = 'none';
@@ -129,16 +153,21 @@ function initializeCalendarTool() {
     cardBackButton.style.lineHeight = '18px';
 
     const monthTitle = document.createElement('h3');
+    cardHeader.appendChild(monthTitle);
+
     monthTitle.textContent = 'January';
     monthTitle.style.margin = '0';
     monthTitle.style.textAlign = 'center';
     monthTitle.style.flexGrow = '1';
 
     const cardForwardButton = document.createElement('button');
+    cardHeader.appendChild(cardForwardButton);
+
     const cardForwardArrowImage = document.createElement('img');
+    cardForwardButton.appendChild(cardForwardArrowImage);
+
     cardForwardArrowImage.src = "https://epearson.me/faction_status_images/arrow-forward.svg";
     cardForwardArrowImage.height = 12;
-    cardForwardButton.appendChild(cardForwardArrowImage);
     cardForwardButton.style.backgroundColor = '#ffffff';
     cardForwardButton.style.color = '#131311';
     cardForwardButton.style.border = 'none';
@@ -148,19 +177,17 @@ function initializeCalendarTool() {
     cardForwardButton.style.fontSize = '20px';
     cardForwardButton.style.lineHeight = '18px';
 
-    cardHeader.appendChild(cardBackButton);
-    cardHeader.appendChild(monthTitle);
-    cardHeader.appendChild(cardForwardButton);
-
     const calendarGrid = document.createElement('div');
+    card.appendChild(calendarGrid);
+
     calendarGrid.style.display = 'grid';
     calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
     calendarGrid.style.gridGap = '5px';
-    card.appendChild(cardHeader);
-    card.appendChild(calendarGrid);
 
     // Create an area to display event details below the calendar
     const eventDisplayContainer = document.createElement('div');
+    modalContentWrapper.appendChild(eventDisplayContainer);
+
     eventDisplayContainer.style.width = '100%';
     eventDisplayContainer.style.maxHeight = '200px'; // Allow scrolling for many events
     eventDisplayContainer.style.overflowY = 'auto';
@@ -175,28 +202,10 @@ function initializeCalendarTool() {
     // Clear previous log functionality
     eventDisplayContainer.innerHTML = ''; // Remove old console behavior
 
-    // Append card and eventDisplayContainer to the modalContentWrapper
-    modalContentWrapper.appendChild(card);
-    modalContentWrapper.appendChild(eventDisplayContainer);
-
-    // Append headerWrapper and modalContentWrapper to the modal
-    modal.appendChild(headerWrapper);
-    modal.appendChild(modalContentWrapper);
-
-    // Show the modal when the button is clicked
-    modalButton.onclick = () => {
-        modal.style.display = 'flex';
-    };
-
     // Hide the modal when backButton is clicked
     backButton.onclick = () => {
         modal.style.display = 'none';
     };
-
-    // Append modal to body
-    document.body.appendChild(modal);
-    document.body.appendChild(topBar);
-    document.body.appendChild(modalButton);
 
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
