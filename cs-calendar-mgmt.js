@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.3
+// @version      0.2.4
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -94,6 +94,11 @@ function initializeCalendarTool() {
     headerWrapper.appendChild(backButton);
     headerWrapper.appendChild(modalTitle);
 
+    // Create the wrapper element for scrollable content
+    const modalContentWrapper = document.createElement('div');
+    modalContentWrapper.style.overflowY = 'auto'; // Allow scrolling if content overflows
+    modalContentWrapper.style.flexGrow = '1';  // Ensure the wrapper takes remaining space below the header
+
     const card = document.createElement('div');
     card.style.backgroundColor = '#f4f9f5';
     card.style.color = '#333';
@@ -170,17 +175,28 @@ function initializeCalendarTool() {
     // Clear previous log functionality
     eventDisplayContainer.innerHTML = ''; // Remove old console behavior
 
-    // Create the wrapper element for scrollable content
-    const modalContentWrapper = document.createElement('div');
-    modalContentWrapper.style.overflowY = 'auto'; // Allow scrolling if content overflows
-    modalContentWrapper.style.maxHeight = 'calc(100% - 60px)'; // Subtract space for header
-
     // Append card and eventDisplayContainer to the modalContentWrapper
     modalContentWrapper.appendChild(card);
     modalContentWrapper.appendChild(eventDisplayContainer);
 
-    // Append the modalContentWrapper to the modal
+    // Append headerWrapper and modalContentWrapper to the modal
+    modal.appendChild(headerWrapper);
     modal.appendChild(modalContentWrapper);
+
+    // Show the modal when the button is clicked
+    modalButton.onclick = () => {
+        modal.style.display = 'flex';
+    };
+
+    // Hide the modal when backButton is clicked
+    backButton.onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    // Append modal to body
+    document.body.appendChild(modal);
+    document.body.appendChild(topBar);
+    document.body.appendChild(modalButton);
 
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
