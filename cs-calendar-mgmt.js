@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.13
+// @version      0.2.14
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -636,6 +636,18 @@ function initializeCalendarTool() {
         console.log("=== End of Event Days ===");
     } 
 
+    // Create the wrapper element for scrollable content
+    const modalContentWrapper = document.createElement('div');
+    modal.appendChild(modalContentWrapper);
+
+    modalContentWrapper.style.display = 'flex';
+    modalContentWrapper.style.flexDirection = 'column';
+    modalContentWrapper.style.overflowY = 'auto';
+    modalContentWrapper.style.flexGrow = '1'; // Take up the remaining space    
+
+    const card = document.createElement('div');
+    modalContentWrapper.appendChild(card);
+
     function createEventElement(event, isPastEvent) {
         const eventRow = document.createElement('div');
         eventRow.style.display = 'flex';
@@ -672,18 +684,6 @@ function initializeCalendarTool() {
     
         return eventRow;
     }    
-
-    // Create the wrapper element for scrollable content
-    const modalContentWrapper = document.createElement('div');
-    modal.appendChild(modalContentWrapper);
-
-    modalContentWrapper.style.display = 'flex';
-    modalContentWrapper.style.flexDirection = 'column';
-    modalContentWrapper.style.overflowY = 'auto';
-    modalContentWrapper.style.flexGrow = '1'; // Take up the remaining space    
-
-    const card = document.createElement('div');
-    modalContentWrapper.appendChild(card);
 
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
