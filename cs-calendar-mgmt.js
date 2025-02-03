@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.12
+// @version      0.2.13
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -109,9 +109,6 @@ function initializeCalendarTool() {
     modalTitle.style.marginLeft = '-50px';
     modalTitle.style.zIndex = '1';
 
-    const card = document.createElement('div');
-    modal.appendChild(card);
-
     card.style.backgroundColor = '#f4f9f5';
     card.style.color = '#333';
     card.style.padding = '20px';
@@ -176,6 +173,24 @@ function initializeCalendarTool() {
     calendarGrid.style.display = 'grid';
     calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
     calendarGrid.style.gridGap = '5px';
+
+    // Create an area to display event details below the calendar
+    const eventDisplayContainer = document.createElement('div');
+    modal.appendChild(eventDisplayContainer);
+
+    eventDisplayContainer.style.width = '100%';
+    eventDisplayContainer.style.maxHeight = '200px'; // Allow scrolling for many events
+    eventDisplayContainer.style.overflowY = 'auto';
+    eventDisplayContainer.style.backgroundColor = '#f8f9fa';
+    eventDisplayContainer.style.border = '1px solid #ddd';
+    eventDisplayContainer.style.marginTop = '10px';
+    eventDisplayContainer.style.padding = '10px';
+    eventDisplayContainer.style.fontFamily = 'Arial, sans-serif';
+    eventDisplayContainer.style.fontSize = '14px';
+    eventDisplayContainer.style.color = '#333';
+
+    // Clear previous log functionality
+    eventDisplayContainer.innerHTML = ''; // Remove old console behavior
 
     // Hide the modal when backButton is clicked
     backButton.onclick = () => {
@@ -443,6 +458,9 @@ function initializeCalendarTool() {
 
     // Process and display the events
     function processEvents(events) {
+        // Clear the event display container before repopulating
+        eventDisplayContainer.innerHTML = '';
+
         // Filter out invalid events
         const validEvents = events.filter((event) => {
             if (!event || !event.event_start_date || !event.event_type) {
@@ -484,12 +502,10 @@ function initializeCalendarTool() {
         upcomingEvents.sort((a, b) => new Date(a.event_start_date) - new Date(b.event_start_date));
         pastEvents.sort((a, b) => new Date(b.event_end_date) - new Date(a.event_end_date));
 
-        // Render events
-        setTimeout(() => {
-            [...upcomingEvents, ...pastEvents].forEach(event => {
-                modal.appendChild(createEventElement(event, pastEvents.includes(event)));
-            });
-        }, 0);        
+        // Render events in `eventDisplayContainer`
+        [...upcomingEvents, ...pastEvents].forEach(event => {
+            eventDisplayContainer.appendChild(createEventElement(event, pastEvents.includes(event)));
+        });
 
         // === Retain existing calendar logic ===
         
@@ -655,15 +671,20 @@ function initializeCalendarTool() {
         eventRow.appendChild(details);
     
         return eventRow;
-    }  
-    
+    }    
+
     // Create the wrapper element for scrollable content
     const modalContentWrapper = document.createElement('div');
     modal.appendChild(modalContentWrapper);
 
-    modalContentWrapper.textContent = 'test';
-    modalContentWrapper.style.backgroundColor = '#000000';
-    
+    modalContentWrapper.style.display = 'flex';
+    modalContentWrapper.style.flexDirection = 'column';
+    modalContentWrapper.style.overflowY = 'auto';
+    modalContentWrapper.style.flexGrow = '1'; // Take up the remaining space    
+
+    const card = document.createElement('div');
+    modalContentWrapper.appendChild(card);
+
     // Handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
         modal.style.display = 'none';
