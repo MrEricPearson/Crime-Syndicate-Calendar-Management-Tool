@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.2
+// @version      0.2.3
 // @description  Adds a button to the faction management page that will direct to a series of tools that manipulate the current faction schedule.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -170,12 +170,10 @@ function initializeCalendarTool() {
     // Clear previous log functionality
     eventDisplayContainer.innerHTML = ''; // Remove old console behavior
 
-    // Append to modal
-    modal.appendChild(eventDisplayContainer);    
-
     // Create the wrapper element for scrollable content
     const modalContentWrapper = document.createElement('div');
     modalContentWrapper.style.overflowY = 'auto'; // Allow scrolling if content overflows
+    modalContentWrapper.style.maxHeight = 'calc(100% - 60px)'; // Subtract space for header
 
     // Append card and eventDisplayContainer to the modalContentWrapper
     modalContentWrapper.appendChild(card);
@@ -183,7 +181,6 @@ function initializeCalendarTool() {
 
     // Append the modalContentWrapper to the modal
     modal.appendChild(modalContentWrapper);
-
 
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
