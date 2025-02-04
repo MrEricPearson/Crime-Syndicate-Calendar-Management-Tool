@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.26
+// @version      0.2.27
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -229,6 +229,8 @@ function createCalendarUI() {
     header.style.alignItems = 'center';
 
     const monthTitle = createMonthTitle();
+    monthTitle.textContent += " test";
+
     const cardBackButton = createBackButton();
     const cardForwardButton = createForwardButton();
 
