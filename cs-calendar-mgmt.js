@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.21
+// @version      0.2.22
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -177,54 +177,85 @@ function createCard() {
     return card;
 }
 
-function Calendar() {
-    let currentMonthIndex = 0;
-    let currentYear = 2025;
+//////////////////////////////
+// START Calendar Functions //
 
-    const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ];
+    // Parent calendar function to organize and render the entire calendar UI
+    function initializeCalendar() {
+        let currentMonthIndex = 0;
+        let currentYear = 2025;
 
-    // Initialize calendar components
-    const calendarContainer = document.createElement('div');
-    const monthTitle = createMonthTitle();
-    const cardBackButton = createBackButton(); // Defined after all the functions
-    const cardForwardButton = createForwardButton();
-    const calendarGrid = createCalendarGrid();
+        const months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
 
-    // Append components to the calendar container
-    calendarContainer.appendChild(cardBackButton);
-    calendarContainer.appendChild(monthTitle);
-    calendarContainer.appendChild(cardForwardButton);
-    calendarContainer.appendChild(calendarGrid);
+        // Create and initialize UI elements
+        const calendarUI = createCalendarUI();
+        const { monthTitle, cardBackButton, cardForwardButton, calendarGrid } = calendarUI;
+        document.body.appendChild(calendarUI.container); // Assume you want to append this to the body or another element
 
-    // Set up navigation
-    const updateCalendar = () => {
-        monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`;
-        renderCalendar(currentYear, currentMonthIndex);
-        fetchEventData(); // Ensure you have a function to fetch events
-    };
+        const updateCalendar = () => {
+            monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`;
+            renderCalendar(currentYear, currentMonthIndex, calendarGrid);
+            fetchEventData(); // Fetch and apply events for the current month
+        };
 
-    // Month navigation event handlers
-    cardBackButton.addEventListener('click', () => {
-        if (currentYear === 2025 && currentMonthIndex === 0) return;
-        currentMonthIndex = (currentMonthIndex === 0) ? 11 : currentMonthIndex - 1;
-        if (currentMonthIndex === 11) currentYear--;
+        // Month navigation event listeners
+        cardBackButton.addEventListener('click', () => {
+            if (currentYear === 2025 && currentMonthIndex === 0) return;
+            currentMonthIndex = (currentMonthIndex === 0) ? 11 : currentMonthIndex - 1;
+            if (currentMonthIndex === 11) currentYear--;
+            updateCalendar();
+        });
+
+        cardForwardButton.addEventListener('click', () => {
+            currentMonthIndex = (currentMonthIndex === 11) ? 0 : currentMonthIndex + 1;
+            if (currentMonthIndex === 0) currentYear++;
+            updateCalendar();
+        });
+
         updateCalendar();
-    });
+    }
 
-    cardForwardButton.addEventListener('click', () => {
-        currentMonthIndex = (currentMonthIndex === 11) ? 0 : currentMonthIndex + 1;
-        if (currentMonthIndex === 0) currentYear++;
-        updateCalendar();
-    });
+    // Create and initialize the UI components for the calendar
+    function createCalendarUI() {
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
 
-    // Initialize calendar on load
-    updateCalendar();
+        const header = document.createElement('div');
+        header.style.display = 'flex';
+        header.style.justifyContent = 'space-between';
+        header.style.alignItems = 'center';
 
-    // Helper functions should be defined here to ensure they are initialized properly
+        const monthTitle = createMonthTitle();
+        const cardBackButton = createBackButton();
+        const cardForwardButton = createForwardButton();
 
+        header.appendChild(cardBackButton);
+        header.appendChild(monthTitle);
+        header.appendChild(cardForwardButton);
+
+        const calendarGrid = createCalendarGrid();
+
+        container.appendChild(header);
+        container.appendChild(calendarGrid);
+
+        return { container, monthTitle, cardBackButton, cardForwardButton, calendarGrid };
+    }
+
+    // Create the month title with its styling
+    function createMonthTitle() {
+        const monthTitle = document.createElement('h3');
+        monthTitle.textContent = 'January';
+        monthTitle.style.margin = '0';
+        monthTitle.style.textAlign = 'center';
+        monthTitle.style.flexGrow = '1';
+        return monthTitle;
+    }
+
+    // Create the back button with its styling and functionality
     function createBackButton() {
         const cardBackButton = document.createElement('button');
         const cardBackArrowImage = document.createElement('img');
@@ -241,22 +272,11 @@ function Calendar() {
         cardBackButton.style.fontSize = '20px';
         cardBackButton.style.lineHeight = '18px';
 
-        cardBackButton.onclick = () => {
-            modal.style.display = 'none'; // Ensure modal is defined if used
-        };
-
+        cardBackButton.onclick = () => { modal.style.display = 'none'; };
         return cardBackButton;
     }
 
-    function createMonthTitle() {
-        const monthTitle = document.createElement('h3');
-        monthTitle.textContent = 'January';
-        monthTitle.style.margin = '0';
-        monthTitle.style.textAlign = 'center';
-        monthTitle.style.flexGrow = '1';
-        return monthTitle;
-    }
-
+    // Create the forward button with its styling and functionality
     function createForwardButton() {
         const cardForwardButton = document.createElement('button');
         const cardForwardArrowImage = document.createElement('img');
@@ -276,22 +296,25 @@ function Calendar() {
         return cardForwardButton;
     }
 
+    // Create the calendar grid for displaying days and events
     function createCalendarGrid() {
         const calendarGrid = document.createElement('div');
         calendarGrid.style.display = 'grid';
         calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
         calendarGrid.style.gridGap = '5px';
+
         return calendarGrid;
     }
 
-    function renderCalendar(year, month) {
-        calendarGrid.innerHTML = '';
-        
+    // Render the calendar days, filling in the grid and handling events
+    function renderCalendar(year, month, calendarGrid) {
+        calendarGrid.innerHTML = '';  // Clear previous calendar grid
+
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = getDaysInMonth(year, month);
         const daysInPrevMonth = getDaysInMonth(year, month - 1);
         
-        const totalCells = 42;
+        const totalCells = 42; // 6 rows * 7 days
         const days = [];
 
         // Fill previous month's overflow days
@@ -315,11 +338,13 @@ function Calendar() {
         });
     }
 
+    // Create and style each day element inside the calendar grid
     function createDayElement(d, index, year, month) {
         const dayElem = document.createElement('div');
         dayElem.className = `day ${d.class}`;
         dayElem.textContent = d.day;
-
+        
+        // Create and position the day number inside the cell
         const dateNumber = document.createElement('span');
         dateNumber.textContent = d.day;
         dateNumber.style.position = 'absolute';
@@ -327,15 +352,17 @@ function Calendar() {
         dateNumber.style.left = '5px';
 
         dayElem.appendChild(dateNumber);
+
         return dayElem;
     }
 
+    // Function to get the number of days in a given month
     function getDaysInMonth(year, month) {
         return new Date(year, month + 1, 0).getDate();
     }
 
-    return calendarContainer; // Return the full calendar container element
-}
+////////////////////////////
+// END Calendar Functions //
 
 // Fetch and process data using PDA_httpGet
 async function fetchEventData() {
