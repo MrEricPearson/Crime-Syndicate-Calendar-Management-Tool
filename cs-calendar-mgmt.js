@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.19
+// @version      0.2.20
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -177,73 +177,7 @@ function createCard() {
     return card;
 }
 
-// Create the back button with its styling and functionality
-function createBackButton() {
-    const cardBackButton = document.createElement('button');
-    const cardBackArrowImage = document.createElement('img');
-    cardBackButton.appendChild(cardBackArrowImage);
-
-    cardBackArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
-    cardBackArrowImage.height = 12;
-    cardBackButton.style.backgroundColor = '#ffffff';
-    cardBackButton.style.color = '#131311';
-    cardBackButton.style.border = 'none';
-    cardBackButton.style.borderRadius = '50%';
-    cardBackButton.style.padding = '10px 10px 12px 10px';
-    cardBackButton.style.cursor = 'pointer';
-    cardBackButton.style.fontSize = '20px';
-    cardBackButton.style.lineHeight = '18px';
-
-    // Step 7: Handle back button functionality
-    cardBackButton.onclick = () => {
-        modal.style.display = 'none';
-    };
-
-    return cardBackButton;
-}
-
-// Create the month title with its styling
-function createMonthTitle() {
-    const monthTitle = document.createElement('h3');
-    monthTitle.textContent = 'January';
-    monthTitle.style.margin = '0';
-    monthTitle.style.textAlign = 'center';
-    monthTitle.style.flexGrow = '1';
-    return monthTitle;
-}
-
-// Create the forward button with its styling and functionality
-function createForwardButton() {
-    const cardForwardButton = document.createElement('button');
-    const cardForwardArrowImage = document.createElement('img');
-    cardForwardButton.appendChild(cardForwardArrowImage);
-
-    cardForwardArrowImage.src = "https://epearson.me/faction_status_images/arrow-forward.svg";
-    cardForwardArrowImage.height = 12;
-    cardForwardButton.style.backgroundColor = '#ffffff';
-    cardForwardButton.style.color = '#131311';
-    cardForwardButton.style.border = 'none';
-    cardForwardButton.style.borderRadius = '50%';
-    cardForwardButton.style.padding = '10px 10px 12px 10px';
-    cardForwardButton.style.cursor = 'pointer';
-    cardForwardButton.style.fontSize = '20px';
-    cardForwardButton.style.lineHeight = '18px';
-
-    return cardForwardButton;
-}
-
-// Create the calendar grid for displaying days and events
-function createCalendarGrid() {
-    const calendarGrid = document.createElement('div');
-    calendarGrid.style.display = 'grid';
-    calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
-    calendarGrid.style.gridGap = '5px';
-
-    return calendarGrid;
-}
-
-// Initialize and render the calendar with navigation logic
-function initializeCalendar() {
+function Calendar() {
     let currentMonthIndex = 0;
     let currentYear = 2025;
 
@@ -252,17 +186,29 @@ function initializeCalendar() {
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
+    // Initialize calendar components
+    const calendarContainer = document.createElement('div');
+    const monthTitle = createMonthTitle();
+    const cardBackButton = createBackButton();
+    const cardForwardButton = createForwardButton();
+    const calendarGrid = createCalendarGrid();
+
+    // Append components to the calendar container
+    calendarContainer.appendChild(cardBackButton);
+    calendarContainer.appendChild(monthTitle);
+    calendarContainer.appendChild(cardForwardButton);
+    calendarContainer.appendChild(calendarGrid);
+
+    // Set up navigation
     const updateCalendar = () => {
-        monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`; // Update month title
-        renderCalendar(currentYear, currentMonthIndex); // Render the grid of days
-        fetchEventData(); // Fetch and apply events for the current month
+        monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`;
+        renderCalendar(currentYear, currentMonthIndex);
+        fetchEventData(); // Ensure you have a function to fetch events
     };
 
-    // Logic to handle month navigation
+    // Month navigation event handlers
     cardBackButton.addEventListener('click', () => {
-        // Prevent going backward past January 2025
         if (currentYear === 2025 && currentMonthIndex === 0) return;
-    
         currentMonthIndex = (currentMonthIndex === 0) ? 11 : currentMonthIndex - 1;
         if (currentMonthIndex === 11) currentYear--;
         updateCalendar();
@@ -274,63 +220,120 @@ function initializeCalendar() {
         updateCalendar();
     });
 
+    // Initialize calendar on load
     updateCalendar();
-}
 
-// Render the calendar days, filling in the grid and handling events
-function renderCalendar(year, month) {
-    // Clear previous calendar grid
-    calendarGrid.innerHTML = '';
-    
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = getDaysInMonth(year, month);
-    const daysInPrevMonth = getDaysInMonth(year, month - 1);
-    
-    const totalCells = 42; // 6 rows * 7 days
-    const days = [];
+    // Helper functions
+    function createBackButton() {
+        const cardBackButton = document.createElement('button');
+        const cardBackArrowImage = document.createElement('img');
+        cardBackButton.appendChild(cardBackArrowImage);
 
-    // Fill previous month's overflow days
-    for (let i = firstDay - 1; i >= 0; i--) {
-        days.push({ day: daysInPrevMonth - i, class: 'prev', isCurrentMonth: false });
+        cardBackArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
+        cardBackArrowImage.height = 12;
+        cardBackButton.style.backgroundColor = '#ffffff';
+        cardBackButton.style.color = '#131311';
+        cardBackButton.style.border = 'none';
+        cardBackButton.style.borderRadius = '50%';
+        cardBackButton.style.padding = '10px 10px 12px 10px';
+        cardBackButton.style.cursor = 'pointer';
+        cardBackButton.style.fontSize = '20px';
+        cardBackButton.style.lineHeight = '18px';
+
+        cardBackButton.onclick = () => {
+            modal.style.display = 'none'; // Ensure modal is defined if used
+        };
+
+        return cardBackButton;
     }
 
-    // Fill current month's days
-    for (let i = 1; i <= daysInMonth; i++) {
-        days.push({ day: i, class: 'current', isCurrentMonth: true });
+    function createMonthTitle() {
+        const monthTitle = document.createElement('h3');
+        monthTitle.textContent = 'January';
+        monthTitle.style.margin = '0';
+        monthTitle.style.textAlign = 'center';
+        monthTitle.style.flexGrow = '1';
+        return monthTitle;
     }
 
-    // Fill next month's overflow days
-    while (days.length < totalCells) {
-        days.push({ day: days.length - daysInMonth - firstDay + 1, class: 'next', isCurrentMonth: false });
+    function createForwardButton() {
+        const cardForwardButton = document.createElement('button');
+        const cardForwardArrowImage = document.createElement('img');
+        cardForwardButton.appendChild(cardForwardArrowImage);
+
+        cardForwardArrowImage.src = "https://epearson.me/faction_status_images/arrow-forward.svg";
+        cardForwardArrowImage.height = 12;
+        cardForwardButton.style.backgroundColor = '#ffffff';
+        cardForwardButton.style.color = '#131311';
+        cardForwardButton.style.border = 'none';
+        cardForwardButton.style.borderRadius = '50%';
+        cardForwardButton.style.padding = '10px 10px 12px 10px';
+        cardForwardButton.style.cursor = 'pointer';
+        cardForwardButton.style.fontSize = '20px';
+        cardForwardButton.style.lineHeight = '18px';
+
+        return cardForwardButton;
     }
 
-    days.forEach((d, index) => {
-        const dayElem = createDayElement(d, index, year, month);
-        calendarGrid.appendChild(dayElem);
-    });
-}
+    function createCalendarGrid() {
+        const calendarGrid = document.createElement('div');
+        calendarGrid.style.display = 'grid';
+        calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
+        calendarGrid.style.gridGap = '5px';
+        return calendarGrid;
+    }
 
-// Create and style each day element inside the calendar grid
-function createDayElement(d, index, year, month) {
-    const dayElem = document.createElement('div');
-    dayElem.className = `day ${d.class}`;
-    dayElem.textContent = d.day;
-    
-    // Create and position the day number inside the cell
-    const dateNumber = document.createElement('span');
-    dateNumber.textContent = d.day;
-    dateNumber.style.position = 'absolute';
-    dateNumber.style.bottom = '5px';
-    dateNumber.style.left = '5px';
+    function renderCalendar(year, month) {
+        calendarGrid.innerHTML = '';
+        
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = getDaysInMonth(year, month);
+        const daysInPrevMonth = getDaysInMonth(year, month - 1);
+        
+        const totalCells = 42;
+        const days = [];
 
-    dayElem.appendChild(dateNumber);
+        // Fill previous month's overflow days
+        for (let i = firstDay - 1; i >= 0; i--) {
+            days.push({ day: daysInPrevMonth - i, class: 'prev', isCurrentMonth: false });
+        }
 
-    return dayElem;
-}
+        // Fill current month's days
+        for (let i = 1; i <= daysInMonth; i++) {
+            days.push({ day: i, class: 'current', isCurrentMonth: true });
+        }
 
-// Function to get the number of days in a given month
-function getDaysInMonth(year, month) {
-    return new Date(year, month + 1, 0).getDate();
+        // Fill next month's overflow days
+        while (days.length < totalCells) {
+            days.push({ day: days.length - daysInMonth - firstDay + 1, class: 'next', isCurrentMonth: false });
+        }
+
+        days.forEach((d, index) => {
+            const dayElem = createDayElement(d, index, year, month);
+            calendarGrid.appendChild(dayElem);
+        });
+    }
+
+    function createDayElement(d, index, year, month) {
+        const dayElem = document.createElement('div');
+        dayElem.className = `day ${d.class}`;
+        dayElem.textContent = d.day;
+
+        const dateNumber = document.createElement('span');
+        dateNumber.textContent = d.day;
+        dateNumber.style.position = 'absolute';
+        dateNumber.style.bottom = '5px';
+        dateNumber.style.left = '5px';
+
+        dayElem.appendChild(dateNumber);
+        return dayElem;
+    }
+
+    function getDaysInMonth(year, month) {
+        return new Date(year, month + 1, 0).getDate();
+    }
+
+    return calendarContainer; // Return the full calendar container element
 }
 
 // Fetch and process data using PDA_httpGet
@@ -627,13 +630,15 @@ function createEventElement(event, isPastEvent) {
 
 // Initialize the calendar tool when the page is loaded
 function initializeCalendarTool() {
-    const modal = createModal();
-    const topBar = createTopBar(modal);
-    const card = createCard();
+    const modal = createModal(); // Ensure createModal() is properly defined
+    const topBar = createTopBar(modal); // Ensure createTopBar() is properly defined
+    const card = createCard(); // Ensure createCard() is properly defined
+    const calendarElement = Calendar(); // Initialize the calendar
 
-    document.body.appendChild(topBar);
-    document.body.appendChild(modal);
-    document.body.appendChild(card);
+    document.body.appendChild(topBar); // Append top bar to body
+    document.body.appendChild(modal); // Append modal to body
+    modal.appendChild(card); // Append card inside the modal
+    modal.appendChild(calendarElement); // Append the calendar inside the modal (or another suitable container)
 }
 
 // Call the function directly
