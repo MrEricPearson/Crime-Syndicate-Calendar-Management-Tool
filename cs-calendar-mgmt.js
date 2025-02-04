@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.28
+// @version      0.2.29
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -219,7 +219,7 @@ function initializeCalendar() {
 
 // CALENDAR: Create and initialize the UI components for the calendar
 function createCalendarUI() {
-    console.log("createCalendarUI() was called"); // Debugging line
+    console.log("createCalendarUI() was called");
 
     const container = document.createElement('div');
     container.style.display = 'flex';
@@ -230,10 +230,15 @@ function createCalendarUI() {
     header.style.justifyContent = 'space-between';
     header.style.alignItems = 'center';
 
-    const monthTitle = createMonthTitle();
-    monthTitle.textContent += " test";
-    console.log("Month title text:", monthTitle.textContent); // Log output
+    // Add a completely new test paragraph
+    const debugTestElement = document.createElement('p');
+    debugTestElement.textContent = "Debug Test Message";
+    debugTestElement.style.color = "red";
+    debugTestElement.style.fontSize = "20px";
+    container.appendChild(debugTestElement); // Append it early to ensure visibility
 
+    // Continue creating calendar UI elements
+    const monthTitle = createMonthTitle();
     const cardBackButton = createBackButton();
     const cardForwardButton = createForwardButton();
 
@@ -242,7 +247,6 @@ function createCalendarUI() {
     header.appendChild(cardForwardButton);
 
     const calendarGrid = createCalendarGrid();
-
     container.appendChild(header);
     container.appendChild(calendarGrid);
 
