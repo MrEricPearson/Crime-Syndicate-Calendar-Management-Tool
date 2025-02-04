@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.18
+// @version      0.2.19
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -69,7 +69,6 @@ function createTopBar(modal) {
 
 // Create the modal container with header and content
 function createModal() {
-    // Step 1: Create the modal container
     const modal = document.createElement('div');
     modal.style.position = 'fixed';
     modal.style.top = '0';
@@ -85,7 +84,6 @@ function createModal() {
     modal.style.pointerEvents = 'auto';
     modal.style.paddingTop = '5%';
 
-    // Step 2: Create the header wrapper
     const headerWrapper = document.createElement('div');
     headerWrapper.style.width = 'calc(80% + 40px)';
     headerWrapper.style.display = 'flex';
@@ -94,7 +92,6 @@ function createModal() {
     headerWrapper.style.marginBottom = '20px';
     headerWrapper.style.padding = '0 20px';
 
-    // Step 3: Create the back button
     const backButton = document.createElement('button');
     backButton.style.backgroundColor = '#ffffff';
     backButton.style.color = '#131311';
@@ -104,17 +101,11 @@ function createModal() {
     backButton.style.cursor = 'pointer';
     backButton.style.fontSize = '30px';
     backButton.style.lineHeight = '28px';
-    backButton.style.zIndex = '100';
-
-    // Step 4: Create the back arrow image
     const backArrowImage = document.createElement('img');
     backArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
     backArrowImage.height = 18;
-
-    // Attach the arrow image to the back button
     backButton.appendChild(backArrowImage);
 
-    // Step 5: Create the modal title
     const modalTitle = document.createElement('h2');
     modalTitle.textContent = 'Faction Calendar';
     modalTitle.style.margin = '0';
@@ -126,26 +117,24 @@ function createModal() {
     modalTitle.style.marginLeft = '-50px';
     modalTitle.style.zIndex = '1';
 
-    // Step 6: Append elements in the correct structure
     headerWrapper.appendChild(backButton);
     headerWrapper.appendChild(modalTitle);
     modal.appendChild(headerWrapper);
 
-    // Step 7: Add event listener inside createModal function and handle clearing of local storage when the back button is clicked
     backButton.addEventListener("click", () => {
         modal.style.display = 'none';
         localStorage.removeItem("eventsData"); // Clear events data when modal is closed
     });
 
-    // Step 8: Set height of modal header
+    // Step 8: Insert top bar before header
     const headerRoot = document.getElementById('header-root');
     if (headerRoot) {
         headerRoot.style.position = 'relative';
         headerRoot.style.marginTop = '33px';
+        const topBar = createTopBar(modal);
         document.body.insertBefore(topBar, headerRoot);
     }
 
-    // Step 8: Return the fully constructed modal
     return modal;
 }
 
