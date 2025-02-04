@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.17
+// @version      0.2.18
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -10,8 +10,8 @@
 // @grant        none
 // ==/UserScript==
 
-function initializeCalendarTool() {
-    // Map event types to their respective background colors
+// Helper function to map event types to background colors
+const getEventColor = (eventType) => {
     const colorMap = {
         event: '#51c1b6',
         training: '#4d8dca',
@@ -21,9 +21,13 @@ function initializeCalendarTool() {
         other: '#dde0cf'
     };
 
-    const topBar = document.createElement('div');
-    document.body.appendChild(topBar);
+    return colorMap[eventType] || colorMap['other']; // Default to 'other' if the eventType is unknown
+};
 
+// Create the initial topBar with a button to open the modal
+function createTopBar(modal) {
+    // Step 1: Create the top bar container
+    const topBar = document.createElement('div');
     topBar.style.position = 'fixed';
     topBar.style.top = '0';
     topBar.style.left = '0';
@@ -34,9 +38,8 @@ function initializeCalendarTool() {
     topBar.style.zIndex = '1000';
     topBar.style.textAlign = 'right';
 
+    // Step 2: Create the modal button
     const modalButton = document.createElement('button');
-    topBar.appendChild(modalButton);
-
     modalButton.textContent = 'Open Modal';
     modalButton.style.backgroundColor = '#007BFF';
     modalButton.style.color = '#fff';
@@ -46,14 +49,28 @@ function initializeCalendarTool() {
     modalButton.style.cursor = 'pointer';
     modalButton.style.borderRadius = '5px';
 
-    // Show the modal when the button is clicked
+    // Step 3: Attach event listener to show the modal
     modalButton.onclick = () => {
         modal.style.display = 'flex';
     };
 
-    const modal = document.createElement('div');
-    document.body.appendChild(modal);
+    // Step 4: Append button to top bar
+    topBar.appendChild(modalButton);
 
+    // Step 5: Update initialization for event logging
+    modalButton.addEventListener("click", () => {
+        modal.style.display = "flex";
+        fetchEventData();
+    });
+
+    // Step 6: Return the constructed top bar
+    return topBar;
+}
+
+// Create the modal container with header and content
+function createModal() {
+    // Step 1: Create the modal container
+    const modal = document.createElement('div');
     modal.style.position = 'fixed';
     modal.style.top = '0';
     modal.style.left = '0';
@@ -61,16 +78,15 @@ function initializeCalendarTool() {
     modal.style.height = '100%';
     modal.style.backgroundColor = '#ecf1ed';
     modal.style.color = '#fff';
-    modal.style.display = 'none';
+    modal.style.display = 'none'; // Initially hidden
     modal.style.zIndex = '100001';
     modal.style.alignItems = 'center';
     modal.style.flexDirection = 'column';
     modal.style.pointerEvents = 'auto';
     modal.style.paddingTop = '5%';
 
+    // Step 2: Create the header wrapper
     const headerWrapper = document.createElement('div');
-    modal.appendChild(headerWrapper);
-
     headerWrapper.style.width = 'calc(80% + 40px)';
     headerWrapper.style.display = 'flex';
     headerWrapper.style.alignItems = 'center';
@@ -78,14 +94,8 @@ function initializeCalendarTool() {
     headerWrapper.style.marginBottom = '20px';
     headerWrapper.style.padding = '0 20px';
 
+    // Step 3: Create the back button
     const backButton = document.createElement('button');
-    headerWrapper.appendChild(backButton);
-
-    const backArrowImage = document.createElement('img');
-    backButton.appendChild(backArrowImage);
-
-    backArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
-    backArrowImage.height = 18;
     backButton.style.backgroundColor = '#ffffff';
     backButton.style.color = '#131311';
     backButton.style.border = 'none';
@@ -96,9 +106,16 @@ function initializeCalendarTool() {
     backButton.style.lineHeight = '28px';
     backButton.style.zIndex = '100';
 
-    const modalTitle = document.createElement('h2');
-    headerWrapper.appendChild(modalTitle);
+    // Step 4: Create the back arrow image
+    const backArrowImage = document.createElement('img');
+    backArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
+    backArrowImage.height = 18;
 
+    // Attach the arrow image to the back button
+    backButton.appendChild(backArrowImage);
+
+    // Step 5: Create the modal title
+    const modalTitle = document.createElement('h2');
     modalTitle.textContent = 'Faction Calendar';
     modalTitle.style.margin = '0';
     modalTitle.style.textAlign = 'center';
@@ -109,8 +126,33 @@ function initializeCalendarTool() {
     modalTitle.style.marginLeft = '-50px';
     modalTitle.style.zIndex = '1';
 
-    const card = document.createElement('div');
+    // Step 6: Append elements in the correct structure
+    headerWrapper.appendChild(backButton);
+    headerWrapper.appendChild(modalTitle);
+    modal.appendChild(headerWrapper);
 
+    // Step 7: Add event listener inside createModal function and handle clearing of local storage when the back button is clicked
+    backButton.addEventListener("click", () => {
+        modal.style.display = 'none';
+        localStorage.removeItem("eventsData"); // Clear events data when modal is closed
+    });
+
+    // Step 8: Set height of modal header
+    const headerRoot = document.getElementById('header-root');
+    if (headerRoot) {
+        headerRoot.style.position = 'relative';
+        headerRoot.style.marginTop = '33px';
+        document.body.insertBefore(topBar, headerRoot);
+    }
+
+    // Step 8: Return the fully constructed modal
+    return modal;
+}
+
+// Create the card component containing the calendar and toggling buttons
+function createCard() {
+    // Step 1: Create the card container
+    const card = document.createElement('div');
     card.style.backgroundColor = '#f4f9f5';
     card.style.color = '#333';
     card.style.padding = '20px';
@@ -118,18 +160,37 @@ function initializeCalendarTool() {
     card.style.marginTop = '20px';
     card.style.width = '80%';
 
+    // Step 2: Create the card header container
     const cardHeader = document.createElement('div');
     card.appendChild(cardHeader);
-
     cardHeader.style.width = '100%';
     cardHeader.style.display = 'flex';
     cardHeader.style.alignItems = 'center';
     cardHeader.style.justifyContent = 'space-between';
     cardHeader.style.marginBottom = '20px';
 
-    const cardBackButton = document.createElement('button');
+    // Step 3: Create the back button and its arrow image
+    const cardBackButton = createBackButton();
     cardHeader.appendChild(cardBackButton);
 
+    // Step 4: Create the month title
+    const monthTitle = createMonthTitle();
+    cardHeader.appendChild(monthTitle);
+
+    // Step 5: Create the forward button and its arrow image
+    const cardForwardButton = createForwardButton();
+    cardHeader.appendChild(cardForwardButton);
+
+    // Step 6: Create the calendar grid container
+    const calendarGrid = createCalendarGrid();
+    card.appendChild(calendarGrid);
+
+    return card;
+}
+
+// Create the back button with its styling and functionality
+function createBackButton() {
+    const cardBackButton = document.createElement('button');
     const cardBackArrowImage = document.createElement('img');
     cardBackButton.appendChild(cardBackArrowImage);
 
@@ -144,17 +205,27 @@ function initializeCalendarTool() {
     cardBackButton.style.fontSize = '20px';
     cardBackButton.style.lineHeight = '18px';
 
-    const monthTitle = document.createElement('h3');
-    cardHeader.appendChild(monthTitle);
+    // Step 7: Handle back button functionality
+    cardBackButton.onclick = () => {
+        modal.style.display = 'none';
+    };
 
+    return cardBackButton;
+}
+
+// Create the month title with its styling
+function createMonthTitle() {
+    const monthTitle = document.createElement('h3');
     monthTitle.textContent = 'January';
     monthTitle.style.margin = '0';
     monthTitle.style.textAlign = 'center';
     monthTitle.style.flexGrow = '1';
+    return monthTitle;
+}
 
+// Create the forward button with its styling and functionality
+function createForwardButton() {
     const cardForwardButton = document.createElement('button');
-    cardHeader.appendChild(cardForwardButton);
-
     const cardForwardArrowImage = document.createElement('img');
     cardForwardButton.appendChild(cardForwardArrowImage);
 
@@ -169,176 +240,36 @@ function initializeCalendarTool() {
     cardForwardButton.style.fontSize = '20px';
     cardForwardButton.style.lineHeight = '18px';
 
-    const calendarGrid = document.createElement('div');
-    card.appendChild(calendarGrid);
+    return cardForwardButton;
+}
 
+// Create the calendar grid for displaying days and events
+function createCalendarGrid() {
+    const calendarGrid = document.createElement('div');
     calendarGrid.style.display = 'grid';
     calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
     calendarGrid.style.gridGap = '5px';
 
-    // Hide the modal when backButton is clicked
-    backButton.onclick = () => {
-        modal.style.display = 'none';
-    };
+    return calendarGrid;
+}
+
+// Initialize and render the calendar with navigation logic
+function initializeCalendar() {
+    let currentMonthIndex = 0;
+    let currentYear = 2025;
 
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
-    const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
-
-    const renderCalendar = (year, month) => {
-        // Clear all event highlights from previous months
-        Array.from(calendarGrid.querySelectorAll('.day.current')).forEach(dayCell => {
-            dayCell.style.backgroundColor = '#eff4f1'; // Default background color
-            dayCell.style.color = '#333333'; // Default text color
-        });
-    
-        calendarGrid.innerHTML = ''; // Clear previous grid
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = getDaysInMonth(year, month);
-        const daysInPrevMonth = getDaysInMonth(year, month - 1);
-    
-        const totalCells = 42; // 6 rows * 7 days
-        const days = [];
-    
-        // Fill previous month's overflow days
-        for (let i = firstDay - 1; i >= 0; i--) {
-            days.push({
-                day: daysInPrevMonth - i,
-                class: 'prev',
-                isCurrentMonth: false, // Mark as not part of the current month
-            });
-        }
-    
-        // Fill current month's days
-        for (let i = 1; i <= daysInMonth; i++) {
-            days.push({
-                day: i,
-                class: 'current',
-                isCurrentMonth: true, // Mark as part of the current month
-            });
-        }
-    
-        // Fill next month's overflow days
-        while (days.length < totalCells) {
-            days.push({
-                day: days.length - daysInMonth - firstDay + 1,
-                class: 'next',
-                isCurrentMonth: false, // Mark as not part of the current month
-            });
-        }
-    
-        let currentWeekStart = null;
-        let currentWeekEnd = null;
-        let rowHeights = new Array(6).fill(4.5); // Initialize row heights (in em)
-        
-        // Assuming eventGroupsMap holds the event groupings for each day
-        const eventGroupsMap = {}; // Keyed by cellId, holds arrays of event groups
-    
-        days.forEach((d, index) => {
-            const dayElem = document.createElement('div');
-            dayElem.className = `day ${d.class}`;
-            dayElem.textContent = d.day;
-    
-            let cellId = null;
-    
-            // Assign unique identifier only if the day belongs to the current month
-            if (d.isCurrentMonth) {
-                const cellDate = new Date(year, month, d.day);
-                const cellYear = cellDate.getFullYear();
-                const cellMonth = String(cellDate.getMonth() + 1).padStart(2, '0'); // Add 1 since months are 0-based
-                const cellDay = String(d.day).padStart(2, '0');
-                cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
-                dayElem.id = cellId;
-            }
-    
-            // Apply default styles for days
-            if (d.class === 'prev' || d.class === 'next') {
-                dayElem.style.backgroundColor = '#ecf1ed';
-                dayElem.style.color = '#d3d8d4';
-            } else if (d.class === 'current') {
-                dayElem.style.backgroundColor = '#eff4f1';
-                dayElem.style.color = '#333333';
-            }
-    
-            // General styles for all day elements
-            dayElem.style.height = '4.5em';
-            dayElem.style.display = 'block';
-            dayElem.style.position = 'relative';
-            dayElem.style.borderRadius = '8px';
-    
-            // Create and position the day number
-            const dateNumber = document.createElement('span');
-            dateNumber.textContent = d.day;
-            dateNumber.style.position = 'absolute';
-            dateNumber.style.bottom = '5px';
-            dateNumber.style.left = '5px';
-    
-            // Clear text content to avoid duplicate numbers
-            dayElem.textContent = '';
-            dayElem.appendChild(dateNumber);
-    
-            calendarGrid.appendChild(dayElem);
-    
-            // Logic to identify week boundaries only for current month days
-            if (d.isCurrentMonth && index % 7 === 0) {
-                // Start of a new week
-                if (currentWeekStart !== null) {
-                    // Mark the end of the previous week (Saturday, which is index - 1)
-                    const prevDayElem = calendarGrid.children[index - 1];
-                    if (!prevDayElem.classList.contains('prev') && !prevDayElem.classList.contains('next')) {
-                        prevDayElem.setAttribute("data-week-end", "true");
-                    }
-                }
-                // Mark the start of this week
-                currentWeekStart = dayElem;
-                currentWeekStart.setAttribute("data-week-start", "true");
-            }
-    
-            // Detect and label the start of the month only if it's part of the current month
-            if (d.day === 1 && d.isCurrentMonth) {
-                dayElem.setAttribute("data-month-start", "true");
-            }
-    
-            // Detect and label the end of the month only if it's part of the current month
-            if (d.day === daysInMonth && d.isCurrentMonth) {
-                dayElem.setAttribute("data-month-end", "true");
-            }
-    
-            // Track event groups assigned to each cell (if any)
-            if (eventGroupsMap[cellId]) {
-                // Increase row height if there are multiple event groups for this day
-                const eventLayerCount = eventGroupsMap[cellId].length;
-                if (eventLayerCount > 1) {
-                    const rowIndex = Math.floor(index / 7); // Determine which row the cell belongs to
-                    rowHeights[rowIndex] = Math.max(rowHeights[rowIndex], 4.5 + 22); // Increase row height
-                }
-            }
-        });
-    
-        // Adjust the height of all cells in rows with extra layers
-        const rowCells = Array.from(calendarGrid.children); // Convert HTMLCollection to array
-        rowHeights.forEach((height, rowIndex) => {
-            const startIndex = rowIndex * 7;
-            const rowCellsInRow = rowCells.slice(startIndex, startIndex + 7);
-    
-            rowCellsInRow.forEach(cell => {
-                cell.style.height = `${height}em`;
-            });
-        });
-    };       
-    
-    let currentMonthIndex = 0;
-    let currentYear = 2025;
-
     const updateCalendar = () => {
-        monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`; // Include year
-        renderCalendar(currentYear, currentMonthIndex);
+        monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`; // Update month title
+        renderCalendar(currentYear, currentMonthIndex); // Render the grid of days
         fetchEventData(); // Fetch and apply events for the current month
-    };    
+    };
 
+    // Logic to handle month navigation
     cardBackButton.addEventListener('click', () => {
         // Prevent going backward past January 2025
         if (currentYear === 2025 && currentMonthIndex === 0) return;
@@ -347,7 +278,7 @@ function initializeCalendarTool() {
         if (currentMonthIndex === 11) currentYear--;
         updateCalendar();
     });
-    
+
     cardForwardButton.addEventListener('click', () => {
         currentMonthIndex = (currentMonthIndex === 11) ? 0 : currentMonthIndex + 1;
         if (currentMonthIndex === 0) currentYear++;
@@ -355,329 +286,365 @@ function initializeCalendarTool() {
     });
 
     updateCalendar();
+}
 
-    modal.appendChild(headerWrapper);
-    modal.appendChild(card);
+// Render the calendar days, filling in the grid and handling events
+function renderCalendar(year, month) {
+    // Clear previous calendar grid
+    calendarGrid.innerHTML = '';
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = getDaysInMonth(year, month);
+    const daysInPrevMonth = getDaysInMonth(year, month - 1);
+    
+    const totalCells = 42; // 6 rows * 7 days
+    const days = [];
 
-    const headerRoot = document.getElementById('header-root');
-    if (headerRoot) {
-        headerRoot.style.position = 'relative';
-        headerRoot.style.marginTop = '33px';
-        document.body.insertBefore(topBar, headerRoot);
+    // Fill previous month's overflow days
+    for (let i = firstDay - 1; i >= 0; i--) {
+        days.push({ day: daysInPrevMonth - i, class: 'prev', isCurrentMonth: false });
     }
 
-    document.body.appendChild(modal);
-    topBar.appendChild(modalButton);
-
-    modalButton.addEventListener('click', () => {
-        modal.style.display = 'flex';
-    });
-
-    backButton.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-
-    // Fetch and process data using PDA_httpGet
-    async function fetchEventData() {
-        try {
-            const storedEvents = localStorage.getItem("eventsData"); // Check if events data is stored in localStorage
-            
-            if (storedEvents) {
-                // If events data is found in localStorage, use it
-                const events = JSON.parse(storedEvents);
-                processEvents(events); // Process the events just like in the API call
-            } else {
-                // If no data is found, make the API request
-                const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
-        
-                // Make GET request using PDA_httpGet
-                const response = await PDA_httpGet(endpoint);
-        
-                // Validate response structure
-                if (!response || typeof response !== "object") {
-                    logToContainer("Error: Invalid response from PDA_httpGet.", true);
-                    return;
-                }
-        
-                // Parse response content
-                const status = response.status;
-                const statusText = response.statusText;
-                const responseText = response.responseText;
-        
-                if (status !== 200) {
-                    logToContainer(`Error: Received status ${status} - ${statusText}`, true);
-                    return;
-                }
-        
-                let jsonResponse;
-                try {
-                    jsonResponse = JSON.parse(responseText);
-                } catch (e) {
-                    logToContainer("Error: Unable to parse response JSON.", true);
-                    return;
-                }
-        
-                const events = jsonResponse.events || [];
-        
-                // Store the fetched events in localStorage for future use
-                localStorage.setItem("eventsData", JSON.stringify(events));
-        
-                // Process events
-                processEvents(events);
-            }
-        } catch (error) {
-            logToContainer(`Fetch Error: ${error.message}`, true);
-        }
+    // Fill current month's days
+    for (let i = 1; i <= daysInMonth; i++) {
+        days.push({ day: i, class: 'current', isCurrentMonth: true });
     }
 
-    function parseDateAsUTC(dateString) {
-        const dateParts = dateString.split("-"); // Assuming format is YYYY-MM-DD
-        const year = parseInt(dateParts[0], 10);
-        const month = parseInt(dateParts[1], 10) - 1; // Months are 0-indexed in JavaScript
-        const day = parseInt(dateParts[2], 10);
+    // Fill next month's overflow days
+    while (days.length < totalCells) {
+        days.push({ day: days.length - daysInMonth - firstDay + 1, class: 'next', isCurrentMonth: false });
+    }
+
+    days.forEach((d, index) => {
+        const dayElem = createDayElement(d, index, year, month);
+        calendarGrid.appendChild(dayElem);
+    });
+}
+
+// Create and style each day element inside the calendar grid
+function createDayElement(d, index, year, month) {
+    const dayElem = document.createElement('div');
+    dayElem.className = `day ${d.class}`;
+    dayElem.textContent = d.day;
+    
+    // Create and position the day number inside the cell
+    const dateNumber = document.createElement('span');
+    dateNumber.textContent = d.day;
+    dateNumber.style.position = 'absolute';
+    dateNumber.style.bottom = '5px';
+    dateNumber.style.left = '5px';
+
+    dayElem.appendChild(dateNumber);
+
+    return dayElem;
+}
+
+// Function to get the number of days in a given month
+function getDaysInMonth(year, month) {
+    return new Date(year, month + 1, 0).getDate();
+}
+
+// Fetch and process data using PDA_httpGet
+async function fetchEventData() {
+    try {
+        const storedEvents = localStorage.getItem("eventsData"); // Check if events data is stored in localStorage
         
-        // Create a Date object in UTC
-        return new Date(Date.UTC(year, month, day));
-    }    
-
-    // Process and display the events
-    function processEvents(events) {
-        // Filter out invalid events
-        const validEvents = events.filter((event) => {
-            if (!event || !event.event_start_date || !event.event_type) {
-                return false;
+        if (storedEvents) {
+            // If events data is found in localStorage, use it
+            const events = JSON.parse(storedEvents);
+            processEvents(events); // Process the events just like in the API call
+        } else {
+            // If no data is found, make the API request
+            const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
+    
+            // Make GET request using PDA_httpGet
+            const response = await PDA_httpGet(endpoint);
+    
+            // Validate response structure
+            if (!response || typeof response !== "object") {
+                logToContainer("Error: Invalid response from PDA_httpGet.", true);
+                return;
             }
-            const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
-            const eventMonth = parseInt(event.event_start_date.split("-")[1], 10) - 1; // 0-based month
-            const validYear = eventYear === currentYear;
-            const validMonth = eventMonth === currentMonthIndex;
-            const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-
-            return validYear && validMonth && validType;
-        });
-
-        // If no valid events, return early
-        if (validEvents.length === 0) {
-            return;
+    
+            // Parse response content
+            const status = response.status;
+            const statusText = response.statusText;
+            const responseText = response.responseText;
+    
+            if (status !== 200) {
+                logToContainer(`Error: Received status ${status} - ${statusText}`, true);
+                return;
+            }
+    
+            let jsonResponse;
+            try {
+                jsonResponse = JSON.parse(responseText);
+            } catch (e) {
+                logToContainer("Error: Unable to parse response JSON.", true);
+                return;
+            }
+    
+            const events = jsonResponse.events || [];
+    
+            // Store the fetched events in localStorage for future use
+            localStorage.setItem("eventsData", JSON.stringify(events));
+    
+            // Process events
+            processEvents(events);
         }
+    } catch (error) {
+        logToContainer(`Fetch Error: ${error.message}`, true);
+    }
+}
 
-        console.log("=== Analyzing Event Group Levels for Current Month ===");
+// Helper fucntion to reformat date string to UTC
+function parseDateAsUTC(dateString) {
+    const dateParts = dateString.split("-"); // Assuming format is YYYY-MM-DD
+    const year = parseInt(dateParts[0], 10);
+    const month = parseInt(dateParts[1], 10) - 1; // Months are 0-indexed in JavaScript
+    const day = parseInt(dateParts[2], 10);
+    
+    // Create a Date object in UTC
+    return new Date(Date.UTC(year, month, day));
+}    
 
-        // Separate past and upcoming events
-        const now = new Date();
-        const upcomingEvents = [];
-        const pastEvents = [];
+// Process and display the events
+function processEvents(events) {
+    // Filter out invalid events
+    const validEvents = events.filter((event) => {
+        if (!event || !event.event_start_date || !event.event_type) {
+            return false;
+        }
+        const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
+        const eventMonth = parseInt(event.event_start_date.split("-")[1], 10) - 1; // 0-based month
+        const validYear = eventYear === currentYear;
+        const validMonth = eventMonth === currentMonthIndex;
+        const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
 
-        validEvents.forEach(event => {
-            const startDate = parseDateAsUTC(event.event_start_date);
-            const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate;
+        return validYear && validMonth && validType;
+    });
 
-            if (endDate < now) {
-                pastEvents.push(event);
-            } else {
-                upcomingEvents.push(event);
+    // If no valid events, return early
+    if (validEvents.length === 0) {
+        return;
+    }
+
+    console.log("=== Analyzing Event Group Levels for Current Month ===");
+
+    // Separate past and upcoming events
+    const now = new Date();
+    const upcomingEvents = [];
+    const pastEvents = [];
+
+    validEvents.forEach(event => {
+        const startDate = parseDateAsUTC(event.event_start_date);
+        const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate;
+
+        if (endDate < now) {
+            pastEvents.push(event);
+        } else {
+            upcomingEvents.push(event);
+        }
+    });
+
+    // Sort events
+    upcomingEvents.sort((a, b) => new Date(a.event_start_date) - new Date(b.event_start_date));
+    pastEvents.sort((a, b) => new Date(b.event_end_date) - new Date(a.event_end_date));
+
+    // Render events
+    setTimeout(() => {
+        [...upcomingEvents, ...pastEvents].forEach(event => {
+            modalContentWrapper.appendChild(createEventElement(event, pastEvents.includes(event)));
+        });
+    }, 0);        
+
+    // === Retain existing calendar logic ===
+    
+    // Sort valid events by start date
+    validEvents.sort((a, b) => {
+        const dateA = new Date(a.event_start_date);
+        const dateB = new Date(b.event_start_date);
+        return dateA - dateB; // Sort in ascending order (earliest first)
+    });
+
+    const eventBarLayerMap = new Map();
+    const maxLayer = 3;
+
+    let eventAnalysisOutput = [];
+
+    validEvents.forEach((event) => {
+        const startDate = parseDateAsUTC(event.event_start_date);
+        const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate;
+        const eventColor = getEventColor(event.event_type); // Use the new getEventColor function
+        const eventObjectId = event._id;
+    
+        let eventDays = [];
+    
+        // Loop through the event days
+        for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
+            const year = d.getUTCFullYear();
+            const month = d.getUTCMonth();
+            const day = d.getUTCDate();
+    
+            if (year === currentYear && month === currentMonthIndex) {
+                const formattedMonth = String(month + 1).padStart(2, "0");
+                const formattedDay = String(day).padStart(2, "0");
+                const cellId = `cell-${year}-${formattedMonth}-${formattedDay}`;
+                eventDays.push({ cellId, objectId: eventObjectId });
+            }
+        }
+    
+        let eventLayer = 0;
+        let conflictFound = false;
+    
+        // Check for conflicts in the event layers
+        eventDays.forEach(({ cellId }) => {
+            for (let layer = 0; layer <= maxLayer; layer++) {
+                if (eventBarLayerMap.get(cellId + `-layer-${layer}`)) {
+                    conflictFound = true;
+                    break;
+                }
             }
         });
-
-        // Sort events
-        upcomingEvents.sort((a, b) => new Date(a.event_start_date) - new Date(b.event_start_date));
-        pastEvents.sort((a, b) => new Date(b.event_end_date) - new Date(a.event_end_date));
-
-        // Render events
-        setTimeout(() => {
-            [...upcomingEvents, ...pastEvents].forEach(event => {
-                modalContentWrapper.appendChild(createEventElement(event, pastEvents.includes(event)));
-            });
-        }, 0);        
-
-        // === Retain existing calendar logic ===
-        
-        // Sort valid events by start date
-        validEvents.sort((a, b) => {
-            const dateA = new Date(a.event_start_date);
-            const dateB = new Date(b.event_start_date);
-            return dateA - dateB; // Sort in ascending order (earliest first)
+    
+        // If there's a conflict, find the next available layer
+        if (conflictFound) {
+            while (eventLayer <= maxLayer && eventBarLayerMap.get(eventDays[0].cellId + `-layer-${eventLayer}`)) {
+                eventLayer++;
+            }
+        }
+    
+        // If no layer is available, exit early
+        if (eventLayer > maxLayer) return;
+    
+        // Save the event analysis output
+        eventAnalysisOutput.push({ eventObjectId, eventDays, determinedLayer: eventLayer });
+    
+        // Mark the layers for each event day
+        eventDays.forEach(({ cellId }) => {
+            eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true);
         });
-
-        const eventBarLayerMap = new Map();
-        const maxLayer = 3;
-
-        let eventAnalysisOutput = [];
-
-        validEvents.forEach((event) => {
-            const startDate = parseDateAsUTC(event.event_start_date);
-            const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate;
-            const eventColor = colorMap[event.event_type] || "#000";
-            const eventObjectId = event._id;
-
-            let eventDays = [];
-
-            for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
-                const year = d.getUTCFullYear();
-                const month = d.getUTCMonth();
-                const day = d.getUTCDate();
-
-                if (year === currentYear && month === currentMonthIndex) {
-                    const formattedMonth = String(month + 1).padStart(2, "0");
-                    const formattedDay = String(day).padStart(2, "0");
-                    const cellId = `cell-${year}-${formattedMonth}-${formattedDay}`;
-                    eventDays.push({ cellId, objectId: eventObjectId });
-                }
-            }
-
-            let eventLayer = 0;
-            let conflictFound = false;
-
-            eventDays.forEach(({ cellId }) => {
-                for (let layer = 0; layer <= maxLayer; layer++) {
-                    if (eventBarLayerMap.get(cellId + `-layer-${layer}`)) {
-                        conflictFound = true;
-                        break;
-                    }
-                }
-            });
-
-            if (conflictFound) {
-                while (eventLayer <= maxLayer && eventBarLayerMap.get(eventDays[0].cellId + `-layer-${eventLayer}`)) {
-                    eventLayer++;
-                }
-            }
-
-            if (eventLayer > maxLayer) return;
-
-            eventAnalysisOutput.push({ eventObjectId, eventDays, determinedLayer: eventLayer });
-
-            eventDays.forEach(({ cellId }) => {
-                eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true);
-            });
-
-            eventDays.forEach(({ cellId }, index) => {
-                const eventCell = document.getElementById(cellId);
-                if (!eventCell) return;
-
-                let eventBar = document.createElement("div");
-                eventBar.className = "event-bar";
-                eventCell.appendChild(eventBar);
-
-                eventBar.style.cssText = `
-                    height: 12px;
-                    position: absolute;
-                    bottom: ${21 + eventLayer * 13}px;
-                    left: 0px;
-                    background: ${eventColor};
-                    width: calc(100% + 5px);
-                    margin-top: 1px;
-                `;
-
-                if (index === 0) {
-                    if (eventCell.getAttribute("data-week-end") === "true") {
-                        eventBar.style.cssText += `
-                            border-top-left-radius: 12px;
-                            border-bottom-left-radius: 12px;
-                            width: calc(100% + 3px);
-                            left: 0px;
-                        `;
-                    } else {
-                        eventBar.style.cssText += `
-                            border-top-left-radius: 12px;
-                            border-bottom-left-radius: 12px;
-                            width: calc(100% + 3px);
-                            left: 2px;
-                        `;
-                    }
-                }
-
-                if (index === eventDays.length - 1) {
-                    eventBar.style.cssText += `
-                        border-top-right-radius: 12px;
-                        border-bottom-right-radius: 12px;
-                        width: calc(100% - 2px);
-                    `;
-                }
-
-                if (eventDays.length === 1) {
-                    eventBar.style.cssText += `
-                        border-radius: 12px;
-                        width: calc(100% - 2px);
-                    `;
-                }
-
+    
+        // Create event bars for each event day
+        eventDays.forEach(({ cellId }, index) => {
+            const eventCell = document.getElementById(cellId);
+            if (!eventCell) return;
+    
+            let eventBar = document.createElement("div");
+            eventBar.className = "event-bar";
+            eventCell.appendChild(eventBar);
+    
+            eventBar.style.cssText = `
+                height: 12px;
+                position: absolute;
+                bottom: ${21 + eventLayer * 13}px;
+                left: 0px;
+                background: ${eventColor};
+                width: calc(100% + 5px);
+                margin-top: 1px;
+            `;
+    
+            // Special styling for the first event bar in the series
+            if (index === 0) {
                 if (eventCell.getAttribute("data-week-end") === "true") {
-                    eventBar.style.width = "100%";
+                    eventBar.style.cssText += `
+                        border-top-left-radius: 12px;
+                        border-bottom-left-radius: 12px;
+                        width: calc(100% + 3px);
+                        left: 0px;
+                    `;
+                } else {
+                    eventBar.style.cssText += `
+                        border-top-left-radius: 12px;
+                        border-bottom-left-radius: 12px;
+                        width: calc(100% + 3px);
+                        left: 2px;
+                    `;
                 }
-            });
+            }
+    
+            // Special styling for the last event bar in the series
+            if (index === eventDays.length - 1) {
+                eventBar.style.cssText += `
+                    border-top-right-radius: 12px;
+                    border-bottom-right-radius: 12px;
+                    width: calc(100% - 2px);
+                `;
+            }
+    
+            // Styling for single-day events
+            if (eventDays.length === 1) {
+                eventBar.style.cssText += `
+                    border-radius: 12px;
+                    width: calc(100% - 2px);
+                `;
+            }
+    
+            // If it's a weekend, make the event bar span the entire width of the cell
+            if (eventCell.getAttribute("data-week-end") === "true") {
+                eventBar.style.width = "100%";
+            }
         });
+    });    
 
-        console.log("=== Event Group Level Analysis ===");
-        eventAnalysisOutput.forEach((eventInfo) => {
-            console.log(`Event Object ID: ${eventInfo.eventObjectId}`);
-            console.log("Event Days:", eventInfo.eventDays.map((day) => day.cellId));
-            console.log("Assigned Layer:", eventInfo.determinedLayer);
-            console.log("====================================");
-        });
-
-        console.log("=== End of Event Days ===");
-    } 
-
-    function createEventElement(event, isPastEvent) {
-        const eventRow = document.createElement('div');
-        eventRow.style.display = 'flex';
-        eventRow.style.alignItems = 'center';
-        eventRow.style.marginBottom = '10px';
-        eventRow.style.padding = '5px 0';
-        eventRow.style.borderBottom = '1px solid #ddd';
-    
-        // Placeholder icon
-        const icon = document.createElement('div');
-        icon.textContent = '📌'; // Placeholder for now
-        icon.style.width = '30px';
-        icon.style.textAlign = 'center';
-    
-        // Event details
-        const details = document.createElement('div');
-        details.style.flexGrow = '1';
-        details.style.textAlign = 'left';
-    
-        details.innerHTML = `
-            <strong>${event.event_type}</strong><br>
-            ${event.event_start_date} >>> ${event.event_end_date || '??'}<br>
-            ${event.event_start_time || '--:--'} >>> ${event.event_end_time || '--:--'}
-        `;
-    
-        if (isPastEvent) {
-            details.innerHTML += `<br><em>Completed</em>`; // Status only for past events
-        } else if (event.event_status) {
-            details.innerHTML += `<br><em>${event.event_status}</em>`;
-        }
-    
-        eventRow.appendChild(icon);
-        eventRow.appendChild(details);
-    
-        return eventRow;
-    }  
-    
-    // Create the wrapper element for scrollable content
-    const modalContentWrapper = document.createElement('div');
-    modal.appendChild(modalContentWrapper);
-    modalContentWrapper.appendChild(card);
-
-    modalContentWrapper.textContent = 'test';
-    modalContentWrapper.style.backgroundColor = '#000000';
-    
-    // Handle clearing of local storage when the back button is clicked
-    backButton.addEventListener("click", () => {
-        modal.style.display = 'none';
-        localStorage.removeItem("eventsData"); // Clear events data when modal is closed
+    console.log("=== Event Group Level Analysis ===");
+    eventAnalysisOutput.forEach((eventInfo) => {
+        console.log(`Event Object ID: ${eventInfo.eventObjectId}`);
+        console.log("Event Days:", eventInfo.eventDays.map((day) => day.cellId));
+        console.log("Assigned Layer:", eventInfo.determinedLayer);
+        console.log("====================================");
     });
 
-    // Update initialization for event logging
-    modalButton.addEventListener("click", () => {
-        modal.style.display = "flex";
-        fetchEventData();
-    });
+    console.log("=== End of Event Days ===");
+} 
 
-    // END EVENT DISPLAY SECTION
+// Create an event element for display in the modal
+function createEventElement(event, isPastEvent) {
+    const eventRow = document.createElement('div');
+    eventRow.style.display = 'flex';
+    eventRow.style.alignItems = 'center';
+    eventRow.style.marginBottom = '10px';
+    eventRow.style.padding = '5px 0';
+    eventRow.style.borderBottom = '1px solid #ddd';
 
+    // Placeholder icon
+    const icon = document.createElement('div');
+    icon.textContent = '📌'; // Placeholder for now
+    icon.style.width = '30px';
+    icon.style.textAlign = 'center';
+
+    // Event details
+    const details = document.createElement('div');
+    details.style.flexGrow = '1';
+    details.style.textAlign = 'left';
+
+    details.innerHTML = `
+        <strong>${event.event_type}</strong><br>
+        ${event.event_start_date} >>> ${event.event_end_date || '??'}<br>
+        ${event.event_start_time || '--:--'} >>> ${event.event_end_time || '--:--'}
+    `;
+
+    if (isPastEvent) {
+        details.innerHTML += `<br><em>Completed</em>`; // Status only for past events
+    } else if (event.event_status) {
+        details.innerHTML += `<br><em>${event.event_status}</em>`;
+    }
+
+    eventRow.appendChild(icon);
+    eventRow.appendChild(details);
+
+    return eventRow;
+} 
+
+// Initialize the calendar tool when the page is loaded
+function initializeCalendarTool() {
+    const modal = createModal();
+    const topBar = createTopBar(modal);
+    const card = createCard();
+
+    document.body.appendChild(topBar);
+    document.body.appendChild(modal);
+    document.body.appendChild(card);
 }
 
 // Call the function directly
