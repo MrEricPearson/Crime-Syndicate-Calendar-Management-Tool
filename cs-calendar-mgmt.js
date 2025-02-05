@@ -10,7 +10,7 @@
 // @grant        none
 // ==/UserScript==
 
-// Helper function to map event types to background colors
+// Helper function to map event types to bkground colors
 const getEventColor = (eventType) => {
     const colorMap = {
         event: '#51c1b6',
