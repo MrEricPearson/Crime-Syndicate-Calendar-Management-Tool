@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.39
+// @version      0.2.40
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -487,32 +487,31 @@ async function fetchEventData(targetYear, targetMonthIndex) {
 
 // Process and display the events
 function processEvents(events, currentYear, currentMonthIndex) {
-    console.log("Processing events...");
-
     // Filter out invalid events
     const validEvents = events.filter((event) => {
         if (!event || !event.event_start_date || !event.event_type) {
-            console.log("Skipping invalid event:", event);
             return false;
         }
-        const eventYear = parseInt(event.event_start_date.split("-")[0], 10);
-        const eventMonth = parseInt(event.event_start_date.split("-")[1], 10) - 1; // 0-based month
-        const validYear = eventYear === currentYear;
-        const validMonth = eventMonth === currentMonthIndex;
+    
+        const eventStartDate = parseDateAsUTC(event.event_start_date);  // Convert to UTC
+        const eventEndDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : eventStartDate;  // Convert to UTC
+    
+        const validYear = eventStartDate.getUTCFullYear() === currentYear;
+        const validMonth = eventStartDate.getUTCMonth() === currentMonthIndex;
         const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-
+    
         return validYear && validMonth && validType;
     });
 
-    console.log("Valid events after filtering:", validEvents);
+    // Only log the valid events
+    if (validEvents.length > 0) {
+        console.log("Valid events for the selected month:", validEvents);
+    }
 
     // If no valid events, return early
     if (validEvents.length === 0) {
-        console.log("No valid events found. Exiting processEvents.");
         return;
     }
-
-    console.log("=== Analyzing Event Group Levels for Current Month ===");
 
     // Separate past and upcoming events
     const now = new Date();
@@ -530,15 +529,9 @@ function processEvents(events, currentYear, currentMonthIndex) {
         }
     });
 
-    console.log("Upcoming events:", upcomingEvents);
-    console.log("Past events:", pastEvents);
-
     // Sort events
     upcomingEvents.sort((a, b) => new Date(a.event_start_date) - new Date(b.event_start_date));
     pastEvents.sort((a, b) => new Date(b.event_end_date) - new Date(a.event_end_date));
-
-    console.log("Sorted upcoming events:", upcomingEvents);
-    console.log("Sorted past events:", pastEvents);
 
     // Render events
     setTimeout(() => {
@@ -547,8 +540,6 @@ function processEvents(events, currentYear, currentMonthIndex) {
         });
     }, 0);        
 
-    // === Retain existing calendar logic ===
-    
     // Sort valid events by start date
     validEvents.sort((a, b) => {
         const dateA = new Date(a.event_start_date);
@@ -558,8 +549,6 @@ function processEvents(events, currentYear, currentMonthIndex) {
 
     const eventBarLayerMap = new Map();
     const maxLayer = 3;
-
-    let eventAnalysisOutput = [];
 
     validEvents.forEach((event) => {
         const startDate = parseDateAsUTC(event.event_start_date);
@@ -582,8 +571,6 @@ function processEvents(events, currentYear, currentMonthIndex) {
                 eventDays.push({ cellId, objectId: eventObjectId });
             }
         }
-
-        console.log(`Event: ${event.event_type}, Event ID: ${event._id}, Event Days:`, eventDays);
     
         let eventLayer = 0;
         let conflictFound = false;
@@ -607,9 +594,6 @@ function processEvents(events, currentYear, currentMonthIndex) {
     
         // If no layer is available, exit early
         if (eventLayer > maxLayer) return;
-    
-        // Save the event analysis output
-        eventAnalysisOutput.push({ eventObjectId, eventDays, determinedLayer: eventLayer });
     
         // Mark the layers for each event day
         eventDays.forEach(({ cellId }) => {
@@ -676,13 +660,6 @@ function processEvents(events, currentYear, currentMonthIndex) {
                 eventBar.style.width = "100%";
             }
         });
-    });
-
-    console.log("=== Event Group Level Analysis ===");
-    eventAnalysisOutput.forEach((eventInfo) => {
-        console.log(`Event Object ID: ${eventInfo.eventObjectId}`);
-        console.log("Event Days:", eventInfo.eventDays);
-        console.log("Layer:", eventInfo.determinedLayer);
     });
 }
 
