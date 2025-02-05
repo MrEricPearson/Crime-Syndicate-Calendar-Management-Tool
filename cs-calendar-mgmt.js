@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.49
+// @version      0.2.50
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -202,6 +202,10 @@ function initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calen
     });
 
     updateCalendar();
+
+    // Store initial calendar data in localStorage
+    const initialCalendarData = { months, currentMonthIndex, currentYear };
+    localStorage.setItem('calendarData', JSON.stringify(initialCalendarData));
 
     // Return the months array, currentMonthIndex, and currentYear
     return { months, currentMonthIndex, currentYear };
@@ -720,13 +724,22 @@ function initializeCalendarTool() {
     const topBar = createTopBar(modal); // Ensure createTopBar() is properly defined
     const card = createCard(); // Ensure createCard() is properly defined
 
-    // **NEW: Trigger the initial calendar update here:**
-    const { months, currentMonthIndex, currentYear } = JSON.parse(localStorage.getItem('calendarData'));
-    updateCalendar(months, currentMonthIndex, currentYear)
-
     document.body.appendChild(topBar); // Append top bar to body
     document.body.appendChild(modal); // Append modal to body
     modal.appendChild(card); // Append card inside the modal
+
+     // Attempt to retrieve calendar data from localStorage
+    let storedCalendarData = localStorage.getItem('calendarData');
+    if (storedCalendarData) {
+        storedCalendarData = JSON.parse(storedCalendarData);
+        const { months, currentMonthIndex, currentYear } = storedCalendarData;
+
+        // Call fetchEventData directly with the stored year and month
+        fetchEventData(currentYear, currentMonthIndex);
+    } else {
+        // If no data is found in localStorage, fetch data for the default month (Jan 2025)
+        fetchEventData(2025, 0);
+    }
 }
 
 // Call the function directly
