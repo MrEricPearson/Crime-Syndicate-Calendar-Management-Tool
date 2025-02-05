@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.41
+// @version      0.2.42
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -432,13 +432,11 @@ async function fetchEventData(targetYear, targetMonthIndex) {
             const events = JSON.parse(storedEvents);
             processEvents(events, targetYear, targetMonthIndex); // Pass targetYear and targetMonthIndex
         } else {
-            console.log("No events found in localStorage. Making API request...");
             // If no data is found, make the API request
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
     
             // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
-            console.log("API response received:", response);
     
             // Validate response structure
             if (!response || typeof response !== "object") {
@@ -483,14 +481,14 @@ function processEvents(events, currentYear, currentMonthIndex) {
         if (!event || !event.event_start_date || !event.event_type) {
             return false;
         }
-    
+
         const eventStartDate = parseDateAsUTC(event.event_start_date);  // Convert to UTC
         const eventEndDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : eventStartDate;  // Convert to UTC
-    
+
         const validYear = eventStartDate.getUTCFullYear() === currentYear;
         const validMonth = eventStartDate.getUTCMonth() === currentMonthIndex;
         const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-    
+
         return validYear && validMonth && validType;
     });
 
@@ -501,6 +499,11 @@ function processEvents(events, currentYear, currentMonthIndex) {
 
     // If no valid events, return early
     if (validEvents.length === 0) {
+        console.log(`No events found for ${months[currentMonthIndex]} ${currentYear}`);
+        const messageContainer = document.getElementById("event-message-container");
+        if (messageContainer) {
+            messageContainer.innerHTML = `No events found for ${months[currentMonthIndex]} ${currentYear}`;
+        }
         return;
     }
 
@@ -529,7 +532,7 @@ function processEvents(events, currentYear, currentMonthIndex) {
         [...upcomingEvents, ...pastEvents].forEach(event => {
             modalContentWrapper.appendChild(createEventElement(event, pastEvents.includes(event)));
         });
-    }, 0);        
+    }, 0);
 
     // Sort valid events by start date
     validEvents.sort((a, b) => {
@@ -546,15 +549,15 @@ function processEvents(events, currentYear, currentMonthIndex) {
         const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate;
         const eventColor = getEventColor(event.event_type); // Use the new getEventColor function
         const eventObjectId = event._id;
-    
+
         let eventDays = [];
-    
+
         // Loop through the event days
         for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
             const year = d.getUTCFullYear();
             const month = d.getUTCMonth();
             const day = d.getUTCDate();
-    
+
             if (year === currentYear && month === currentMonthIndex) {
                 const formattedMonth = String(month + 1).padStart(2, "0");
                 const formattedDay = String(day).padStart(2, "0");
@@ -562,10 +565,10 @@ function processEvents(events, currentYear, currentMonthIndex) {
                 eventDays.push({ cellId, objectId: eventObjectId });
             }
         }
-    
+
         let eventLayer = 0;
         let conflictFound = false;
-    
+
         // Check for conflicts in the event layers
         eventDays.forEach(({ cellId }) => {
             for (let layer = 0; layer <= maxLayer; layer++) {
@@ -575,31 +578,31 @@ function processEvents(events, currentYear, currentMonthIndex) {
                 }
             }
         });
-    
+
         // If there's a conflict, find the next available layer
         if (conflictFound) {
             while (eventLayer <= maxLayer && eventBarLayerMap.get(eventDays[0].cellId + `-layer-${eventLayer}`)) {
                 eventLayer++;
             }
         }
-    
+
         // If no layer is available, exit early
         if (eventLayer > maxLayer) return;
-    
+
         // Mark the layers for each event day
         eventDays.forEach(({ cellId }) => {
             eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true);
         });
-    
+
         // Create event bars for each event day
         eventDays.forEach(({ cellId }, index) => {
             const eventCell = document.getElementById(cellId);
             if (!eventCell) return;
-    
+
             let eventBar = document.createElement("div");
             eventBar.className = "event-bar";
             eventCell.appendChild(eventBar);
-    
+
             eventBar.style.cssText = `
                 height: 12px;
                 position: absolute;
@@ -609,7 +612,7 @@ function processEvents(events, currentYear, currentMonthIndex) {
                 width: calc(100% + 5px);
                 margin-top: 1px;
             `;
-    
+
             // Special styling for the first event bar in the series
             if (index === 0) {
                 if (eventCell.getAttribute("data-week-end") === "true") {
@@ -628,7 +631,7 @@ function processEvents(events, currentYear, currentMonthIndex) {
                     `;
                 }
             }
-    
+
             // Special styling for the last event bar in the series
             if (index === eventDays.length - 1) {
                 eventBar.style.cssText += `
@@ -637,7 +640,7 @@ function processEvents(events, currentYear, currentMonthIndex) {
                     width: calc(100% - 2px);
                 `;
             }
-    
+
             // Styling for single-day events
             if (eventDays.length === 1) {
                 eventBar.style.cssText += `
@@ -645,7 +648,7 @@ function processEvents(events, currentYear, currentMonthIndex) {
                     width: calc(100% - 2px);
                 `;
             }
-    
+
             // If it's a weekend, make the event bar span the entire width of the cell
             if (eventCell.getAttribute("data-week-end") === "true") {
                 eventBar.style.width = "100%";
