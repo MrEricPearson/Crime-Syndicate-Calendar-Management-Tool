@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.32
+// @version      0.2.33
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -158,7 +158,6 @@ function createCard() {
 
     const cardBackButton = createBackButton();
     const monthTitle = createMonthTitle();
-    monthTitle.textContent += " (Created by createCard)"; // Debug text
     const cardForwardButton = createForwardButton();
 
     cardHeader.appendChild(cardBackButton);
@@ -217,13 +216,6 @@ function createCalendarUI() {
     header.style.display = 'flex';
     header.style.justifyContent = 'space-between';
     header.style.alignItems = 'center';
-
-    // Add a completely new test paragraph
-    const debugTestElement = document.createElement('p');
-    debugTestElement.textContent = "Debug Test Message";
-    debugTestElement.style.color = "red";
-    debugTestElement.style.fontSize = "20px";
-    container.appendChild(debugTestElement); // Append it early to ensure visibility
 
     // Continue creating calendar UI elements
     const monthTitle = createMonthTitle();
@@ -304,12 +296,18 @@ function createCalendarGrid() {
 
 // CALENDAR: Render the calendar days, filling in the grid and handling events
 function renderCalendar(year, month, calendarGrid) {
-    calendarGrid.innerHTML = '';  // Clear previous calendar grid
+    // Clear all event highlights from previous months
+    Array.from(calendarGrid.querySelectorAll('.day.current')).forEach(dayCell => {
+        dayCell.style.backgroundColor = '#eff4f1'; // Default background color
+        dayCell.style.color = '#333333'; // Default text color
+    });
+
+    calendarGrid.innerHTML = ''; // Clear previous grid
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = getDaysInMonth(year, month);
     const daysInPrevMonth = getDaysInMonth(year, month - 1);
-    
+
     const totalCells = 42; // 6 rows * 7 days
     const days = [];
 
@@ -328,9 +326,36 @@ function renderCalendar(year, month, calendarGrid) {
         days.push({ day: days.length - daysInMonth - firstDay + 1, class: 'next', isCurrentMonth: false });
     }
 
+    let currentWeekStart = null;
+
     days.forEach((d, index) => {
         const dayElem = createDayElement(d, index, year, month);
         calendarGrid.appendChild(dayElem);
+
+        // Logic to identify week boundaries only for current month days
+        if (d.isCurrentMonth && index % 7 === 0) {
+            // Start of a new week
+            if (currentWeekStart !== null) {
+                // Mark the end of the previous week (Saturday, which is index - 1)
+                const prevDayElem = calendarGrid.children[index - 1];
+                if (!prevDayElem.classList.contains('prev') && !prevDayElem.classList.contains('next')) {
+                    prevDayElem.setAttribute("data-week-end", "true");
+                }
+            }
+            // Mark the start of this week
+            currentWeekStart = dayElem;
+            currentWeekStart.setAttribute("data-week-start", "true");
+        }
+
+        // Detect and label the start of the month only if it's part of the current month
+        if (d.day === 1 && d.isCurrentMonth) {
+            dayElem.setAttribute("data-month-start", "true");
+        }
+
+        // Detect and label the end of the month only if it's part of the current month
+        if (d.day === daysInMonth && d.isCurrentMonth) {
+            dayElem.setAttribute("data-month-end", "true");
+        }
     });
 }
 
@@ -339,14 +364,43 @@ function createDayElement(d, index, year, month) {
     const dayElem = document.createElement('div');
     dayElem.className = `day ${d.class}`;
     dayElem.textContent = d.day;
-    
-    // Create and position the day number inside the cell
+
+    let cellId = null;
+
+    // Assign unique identifier only if the day belongs to the current month
+    if (d.isCurrentMonth) {
+        const cellDate = new Date(year, month, d.day);
+        const cellYear = cellDate.getFullYear();
+        const cellMonth = String(cellDate.getMonth() + 1).padStart(2, '0'); // Ensure two-digit month
+        const cellDay = String(d.day).padStart(2, '0');
+        cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
+        dayElem.id = cellId;
+    }
+
+    // Apply default styles for day cells
+    if (d.class === 'prev' || d.class === 'next') {
+        dayElem.style.backgroundColor = '#ecf1ed';
+        dayElem.style.color = '#d3d8d4';
+    } else if (d.class === 'current') {
+        dayElem.style.backgroundColor = '#eff4f1';
+        dayElem.style.color = '#333333';
+    }
+
+    // General styles for all day elements
+    dayElem.style.height = '4.5em';
+    dayElem.style.display = 'block';
+    dayElem.style.position = 'relative';
+    dayElem.style.borderRadius = '8px';
+
+    // Create and position the day number
     const dateNumber = document.createElement('span');
     dateNumber.textContent = d.day;
     dateNumber.style.position = 'absolute';
     dateNumber.style.bottom = '5px';
     dateNumber.style.left = '5px';
 
+    // Clear text content to avoid duplicate numbers
+    dayElem.textContent = '';
     dayElem.appendChild(dateNumber);
 
     return dayElem;
