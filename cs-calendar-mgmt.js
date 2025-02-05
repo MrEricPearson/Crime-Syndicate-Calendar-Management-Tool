@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.36
+// @version      0.2.37
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -422,42 +422,47 @@ function parseDateAsUTC(dateString) {
     return new Date(Date.UTC(year, month, day));
 }
 
-// Modify the fetchEventData function to pass the current year and month
+// Fetch and process data using PDA_httpGet
 async function fetchEventData() {
     try {
         console.log("Starting fetchEventData function");
 
-        const storedEvents = localStorage.getItem("eventsData");
+        const storedEvents = localStorage.getItem("eventsData"); // Check if events data is stored in localStorage
         console.log("Checking localStorage for events data...");
 
         if (storedEvents) {
             console.log("Found stored events in localStorage");
+            // If events data is found in localStorage, use it
             const events = JSON.parse(storedEvents);
             console.log("Parsed events from localStorage:", events);
-            // Pass currentYear and currentMonthIndex to processEvents
-            processEvents(events, currentYear, currentMonthIndex);
+            processEvents(events, currentYear, currentMonthIndex); // Pass currentYear and currentMonthIndex
         } else {
             console.log("No events found in localStorage. Making API request...");
+            // If no data is found, make the API request
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
+    
+            // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
             console.log("API response received:", response);
-
+    
+            // Validate response structure
             if (!response || typeof response !== "object") {
                 console.log("Error: Invalid response from PDA_httpGet.", true);
                 logToContainer("Error: Invalid response from PDA_httpGet.", true);
                 return;
             }
-
+    
+            // Parse response content
             const status = response.status;
             const statusText = response.statusText;
             const responseText = response.responseText;
-
+    
             if (status !== 200) {
                 console.log(`Error: Received status ${status} - ${statusText}`);
                 logToContainer(`Error: Received status ${status} - ${statusText}`, true);
                 return;
             }
-
+    
             let jsonResponse;
             try {
                 jsonResponse = JSON.parse(responseText);
@@ -467,14 +472,16 @@ async function fetchEventData() {
                 logToContainer("Error: Unable to parse response JSON.", true);
                 return;
             }
-
+    
             const events = jsonResponse.events || [];
             console.log("Fetched events:", events);
+    
+            // Store the fetched events in localStorage for future use
             localStorage.setItem("eventsData", JSON.stringify(events));
             console.log("Stored events in localStorage");
-
-            // Pass currentYear and currentMonthIndex to processEvents
-            processEvents(events, currentYear, currentMonthIndex);
+    
+            // Process events
+            processEvents(events, currentYear, currentMonthIndex); // Pass currentYear and currentMonthIndex
         }
     } catch (error) {
         console.log(`Fetch Error: ${error.message}`, true);
@@ -482,7 +489,7 @@ async function fetchEventData() {
     }
 }
 
-// Modify the processEvents function to accept currentYear and currentMonthIndex
+// Process and display the events
 function processEvents(events, currentYear, currentMonthIndex) {
     console.log("Processing events...");
 
@@ -511,6 +518,7 @@ function processEvents(events, currentYear, currentMonthIndex) {
 
     console.log("=== Analyzing Event Group Levels for Current Month ===");
 
+    // Separate past and upcoming events
     const now = new Date();
     const upcomingEvents = [];
     const pastEvents = [];
@@ -543,7 +551,143 @@ function processEvents(events, currentYear, currentMonthIndex) {
         });
     }, 0);        
 
-    // Continue with your event bar rendering logic...
+    // === Retain existing calendar logic ===
+    
+    // Sort valid events by start date
+    validEvents.sort((a, b) => {
+        const dateA = new Date(a.event_start_date);
+        const dateB = new Date(b.event_start_date);
+        return dateA - dateB; // Sort in ascending order (earliest first)
+    });
+
+    const eventBarLayerMap = new Map();
+    const maxLayer = 3;
+
+    let eventAnalysisOutput = [];
+
+    validEvents.forEach((event) => {
+        const startDate = parseDateAsUTC(event.event_start_date);
+        const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate;
+        const eventColor = getEventColor(event.event_type); // Use the new getEventColor function
+        const eventObjectId = event._id;
+    
+        let eventDays = [];
+    
+        // Loop through the event days
+        for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
+            const year = d.getUTCFullYear();
+            const month = d.getUTCMonth();
+            const day = d.getUTCDate();
+    
+            if (year === currentYear && month === currentMonthIndex) {
+                const formattedMonth = String(month + 1).padStart(2, "0");
+                const formattedDay = String(day).padStart(2, "0");
+                const cellId = `cell-${year}-${formattedMonth}-${formattedDay}`;
+                eventDays.push({ cellId, objectId: eventObjectId });
+            }
+        }
+
+        console.log(`Event: ${event.event_type}, Event ID: ${event._id}, Event Days:`, eventDays);
+    
+        let eventLayer = 0;
+        let conflictFound = false;
+    
+        // Check for conflicts in the event layers
+        eventDays.forEach(({ cellId }) => {
+            for (let layer = 0; layer <= maxLayer; layer++) {
+                if (eventBarLayerMap.get(cellId + `-layer-${layer}`)) {
+                    conflictFound = true;
+                    break;
+                }
+            }
+        });
+    
+        // If there's a conflict, find the next available layer
+        if (conflictFound) {
+            while (eventLayer <= maxLayer && eventBarLayerMap.get(eventDays[0].cellId + `-layer-${eventLayer}`)) {
+                eventLayer++;
+            }
+        }
+    
+        // If no layer is available, exit early
+        if (eventLayer > maxLayer) return;
+    
+        // Save the event analysis output
+        eventAnalysisOutput.push({ eventObjectId, eventDays, determinedLayer: eventLayer });
+    
+        // Mark the layers for each event day
+        eventDays.forEach(({ cellId }) => {
+            eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true);
+        });
+    
+        // Create event bars for each event day
+        eventDays.forEach(({ cellId }, index) => {
+            const eventCell = document.getElementById(cellId);
+            if (!eventCell) return;
+    
+            let eventBar = document.createElement("div");
+            eventBar.className = "event-bar";
+            eventCell.appendChild(eventBar);
+    
+            eventBar.style.cssText = `
+                height: 12px;
+                position: absolute;
+                bottom: ${21 + eventLayer * 13}px;
+                left: 0px;
+                background: ${eventColor};
+                width: calc(100% + 5px);
+                margin-top: 1px;
+            `;
+    
+            // Special styling for the first event bar in the series
+            if (index === 0) {
+                if (eventCell.getAttribute("data-week-end") === "true") {
+                    eventBar.style.cssText += `
+                        border-top-left-radius: 12px;
+                        border-bottom-left-radius: 12px;
+                        width: calc(100% + 3px);
+                        left: 0px;
+                    `;
+                } else {
+                    eventBar.style.cssText += `
+                        border-top-left-radius: 12px;
+                        border-bottom-left-radius: 12px;
+                        width: calc(100% + 3px);
+                        left: 2px;
+                    `;
+                }
+            }
+    
+            // Special styling for the last event bar in the series
+            if (index === eventDays.length - 1) {
+                eventBar.style.cssText += `
+                    border-top-right-radius: 12px;
+                    border-bottom-right-radius: 12px;
+                    width: calc(100% - 2px);
+                `;
+            }
+    
+            // Styling for single-day events
+            if (eventDays.length === 1) {
+                eventBar.style.cssText += `
+                    border-radius: 12px;
+                    width: calc(100% - 2px);
+                `;
+            }
+    
+            // If it's a weekend, make the event bar span the entire width of the cell
+            if (eventCell.getAttribute("data-week-end") === "true") {
+                eventBar.style.width = "100%";
+            }
+        });
+    });
+
+    console.log("=== Event Group Level Analysis ===");
+    eventAnalysisOutput.forEach((eventInfo) => {
+        console.log(`Event Object ID: ${eventInfo.eventObjectId}`);
+        console.log("Event Days:", eventInfo.eventDays);
+        console.log("Layer:", eventInfo.determinedLayer);
+    });
 }
 
 // Create an event element for display in the modal
