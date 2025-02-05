@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.47
+// @version      0.2.48
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -60,6 +60,7 @@ function createTopBar(modal) {
     // Step 5: Update initialization for event logging
     modalButton.addEventListener("click", () => {
         modal.style.display = "flex";
+        //No year or month needed here as it should fetch for current viewed month when modal opens.
         fetchEventData();
     });
 
@@ -167,30 +168,28 @@ function createCard() {
     const calendarGrid = createCalendarGrid();
     card.appendChild(calendarGrid);
 
-    initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid);
-
+    const calendarData = initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid);
     return card;
 }
 
 // CALENDAR: Parent calendar function to organize and render the entire calendar UI
 function initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid) {
-    let currentMonthIndex = 0;
-    let currentYear = 2025;
-
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
+    let currentMonthIndex = 0;  // Start with January
+    let currentYear = 2025;     // Start with 2025
+
     const updateCalendar = () => {
         monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`;
         renderCalendar(currentYear, currentMonthIndex, calendarGrid);
-        fetchEventData(months[currentMonthIndex]);
-        processEvents(events, currentYear, currentMonthIndex, months);
+        fetchEventData(currentYear, currentMonthIndex);
     };
 
     cardBackButton.addEventListener('click', () => {
-        if (currentYear === 2025 && currentMonthIndex === 0) return;
+        if (currentYear === 2025 && currentMonthIndex === 0) return; // Prevent going before Jan 2025
         currentMonthIndex = (currentMonthIndex === 0) ? 11 : currentMonthIndex - 1;
         if (currentMonthIndex === 11) currentYear--;
         updateCalendar();
@@ -203,6 +202,9 @@ function initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calen
     });
 
     updateCalendar();
+
+    // Return the months array, currentMonthIndex, and currentYear
+    return { months, currentMonthIndex, currentYear };
 }
 
 // CALENDAR: Create and initialize the UI components for the calendar
@@ -418,7 +420,7 @@ function parseDateAsUTC(dateString) {
     const year = parseInt(dateParts[0], 10);
     const month = parseInt(dateParts[1], 10) - 1; // Months are 0-indexed in JavaScript
     const day = parseInt(dateParts[2], 10);
-    
+
     // Create a Date object in UTC
     return new Date(Date.UTC(year, month, day));
 }
@@ -435,38 +437,38 @@ async function fetchEventData(targetYear, targetMonthIndex) {
         } else {
             // If no data is found, make the API request
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
-    
+
             // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
-    
+
             // Validate response structure
             if (!response || typeof response !== "object") {
                 console.log("Error: Invalid response from PDA_httpGet.", true);
                 return;
             }
-    
+
             // Parse response content
             const status = response.status;
             const statusText = response.statusText;
             const responseText = response.responseText;
-    
+
             if (status !== 200) {
                 console.log(`Error: Received status ${status} - ${statusText}`);
                 return;
             }
-    
+
             let jsonResponse;
             try {
                 jsonResponse = JSON.parse(responseText);
             } catch (e) {
                 return;
             }
-    
+
             const events = jsonResponse.events || [];
-    
+
             // Store the fetched events in localStorage for future use
             localStorage.setItem("eventsData", JSON.stringify(events));
-    
+
             // Process events
             processEvents(events, targetYear, targetMonthIndex);
         }
@@ -476,7 +478,20 @@ async function fetchEventData(targetYear, targetMonthIndex) {
 }
 
 // Process and display the events
-function processEvents(events, currentYear, currentMonthIndex, months) {
+function processEvents(events, currentYear, currentMonthIndex) {
+    // Get the months array from localStorage
+    const storedCalendarData = localStorage.getItem('calendarData');
+    let months;
+    if (storedCalendarData) {
+        months = JSON.parse(storedCalendarData).months;
+    } else {
+        // Define the months array here if not found in localStorage
+        months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+    }
+
     // Ensure selectedMonth is set correctly
     const selectedMonth = months[currentMonthIndex];
 
@@ -697,7 +712,7 @@ function createEventElement(event, isPastEvent) {
     eventRow.appendChild(details);
 
     return eventRow;
-} 
+}
 
 // Initialize the calendar tool when the page is loaded
 function initializeCalendarTool() {
