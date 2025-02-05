@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.40
+// @version      0.2.41
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -425,16 +425,11 @@ function parseDateAsUTC(dateString) {
 // Fetch and process data using PDA_httpGet
 async function fetchEventData(targetYear, targetMonthIndex) {
     try {
-        console.log("Starting fetchEventData function");
-
         const storedEvents = localStorage.getItem("eventsData"); // Check if events data is stored in localStorage
-        console.log("Checking localStorage for events data...");
 
         if (storedEvents) {
-            console.log("Found stored events in localStorage");
             // If events data is found in localStorage, use it
             const events = JSON.parse(storedEvents);
-            console.log("Parsed events from localStorage:", events);
             processEvents(events, targetYear, targetMonthIndex); // Pass targetYear and targetMonthIndex
         } else {
             console.log("No events found in localStorage. Making API request...");
@@ -464,21 +459,17 @@ async function fetchEventData(targetYear, targetMonthIndex) {
             let jsonResponse;
             try {
                 jsonResponse = JSON.parse(responseText);
-                console.log("Parsed API response:", jsonResponse);
             } catch (e) {
-                console.log("Error: Unable to parse response JSON.", true);
                 return;
             }
     
             const events = jsonResponse.events || [];
-            console.log("Fetched events:", events);
     
             // Store the fetched events in localStorage for future use
             localStorage.setItem("eventsData", JSON.stringify(events));
-            console.log("Stored events in localStorage");
     
             // Process events
-            processEvents(events, targetYear, targetMonthIndex); // Pass targetYear and targetMonthIndex
+            processEvents(events, targetYear, targetMonthIndex);
         }
     } catch (error) {
         console.log(`Fetch Error: ${error.message}`, true);
