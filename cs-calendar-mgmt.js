@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.31
+// @version      0.2.32
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -140,7 +140,6 @@ function createModal() {
 
 // Create the card component containing the calendar and toggling buttons
 function createCard() {
-    // Step 1: Create the card container
     const card = document.createElement('div');
     card.style.backgroundColor = '#f4f9f5';
     card.style.color = '#333';
@@ -149,7 +148,6 @@ function createCard() {
     card.style.marginTop = '20px';
     card.style.width = '80%';
 
-    // Step 2: Create the card header container
     const cardHeader = document.createElement('div');
     card.appendChild(cardHeader);
     cardHeader.style.width = '100%';
@@ -158,31 +156,25 @@ function createCard() {
     cardHeader.style.justifyContent = 'space-between';
     cardHeader.style.marginBottom = '20px';
 
-    // Step 3: Create the back button and its arrow image
     const cardBackButton = createBackButton();
-    cardHeader.appendChild(cardBackButton);
-
-    // Step 4: Create the month title
     const monthTitle = createMonthTitle();
-    monthTitle.textContent += " (Created by createCard)";
-    cardHeader.appendChild(monthTitle);
-
-    // Step 5: Create the forward button and its arrow image
+    monthTitle.textContent += " (Created by createCard)"; // Debug text
     const cardForwardButton = createForwardButton();
+
+    cardHeader.appendChild(cardBackButton);
+    cardHeader.appendChild(monthTitle);
     cardHeader.appendChild(cardForwardButton);
 
-    // Step 6: Create the calendar grid container
     const calendarGrid = createCalendarGrid();
     card.appendChild(calendarGrid);
 
-    // Step 7: Initialize the calendar functionality
-    initializeCalendar(calendarGrid); 
+    initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid);
 
     return card;
 }
 
 // CALENDAR: Parent calendar function to organize and render the entire calendar UI
-function initializeCalendar() {
+function initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid) {
     let currentMonthIndex = 0;
     let currentYear = 2025;
 
@@ -190,17 +182,6 @@ function initializeCalendar() {
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
-
-    const calendarUI = createCalendarUI();
-
-    // Add test text for debugging purposes
-    const testParagraph = document.createElement('p');
-    testParagraph.textContent = 'Test paragraph in initializeCalendar';
-    calendarUI.container.appendChild(testParagraph);
-
-    document.body.appendChild(calendarUI.container);
-
-    const { monthTitle, cardBackButton, cardForwardButton, calendarGrid } = calendarUI;
 
     const updateCalendar = () => {
         monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`;
