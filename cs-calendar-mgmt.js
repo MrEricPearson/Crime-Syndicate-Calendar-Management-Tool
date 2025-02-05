@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.38
+// @version      0.2.39
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -423,23 +423,19 @@ function parseDateAsUTC(dateString) {
 }
 
 // Fetch and process data using PDA_httpGet
-async function fetchEventData() {
+async function fetchEventData(targetYear, targetMonthIndex) {
     try {
         console.log("Starting fetchEventData function");
 
         const storedEvents = localStorage.getItem("eventsData"); // Check if events data is stored in localStorage
         console.log("Checking localStorage for events data...");
 
-        const now = new Date();
-        const currentYear = now.getFullYear();  // Define currentYear
-        const currentMonthIndex = now.getMonth(); // Define currentMonthIndex (0-based)
-
         if (storedEvents) {
             console.log("Found stored events in localStorage");
             // If events data is found in localStorage, use it
             const events = JSON.parse(storedEvents);
             console.log("Parsed events from localStorage:", events);
-            processEvents(events, currentYear, currentMonthIndex); // Pass currentYear and currentMonthIndex
+            processEvents(events, targetYear, targetMonthIndex); // Pass targetYear and targetMonthIndex
         } else {
             console.log("No events found in localStorage. Making API request...");
             // If no data is found, make the API request
@@ -482,7 +478,7 @@ async function fetchEventData() {
             console.log("Stored events in localStorage");
     
             // Process events
-            processEvents(events, currentYear, currentMonthIndex); // Pass currentYear and currentMonthIndex
+            processEvents(events, targetYear, targetMonthIndex); // Pass targetYear and targetMonthIndex
         }
     } catch (error) {
         console.log(`Fetch Error: ${error.message}`, true);
