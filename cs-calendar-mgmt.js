@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.44
+// @version      0.2.45
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -186,7 +186,7 @@ function initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calen
         monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`;
         renderCalendar(currentYear, currentMonthIndex, calendarGrid);
         fetchEventData(months[currentMonthIndex]); // Pass the currently selected month
-        processEvents(events, currentYear, currentMonthIndex, months[currentMonthIndex]); // Pass the selected month
+        processEvents(events, currentYear, currentMonthIndex, months[currentMonthIndex]); // Pass the selected month name
     };
 
     cardBackButton.addEventListener('click', () => {
@@ -476,7 +476,7 @@ async function fetchEventData(targetYear, targetMonthIndex) {
 }
 
 // Process and display the events
-function processEvents(events, currentYear, currentMonthIndex) {
+function processEvents(events, currentYear, currentMonthIndex, selectedMonth) {
     // Filter out invalid events
     const validEvents = events.filter((event) => {
         if (!event || !event.event_start_date || !event.event_type) {
@@ -500,10 +500,10 @@ function processEvents(events, currentYear, currentMonthIndex) {
 
     // If no valid events, return early
     if (validEvents.length === 0) {
-        console.log(`No events found for ${months[currentMonthIndex]} ${currentYear}`);
+        console.log(`No events found for ${selectedMonth} ${currentYear}`);
         const messageContainer = document.getElementById("event-message-container");
         if (messageContainer) {
-            messageContainer.innerHTML = `No events found for ${months[currentMonthIndex]} ${currentYear}`;
+            messageContainer.innerHTML = `No events found for ${selectedMonth} ${currentYear}`;
         }
         return;
     }
