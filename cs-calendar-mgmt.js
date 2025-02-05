@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.37
+// @version      0.2.38
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -430,6 +430,10 @@ async function fetchEventData() {
         const storedEvents = localStorage.getItem("eventsData"); // Check if events data is stored in localStorage
         console.log("Checking localStorage for events data...");
 
+        const now = new Date();
+        const currentYear = now.getFullYear();  // Define currentYear
+        const currentMonthIndex = now.getMonth(); // Define currentMonthIndex (0-based)
+
         if (storedEvents) {
             console.log("Found stored events in localStorage");
             // If events data is found in localStorage, use it
@@ -448,7 +452,6 @@ async function fetchEventData() {
             // Validate response structure
             if (!response || typeof response !== "object") {
                 console.log("Error: Invalid response from PDA_httpGet.", true);
-                logToContainer("Error: Invalid response from PDA_httpGet.", true);
                 return;
             }
     
@@ -459,7 +462,6 @@ async function fetchEventData() {
     
             if (status !== 200) {
                 console.log(`Error: Received status ${status} - ${statusText}`);
-                logToContainer(`Error: Received status ${status} - ${statusText}`, true);
                 return;
             }
     
@@ -469,7 +471,6 @@ async function fetchEventData() {
                 console.log("Parsed API response:", jsonResponse);
             } catch (e) {
                 console.log("Error: Unable to parse response JSON.", true);
-                logToContainer("Error: Unable to parse response JSON.", true);
                 return;
             }
     
@@ -485,7 +486,6 @@ async function fetchEventData() {
         }
     } catch (error) {
         console.log(`Fetch Error: ${error.message}`, true);
-        logToContainer(`Fetch Error: ${error.message}`, true);
     }
 }
 
