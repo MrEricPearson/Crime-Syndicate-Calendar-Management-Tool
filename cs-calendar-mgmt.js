@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.45
+// @version      0.2.46
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -476,7 +476,10 @@ async function fetchEventData(targetYear, targetMonthIndex) {
 }
 
 // Process and display the events
-function processEvents(events, currentYear, currentMonthIndex, selectedMonth) {
+function processEvents(events, currentYear, currentMonthIndex, months) {
+    // Ensure selectedMonth is set correctly
+    const selectedMonth = months[currentMonthIndex]; // Getting month name from months array
+
     // Filter out invalid events
     const validEvents = events.filter((event) => {
         if (!event || !event.event_start_date || !event.event_type) {
