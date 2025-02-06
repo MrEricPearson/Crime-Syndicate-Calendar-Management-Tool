@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.4
+// @version      0.3.5
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -741,14 +741,15 @@ function initializeCalendarTool() {
     contentWrapper.style.alignItems = 'center'; // Center content horizontally
     contentWrapper.style.padding = '10px'; // Add some padding to the content wrapper
 
-    modal.appendChild(contentWrapper);
-    contentWrapper.appendChild(card);
+    modal.appendChild(card);
 
     // Create event list container and append it to the modal *after* the card.
     const eventListContainer = document.createElement('div');
     eventListContainer.id = 'event-list-container';
     eventListContainer.style.width = '80%'; // Make it the same width as the card
     eventListContainer.style.boxSizing = 'border-box'; // Include padding/border in width
+
+    modal.appendChild(contentWrapper);
     contentWrapper.appendChild(eventListContainer);
 
 
