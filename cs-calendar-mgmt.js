@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.2
+// @version      0.3.4
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -140,13 +140,7 @@ function createModal() {
 // Create the card component containing the calendar and toggling buttons
 function createCard() {
     const card = document.createElement('div');
-    card.style.backgroundColor = '#f4f9f5';
-    card.style.color = '#333';
-    card.style.padding = '20px';
-    card.style.borderRadius = '10px';
-    card.style.marginTop = '20px';
-    card.style.width = '80%';
-
+    card.className = 'calendar-card'; // Add a class for styling
     const cardHeader = document.createElement('div');
     card.appendChild(cardHeader);
     cardHeader.style.width = '100%';
@@ -420,13 +414,11 @@ function getDaysInMonth(year, month) {
 }
 
 // Helper fucntion to reformat date string to UTC
-function parseDateAsUTC(dateString) {
-    const dateParts = dateString.split("-"); // Assuming format is YYYY-MM-DD
+const parseDateAsUTC = (dateString) => {
+    const dateParts = dateString.split("-");
     const year = parseInt(dateParts[0], 10);
-    const month = parseInt(dateParts[1], 10) - 1; // Months are 0-indexed in JavaScript
+    const month = parseInt(dateParts[1], 10) - 1;
     const day = parseInt(dateParts[2], 10);
-
-    // Create a Date object in UTC
     return new Date(Date.UTC(year, month, day));
 }
 
@@ -558,8 +550,13 @@ function processEvents(events, currentYear, currentMonthIndex) {
     if (eventListContainer) {
         eventListContainer.innerHTML = ''; // Clear existing events
         [...upcomingEvents, ...pastEvents].forEach(event => {
+            // Wrap each eventRow in a card-like div
+            const eventCard = document.createElement('div');
+            eventCard.className = 'event-card'; // Use a class for consistent styling
+
             const eventElement = createEventElement(event, pastEvents.includes(event));
-            eventListContainer.appendChild(eventElement);
+            eventCard.appendChild(eventElement);
+            eventListContainer.appendChild(eventCard);
         });
     }
 
@@ -742,6 +739,7 @@ function initializeCalendarTool() {
     contentWrapper.style.display = 'flex'; // Use flexbox to center content horizontally
     contentWrapper.style.flexDirection = 'column'; // Stack children vertically
     contentWrapper.style.alignItems = 'center'; // Center content horizontally
+    contentWrapper.style.padding = '10px'; // Add some padding to the content wrapper
 
     modal.appendChild(contentWrapper);
     contentWrapper.appendChild(card);
@@ -749,6 +747,8 @@ function initializeCalendarTool() {
     // Create event list container and append it to the modal *after* the card.
     const eventListContainer = document.createElement('div');
     eventListContainer.id = 'event-list-container';
+    eventListContainer.style.width = '80%'; // Make it the same width as the card
+    eventListContainer.style.boxSizing = 'border-box'; // Include padding/border in width
     contentWrapper.appendChild(eventListContainer);
 
 
@@ -769,6 +769,31 @@ function initializeCalendarTool() {
         fetchEventData(currentYear, currentMonthIndex);
     }
 }
+
+//Add these styles to the bottom
+const style = document.createElement('style');
+style.textContent = `
+    .calendar-card {
+        background-color: #f4f9f5;
+        color: #333;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+        width: 80%;
+        box-sizing: border-box; /* Ensure padding doesn't increase the width */
+    }
+
+    .event-card {
+        background-color: #f4f9f5;
+        color: #333;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        width: 100%;
+        box-sizing: border-box; /* Ensure padding doesn't increase the width */
+    }
+`;
+document.head.appendChild(style);
 
 // Call the function directly
 initializeCalendarTool();
