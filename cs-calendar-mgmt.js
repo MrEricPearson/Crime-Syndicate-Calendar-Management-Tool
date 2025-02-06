@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.0
+// @version      0.3.1
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @updateURL    https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @match        https://www.torn.com/factions.php*
 // @grant        none
-// ==/UserScript== 
+// ==/UserScript==
 
 // Helper function to map event types to background colors
 const getEventColor = (eventType) => {
@@ -165,8 +165,6 @@ function createCard() {
 
     const calendarGrid = createCalendarGrid();
     card.appendChild(calendarGrid);
-
-    const calendarData = initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid);
 
     return card;
 }
@@ -739,6 +737,9 @@ function initializeCalendarTool() {
     contentWrapper.style.width = '100%';
     contentWrapper.style.overflowY = 'auto'; // Enable vertical scrolling
     contentWrapper.style.height = 'calc(100% - ' + modal.querySelector(':scope > div').offsetHeight + 'px)'; // Occupy remaining height, compensating for header
+    contentWrapper.style.display = 'flex'; // Use flexbox to center content horizontally
+    contentWrapper.style.flexDirection = 'column'; // Stack children vertically
+    contentWrapper.style.alignItems = 'center'; // Center content horizontally
 
     modal.appendChild(contentWrapper);
     contentWrapper.appendChild(card);
