@@ -8,7 +8,7 @@
 // @updateURL    https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @match        https://www.torn.com/factions.php*
 // @grant        none
-// ==/UserScript==
+// ==/UserScript== 
 
 // Helper function to map event types to background colors
 const getEventColor = (eventType) => {
