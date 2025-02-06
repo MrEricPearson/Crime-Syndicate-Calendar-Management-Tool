@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.52
+// @version      0.2.53
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -26,7 +26,6 @@ const getEventColor = (eventType) => {
 
 // Create the initial topBar with a button to open the modal
 function createTopBar(modal) {
-    // Step 1: Create the top bar container
     const topBar = document.createElement('div');
     topBar.style.position = 'fixed';
     topBar.style.top = '0';
@@ -38,7 +37,6 @@ function createTopBar(modal) {
     topBar.style.zIndex = '1000';
     topBar.style.textAlign = 'right';
 
-    // Step 2: Create the modal button
     const modalButton = document.createElement('button');
     modalButton.textContent = 'Open Modal';
     modalButton.style.backgroundColor = '#007BFF';
@@ -49,22 +47,17 @@ function createTopBar(modal) {
     modalButton.style.cursor = 'pointer';
     modalButton.style.borderRadius = '5px';
 
-    // Step 3: Attach event listener to show the modal
     modalButton.onclick = () => {
         modal.style.display = 'flex';
     };
 
-    // Step 4: Append button to top bar
     topBar.appendChild(modalButton);
 
-    // Step 5: Update initialization for event logging
     modalButton.addEventListener("click", () => {
         modal.style.display = "flex";
-        //No year or month needed here as it should fetch for current viewed month when modal opens.
         fetchEventData();
     });
 
-    // Step 6: Return the constructed top bar
     return topBar;
 }
 
@@ -127,7 +120,6 @@ function createModal() {
         localStorage.removeItem("eventsData"); // Clear events data when modal is closed
     });
 
-    // Step 8: Insert top bar before header
     const headerRoot = document.getElementById('header-root');
     if (headerRoot) {
         headerRoot.style.position = 'relative';
@@ -140,7 +132,7 @@ function createModal() {
 }
 
 // Create the card component containing the calendar and toggling buttons
-function createCard() {
+function createCard(modal) {
     const card = document.createElement('div');
     card.style.backgroundColor = '#f4f9f5';
     card.style.color = '#333';
@@ -169,6 +161,12 @@ function createCard() {
     card.appendChild(calendarGrid);
 
     const calendarData = initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid);
+
+    // Create event list container
+    const eventListContainer = document.createElement('div');
+    eventListContainer.id = 'event-list-container';
+    card.appendChild(eventListContainer);
+
     return card;
 }
 
@@ -240,6 +238,16 @@ function createCalendarUI() {
     container.appendChild(calendarGrid);
 
     return { container, monthTitle, cardBackButton, cardForwardButton, calendarGrid };
+}
+
+// CALENDAR: Create the month title with its styling
+function createMonthTitle() {
+    const monthTitle = document.createElement('h3');
+    monthTitle.textContent = 'January';
+    monthTitle.style.margin = '0';
+    monthTitle.style.textAlign = 'center';
+    monthTitle.style.flexGrow = '1';
+    return monthTitle;
 }
 
 // CALENDAR: Create the back button with its styling and functionality
@@ -507,11 +515,6 @@ function processEvents(events, currentYear, currentMonthIndex) {
         return validYear && validMonth && validType;
     });
 
-    // Only log the valid events
-    if (validEvents.length > 0) {
-        console.log("Valid events for the selected month:", validEvents);
-    }
-
     // If no valid events, return early
     if (validEvents.length === 0) {
         console.log(`No events found for ${selectedMonth} ${currentYear}`);
@@ -519,19 +522,14 @@ function processEvents(events, currentYear, currentMonthIndex) {
         if (messageContainer) {
             messageContainer.innerHTML = `No events found for ${selectedMonth} ${currentYear}`;
         }
+
+        // Update event list container to display message
+        const eventListContainer = document.getElementById('event-list-container');
+        if (eventListContainer) {
+            eventListContainer.innerHTML = `<p>No events found for ${selectedMonth} ${currentYear}</p>`;
+        }
         return;
     }
-
-    // Render events after clearing any previous content
-    const card = document.querySelector('.calendar-card');
-    const eventContainer = document.getElementById('event-list-container');
-    eventContainer.innerHTML = ''; // Clear previous events
-
-    // Loop through validEvents and append the event elements to the eventContainer
-    validEvents.forEach(event => {
-        const eventElement = createEventElement(event); // Ensure this function returns a DOM element
-        eventContainer.appendChild(eventElement);
-    });
 
     // Separate past and upcoming events
     const now = new Date();
@@ -552,6 +550,16 @@ function processEvents(events, currentYear, currentMonthIndex) {
     // Sort events
     upcomingEvents.sort((a, b) => new Date(a.event_start_date) - new Date(b.event_start_date));
     pastEvents.sort((a, b) => new Date(b.event_end_date) - new Date(a.event_end_date));
+
+    // Render events in the list
+    const eventListContainer = document.getElementById('event-list-container');
+    if (eventListContainer) {
+        eventListContainer.innerHTML = ''; // Clear existing events
+        [...upcomingEvents, ...pastEvents].forEach(event => {
+            const eventElement = createEventElement(event, pastEvents.includes(event));
+            eventListContainer.appendChild(eventElement);
+        });
+    }
 
     // Sort valid events by start date
     validEvents.sort((a, b) => {
@@ -716,25 +724,15 @@ function createEventElement(event, isPastEvent) {
 
 // Initialize the calendar tool when the page is loaded
 function initializeCalendarTool() {
-    const modal = createModal(); // Ensure createModal() is properly defined
-    const topBar = createTopBar(modal); // Ensure createTopBar() is properly defined
-    const card = createCard(); // Ensure createCard() is properly defined
+    const modal = createModal();
+    const topBar = createTopBar(modal);
+    const card = createCard(modal); // Pass modal to createCard
 
-    // Create a container for the event list
-    const eventListContainer = document.createElement('div');
-    eventListContainer.id = 'event-list-container';
-    eventListContainer.style.marginTop = '20px';
-    eventListContainer.style.width = '80%';
-    eventListContainer.style.padding = '20px';
-    eventListContainer.style.backgroundColor = '#f4f9f5';
-    eventListContainer.style.borderRadius = '10px';
-    modal.appendChild(eventListContainer);  // Append to modal, under the card
+    document.body.appendChild(topBar);
+    document.body.appendChild(modal);
+    modal.appendChild(card);
 
-    document.body.appendChild(topBar); // Append top bar to body
-    document.body.appendChild(modal); // Append modal to body
-    modal.appendChild(card); // Append card inside the modal
-
-    // Attempt to retrieve calendar data from localStorage
+    // Initial calendar data retrieval from localStorage
     let storedCalendarData = localStorage.getItem('calendarData');
     if (storedCalendarData) {
         storedCalendarData = JSON.parse(storedCalendarData);
