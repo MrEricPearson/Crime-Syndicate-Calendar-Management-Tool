@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.55
+// @version      0.2.56
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -134,11 +134,16 @@ function createModal() {
         document.body.insertBefore(topBar, headerRoot);
     }
 
+      // Create event list container
+    const eventListContainer = document.createElement('div');
+    eventListContainer.id = 'event-list-container';
+    modal.appendChild(eventListContainer);
+
     return modal;
 }
 
 // Create the card component containing the calendar and toggling buttons
-function createCard(modal) {
+function createCard() {
     const card = document.createElement('div');
     card.style.backgroundColor = '#f4f9f5';
     card.style.color = '#333';
@@ -167,11 +172,6 @@ function createCard(modal) {
     card.appendChild(calendarGrid);
 
     const calendarData = initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid);
-
-    // Create event list container
-    const eventListContainer = document.createElement('div');
-    eventListContainer.id = 'event-list-container';
-    card.appendChild(eventListContainer);
 
     return card;
 }
@@ -558,10 +558,6 @@ function processEvents(events, currentYear, currentMonthIndex) {
         }
     });
 
-    // Sort events
-    upcomingEvents.sort((a, b) => new Date(a.event_start_date) - new Date(b.event_start_date));
-    pastEvents.sort((a, b) => new Date(b.event_end_date) - new Date(a.event_end_date));
-
     // Render events in the list
     const eventListContainer = document.getElementById('event-list-container');
     if (eventListContainer) {
@@ -737,7 +733,7 @@ function createEventElement(event, isPastEvent) {
 function initializeCalendarTool() {
     const modal = createModal();
     const topBar = createTopBar(modal);
-    const card = createCard(modal); // Pass modal to createCard
+    const card = createCard(); // No longer needs modal as param
 
     document.body.appendChild(topBar);
     document.body.appendChild(modal);
