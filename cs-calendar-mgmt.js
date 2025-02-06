@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.51
+// @version      0.2.52
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -179,8 +179,10 @@ function initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calen
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
-    let currentMonthIndex = 0;  // Start with January
-    let currentYear = 2025;     // Start with 2025
+    // Get the current date
+    const now = new Date();
+    let currentMonthIndex = now.getMonth();  // Get current month (0-11)
+    let currentYear = now.getFullYear();     // Get current year
 
     const updateCalendar = () => {
         monthTitle.textContent = `${months[currentMonthIndex]} ${currentYear}`;
@@ -238,16 +240,6 @@ function createCalendarUI() {
     container.appendChild(calendarGrid);
 
     return { container, monthTitle, cardBackButton, cardForwardButton, calendarGrid };
-}
-
-// CALENDAR: Create the month title with its styling
-function createMonthTitle() {
-    const monthTitle = document.createElement('h3');
-    monthTitle.textContent = 'January';
-    monthTitle.style.margin = '0';
-    monthTitle.style.textAlign = 'center';
-    monthTitle.style.flexGrow = '1';
-    return monthTitle;
 }
 
 // CALENDAR: Create the back button with its styling and functionality
@@ -530,6 +522,17 @@ function processEvents(events, currentYear, currentMonthIndex) {
         return;
     }
 
+    // Render events after clearing any previous content
+    const card = document.querySelector('.calendar-card');
+    const eventContainer = document.getElementById('event-list-container');
+    eventContainer.innerHTML = ''; // Clear previous events
+
+    // Loop through validEvents and append the event elements to the eventContainer
+    validEvents.forEach(event => {
+        const eventElement = createEventElement(event); // Ensure this function returns a DOM element
+        eventContainer.appendChild(eventElement);
+    });
+
     // Separate past and upcoming events
     const now = new Date();
     const upcomingEvents = [];
@@ -549,13 +552,6 @@ function processEvents(events, currentYear, currentMonthIndex) {
     // Sort events
     upcomingEvents.sort((a, b) => new Date(a.event_start_date) - new Date(b.event_start_date));
     pastEvents.sort((a, b) => new Date(b.event_end_date) - new Date(a.event_end_date));
-
-    // Render events
-    setTimeout(() => {
-        [...upcomingEvents, ...pastEvents].forEach(event => {
-            modalContentWrapper.appendChild(createEventElement(event, pastEvents.includes(event)));
-        });
-    }, 0);
 
     // Sort valid events by start date
     validEvents.sort((a, b) => {
@@ -724,11 +720,21 @@ function initializeCalendarTool() {
     const topBar = createTopBar(modal); // Ensure createTopBar() is properly defined
     const card = createCard(); // Ensure createCard() is properly defined
 
+    // Create a container for the event list
+    const eventListContainer = document.createElement('div');
+    eventListContainer.id = 'event-list-container';
+    eventListContainer.style.marginTop = '20px';
+    eventListContainer.style.width = '80%';
+    eventListContainer.style.padding = '20px';
+    eventListContainer.style.backgroundColor = '#f4f9f5';
+    eventListContainer.style.borderRadius = '10px';
+    modal.appendChild(eventListContainer);  // Append to modal, under the card
+
     document.body.appendChild(topBar); // Append top bar to body
     document.body.appendChild(modal); // Append modal to body
     modal.appendChild(card); // Append card inside the modal
 
-     // Attempt to retrieve calendar data from localStorage
+    // Attempt to retrieve calendar data from localStorage
     let storedCalendarData = localStorage.getItem('calendarData');
     if (storedCalendarData) {
         storedCalendarData = JSON.parse(storedCalendarData);
@@ -737,8 +743,12 @@ function initializeCalendarTool() {
         // Call fetchEventData directly with the stored year and month
         fetchEventData(currentYear, currentMonthIndex);
     } else {
-        // If no data is found in localStorage, fetch data for the default month (Jan 2025)
-        fetchEventData(2025, 0);
+        // If no data is found in localStorage, fetch data for the current month/year
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonthIndex = now.getMonth();
+
+        fetchEventData(currentYear, currentMonthIndex);
     }
 }
 
