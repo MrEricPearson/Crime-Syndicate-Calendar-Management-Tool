@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.54
+// @version      0.2.55
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -25,7 +25,7 @@ const getEventColor = (eventType) => {
 };
 
 // Create the initial topBar with a button to open the modal
-function createTopBar(modal, card) { //Pass the card
+function createTopBar(modal) {
     const topBar = document.createElement('div');
     topBar.style.position = 'fixed';
     topBar.style.top = '0';
@@ -55,7 +55,7 @@ function createTopBar(modal, card) { //Pass the card
 
     modalButton.addEventListener("click", () => {
         modal.style.display = "flex";
-        //Fetch the data when modal opens.
+        // Fetch data when modal is opened
         let storedCalendarData = localStorage.getItem('calendarData');
         if (storedCalendarData) {
             storedCalendarData = JSON.parse(storedCalendarData);
@@ -125,6 +125,14 @@ function createModal() {
         modal.style.display = 'none';
         localStorage.removeItem("eventsData"); // Clear events data when modal is closed
     });
+
+    const headerRoot = document.getElementById('header-root');
+    if (headerRoot) {
+        headerRoot.style.position = 'relative';
+        headerRoot.style.marginTop = '33px';
+        const topBar = createTopBar(modal);
+        document.body.insertBefore(topBar, headerRoot);
+    }
 
     return modal;
 }
@@ -484,7 +492,6 @@ function processEvents(events, currentYear, currentMonthIndex) {
     // Get the months array from localStorage
     const storedCalendarData = localStorage.getItem('calendarData');
     let months;
-
     if (storedCalendarData) {
         months = JSON.parse(storedCalendarData).months;
     } else {
@@ -495,14 +502,13 @@ function processEvents(events, currentYear, currentMonthIndex) {
         ];
     }
 
-    //If index is out of range, display an error message.
-    if (currentMonthIndex < 0 || currentMonthIndex >= months.length) {
-        console.error("Invalid currentMonthIndex:", currentMonthIndex);
-        return;
-    }
-
     // Ensure selectedMonth is set correctly
-    const selectedMonth = months[currentMonthIndex];
+    let selectedMonth; // Declare selectedMonth outside the if block
+    if (months && currentMonthIndex >= 0 && currentMonthIndex < months.length) {
+        selectedMonth = months[currentMonthIndex];
+    } else {
+        selectedMonth = 'Unknown';  // Or some other default value
+    }
 
     // Filter out invalid events
     const validEvents = events.filter((event) => {
@@ -531,7 +537,7 @@ function processEvents(events, currentYear, currentMonthIndex) {
         // Update event list container to display message
         const eventListContainer = document.getElementById('event-list-container');
         if (eventListContainer) {
-            eventListContainer.innerHTML = `<p>No events found for ${selectedMonth} ${currentYear}</p>`;
+            eventListContainer.innerHTML = `<p>No events found for ${selectedMonth || 'Unknown'} ${currentYear || 'Unknown'}</p>`;
         }
         return;
     }
@@ -730,8 +736,8 @@ function createEventElement(event, isPastEvent) {
 // Initialize the calendar tool when the page is loaded
 function initializeCalendarTool() {
     const modal = createModal();
-    const card = createCard(modal);
-    const topBar = createTopBar(modal, card); // Pass card to topBar
+    const topBar = createTopBar(modal);
+    const card = createCard(modal); // Pass modal to createCard
 
     document.body.appendChild(topBar);
     document.body.appendChild(modal);
