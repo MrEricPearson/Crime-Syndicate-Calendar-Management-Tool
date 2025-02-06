@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.2.56
+// @version      0.2.57
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -133,11 +133,6 @@ function createModal() {
         const topBar = createTopBar(modal);
         document.body.insertBefore(topBar, headerRoot);
     }
-
-      // Create event list container
-    const eventListContainer = document.createElement('div');
-    eventListContainer.id = 'event-list-container';
-    modal.appendChild(eventListContainer);
 
     return modal;
 }
@@ -738,6 +733,12 @@ function initializeCalendarTool() {
     document.body.appendChild(topBar);
     document.body.appendChild(modal);
     modal.appendChild(card);
+
+    // Create event list container and append it to the modal *after* the card.
+    const eventListContainer = document.createElement('div');
+    eventListContainer.id = 'event-list-container';
+    modal.appendChild(eventListContainer);
+
 
     // Initial calendar data retrieval from localStorage
     let storedCalendarData = localStorage.getItem('calendarData');
