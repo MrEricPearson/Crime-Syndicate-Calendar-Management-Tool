@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.12
+// @version      0.3.13
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -75,24 +75,23 @@ function createModal() {
     modal.style.left = '0';
     modal.style.width = '100%';
     modal.style.height = '100%';
-    modal.style.backgroundColor = '#333333';
+    modal.style.backgroundColor = '#ecf1ed';
     modal.style.color = '#fff';
     modal.style.display = 'none';
     modal.style.zIndex = '100001';
     modal.style.alignItems = 'center';
     modal.style.flexDirection = 'column';
     modal.style.pointerEvents = 'auto';
-    modal.style.paddingTop = '5%';
 
     const headerWrapper = document.createElement('div');
-    headerWrapper.style.width = 'calc(80% + 40px)';
+    headerWrapper.style.width = '100%';
     headerWrapper.style.display = 'flex';
     headerWrapper.style.alignItems = 'center';
     headerWrapper.style.justifyContent = 'space-between';
     headerWrapper.style.marginBottom = '5px';
-    headerWrapper.style.padding = '0 10px';
-    headerWrapper.style.backgroundColor = '#007BFF';
-    headerWrapper.style.height = '25px';
+    headerWrapper.style.padding = '0 10%';
+    headerWrapper.style.backgroundColor = '#333333';
+    headerWrapper.style.height = '20px';
 
     const backButton = document.createElement('button');
     backButton.style.backgroundColor = '#ffffff';
