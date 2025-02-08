@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.6
+// @version      0.3.7
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
-// @updateURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
+// @updateURL    https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @match        https://www.torn.com/factions.php*
 // @grant        none
 // ==/UserScript==
@@ -27,10 +27,25 @@ const getEventColor = (eventType) => {
 // Create the initial topBar with a button to open the modal
 function createTopBar(modal) {
     const topBar = document.createElement('div');
-    topBar.className = 'top-bar';
+    topBar.style.position = 'fixed';
+    topBar.style.top = '0';
+    topBar.style.left = '0';
+    topBar.style.width = '100%';
+    topBar.style.backgroundColor = '#333';
+    topBar.style.color = '#fff';
+    topBar.style.padding = '5px 10px';
+    topBar.style.zIndex = '1000';
+    topBar.style.textAlign = 'right';
+
     const modalButton = document.createElement('button');
-    modalButton.className = 'modal-button';
     modalButton.textContent = 'Open Modal';
+    modalButton.style.backgroundColor = '#007BFF';
+    modalButton.style.color = '#fff';
+    modalButton.style.border = 'none';
+    modalButton.style.padding = '5px 10px';
+    modalButton.style.marginRight = '8px';
+    modalButton.style.cursor = 'pointer';
+    modalButton.style.borderRadius = '5px';
 
     modalButton.onclick = () => {
         modal.style.display = 'flex';
@@ -55,21 +70,52 @@ function createTopBar(modal) {
 // Create the modal container with header and content
 function createModal() {
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = '#ecf1ed';
+    modal.style.color = '#fff';
+    modal.style.display = 'none'; // Initially hidden
+    modal.style.zIndex = '100001';
+    modal.style.alignItems = 'center';
+    modal.style.flexDirection = 'column';
+    modal.style.pointerEvents = 'auto';
+    modal.style.paddingTop = '5%';
 
     const headerWrapper = document.createElement('div');
-    headerWrapper.className = 'header-wrapper';
+    headerWrapper.style.width = 'calc(80% + 40px)';
+    headerWrapper.style.display = 'flex';
+    headerWrapper.style.alignItems = 'center';
+    headerWrapper.style.justifyContent = 'space-between';
+    headerWrapper.style.marginBottom = '20px';
+    headerWrapper.style.padding = '0 20px';
 
     const backButton = document.createElement('button');
-    backButton.className = 'back-button';
+    backButton.style.backgroundColor = '#ffffff';
+    backButton.style.color = '#131311';
+    backButton.style.border = 'none';
+    backButton.style.borderRadius = '50%';
+    backButton.style.padding = '10px 10px 13px 10px';
+    backButton.style.cursor = 'pointer';
+    backButton.style.fontSize = '30px';
+    backButton.style.lineHeight = '28px';
     const backArrowImage = document.createElement('img');
     backArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
     backArrowImage.height = 18;
     backButton.appendChild(backArrowImage);
 
     const modalTitle = document.createElement('h2');
-    modalTitle.className = 'modal-title';
     modalTitle.textContent = 'Faction Calendar';
+    modalTitle.style.margin = '0';
+    modalTitle.style.textAlign = 'center';
+    modalTitle.style.flexGrow = '1';
+    modalTitle.style.fontSize = '1.5em';
+    modalTitle.style.fontWeight = '300';
+    modalTitle.style.color = '#111612';
+    modalTitle.style.marginLeft = '-50px';
+    modalTitle.style.zIndex = '1';
 
     headerWrapper.appendChild(backButton);
     headerWrapper.appendChild(modalTitle);
@@ -82,7 +128,8 @@ function createModal() {
 
     const headerRoot = document.getElementById('header-root');
     if (headerRoot) {
-        headerRoot.className = 'header-root';
+        headerRoot.style.position = 'relative';
+        headerRoot.style.marginTop = '33px';
         const topBar = createTopBar(modal);
         document.body.insertBefore(topBar, headerRoot);
     }
@@ -93,9 +140,10 @@ function createModal() {
 // Create the card component containing the calendar and toggling buttons
 function createCard() {
     const card = document.createElement('div');
-    card.className = 'calendar-card'; // Add a class for styling
+    card.className = 'calendar-card';
     const cardHeader = document.createElement('div');
-    cardHeader.className = 'card-header';
+    card.appendChild(cardHeader);
+    card.className = 'calendar-card-header';
 
     const cardBackButton = createBackButton();
     const monthTitle = createMonthTitle();
@@ -159,10 +207,13 @@ function createCalendarUI() {
     console.log("createCalendarUI() was called");
 
     const container = document.createElement('div');
-    container.className = "calendar-ui-container";
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
 
     const header = document.createElement('div');
-    header.className = "calendar-ui-header";
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
 
     // Continue creating calendar UI elements
     const monthTitle = createMonthTitle();
@@ -183,19 +234,29 @@ function createCalendarUI() {
 // CALENDAR: Create the month title with its styling
 function createMonthTitle() {
     const monthTitle = document.createElement('h3');
-    monthTitle.className = 'month-title';
     monthTitle.textContent = 'January';
+    monthTitle.style.margin = '0';
+    monthTitle.style.textAlign = 'center';
+    monthTitle.style.flexGrow = '1';
     return monthTitle;
 }
 
 // CALENDAR: Create the back button with its styling and functionality
 function createBackButton() {
     const cardBackButton = document.createElement('button');
-    cardBackButton.className = 'card-back-button';
     const cardBackArrowImage = document.createElement('img');
+    cardBackButton.appendChild(cardBackArrowImage);
+
     cardBackArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
     cardBackArrowImage.height = 12;
-    cardBackButton.appendChild(cardBackArrowImage);
+    cardBackButton.style.backgroundColor = '#ffffff';
+    cardBackButton.style.color = '#131311';
+    cardBackButton.style.border = 'none';
+    cardBackButton.style.borderRadius = '50%';
+    cardBackButton.style.padding = '10px 10px 12px 10px';
+    cardBackButton.style.cursor = 'pointer';
+    cardBackButton.style.fontSize = '20px';
+    cardBackButton.style.lineHeight = '18px';
 
     cardBackButton.onclick = () => { modal.style.display = 'none'; };
     return cardBackButton;
@@ -204,11 +265,19 @@ function createBackButton() {
 // CALENDAR: Create the forward button with its styling and functionality
 function createForwardButton() {
     const cardForwardButton = document.createElement('button');
-    cardForwardButton.className = 'card-forward-button';
     const cardForwardArrowImage = document.createElement('img');
+    cardForwardButton.appendChild(cardForwardArrowImage);
+
     cardForwardArrowImage.src = "https://epearson.me/faction_status_images/arrow-forward.svg";
     cardForwardArrowImage.height = 12;
-    cardForwardButton.appendChild(cardForwardArrowImage);
+    cardForwardButton.style.backgroundColor = '#ffffff';
+    cardForwardButton.style.color = '#131311';
+    cardForwardButton.style.border = 'none';
+    cardForwardButton.style.borderRadius = '50%';
+    cardForwardButton.style.padding = '10px 10px 12px 10px';
+    cardForwardButton.style.cursor = 'pointer';
+    cardForwardButton.style.fontSize = '20px';
+    cardForwardButton.style.lineHeight = '18px';
 
     return cardForwardButton;
 }
@@ -216,7 +285,10 @@ function createForwardButton() {
 // CALENDAR: Create the calendar grid for displaying days and events
 function createCalendarGrid() {
     const calendarGrid = document.createElement('div');
-    calendarGrid.className = 'calendar-grid';
+    calendarGrid.style.display = 'grid';
+    calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
+    calendarGrid.style.gridGap = '5px';
+
     return calendarGrid;
 }
 
@@ -260,10 +332,13 @@ function renderCalendar(year, month, calendarGrid) {
 
         // Logic to identify week boundaries only for current month days
         if (d.isCurrentMonth && index % 7 === 0) {
-            // Mark the end of the previous week (Saturday, which is index - 1)
-            const prevDayElem = calendarGrid.children[index - 1];
-            if (!prevDayElem.classList.contains('prev') && !prevDayElem.classList.contains('next')) {
-                prevDayElem.setAttribute("data-week-end", "true");
+            // Start of a new week
+            if (currentWeekStart !== null) {
+                // Mark the end of the previous week (Saturday, which is index - 1)
+                const prevDayElem = calendarGrid.children[index - 1];
+                if (!prevDayElem.classList.contains('prev') && !prevDayElem.classList.contains('next')) {
+                    prevDayElem.setAttribute("data-week-end", "true");
+                }
             }
             // Mark the start of this week
             currentWeekStart = dayElem;
@@ -299,6 +374,32 @@ function createDayElement(d, index, year, month) {
         cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
         dayElem.id = cellId;
     }
+
+    // Apply default styles for day cells
+    if (d.class === 'prev' || d.class === 'next') {
+        dayElem.style.backgroundColor = '#ecf1ed';
+        dayElem.style.color = '#d3d8d4';
+    } else if (d.class === 'current') {
+        dayElem.style.backgroundColor = '#eff4f1';
+        dayElem.style.color = '#333333';
+    }
+
+    // General styles for all day elements
+    dayElem.style.height = '4.5em';
+    dayElem.style.display = 'block';
+    dayElem.style.position = 'relative';
+    dayElem.style.borderRadius = '8px';
+
+    // Create and position the day number
+    const dateNumber = document.createElement('span');
+    dateNumber.textContent = d.day;
+    dateNumber.style.position = 'absolute';
+    dateNumber.style.bottom = '5px';
+    dateNumber.style.left = '5px';
+
+    // Clear text content to avoid duplicate numbers
+    dayElem.textContent = '';
+    dayElem.appendChild(dateNumber);
 
     return dayElem;
 }
@@ -524,16 +625,6 @@ function processEvents(events, currentYear, currentMonthIndex) {
             eventBar.className = "event-bar";
             eventCell.appendChild(eventBar);
 
-            eventBar.style.cssText = `
-                height: 12px;
-                position: absolute;
-                bottom: ${21 + eventLayer * 13}px;
-                left: 0px;
-                background: ${eventColor};
-                width: calc(100% + 5px);
-                margin-top: 1px;
-            `;
-
             // Special styling for the first event bar in the series
             if (index === 0) {
                 if (eventCell.getAttribute("data-week-end") === "true") {
@@ -585,12 +676,14 @@ function createEventElement(event, isPastEvent) {
 
     // Placeholder icon
     const icon = document.createElement('div');
-    icon.className = 'event-icon';
     icon.textContent = '📌'; // Placeholder for now
+    icon.style.width = '30px';
+    icon.style.textAlign = 'center';
 
     // Event details
     const details = document.createElement('div');
-    details.className = 'event-details';
+    details.style.flexGrow = '1';
+    details.style.textAlign = 'left';
 
     details.innerHTML = `
         <strong>${event.event_type}</strong><br>
@@ -624,14 +717,14 @@ function initializeCalendarTool() {
     contentWrapper.id = 'content-wrapper';
     contentWrapper.className = 'content-wrapper';
 
-    modal.appendChild(contentWrapper);
-    contentWrapper.appendChild(card);
+    modal.appendChild(card);
 
     // Create event list container and append it to the modal *after* the card.
     const eventListContainer = document.createElement('div');
     eventListContainer.id = 'event-list-container';
     eventListContainer.className = 'event-list-container';
 
+    modal.appendChild(contentWrapper);
     contentWrapper.appendChild(eventListContainer);
 
     // Initial calendar data retrieval from localStorage
@@ -655,78 +748,14 @@ function initializeCalendarTool() {
 //Add these styles to the bottom
 const style = document.createElement('style');
 style.textContent = `
-    .top-bar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background-color: #333;
-        color: #fff;
-        padding: 5px 10px;
-        z-index: 1000;
-        text-align: right;
-    }
-
-    .modal-button {
-        background-color: #007BFF;
-        color: #fff;
-        border: none;
-        padding: 5px 10px;
-        margin-right: 8px;
-        cursor: pointer;
-        border-radius: 5px;
-    }
-
-    .modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: #ecf1ed;
-        color: #fff;
-        display: none; /* Initially hidden */
-        z-index: 100001;
-        align-items: center;
-        flex-direction: column;
-        pointer-events: auto;
-        padding-top: 5%;
-    }
-
-    .header-wrapper {
-        width: calc(80% + 40px);
+    .content-wrapper {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-between;
-        margin-bottom: 20px;
-        padding: 0 20px;
-    }
-
-    .back-button {
-        background-color: #ffffff;
-        color: #131311;
-        border: none;
-        border-radius: 50%;
-        padding: 10px 10px 13px 10px;
-        cursor: pointer;
-        font-size: 30px;
-        line-height: 28px;
-    }
-
-    .modal-title {
-        margin: 0;
-        text-align: center;
-        flex-grow: 1;
-        font-size: 1.5em;
-        font-weight: 300;
-        color: #111612;
-        margin-left: -50px;
-        z-index: 1;
-    }
-
-    .header-root {
-        position: relative;
-        margin-top: 33px;
+        padding: 10px;
+        width: 100%;
+        overflow-y: auto;
+        height: calc(100% - 50px);
     }
 
     .calendar-card {
@@ -735,58 +764,16 @@ style.textContent = `
         padding: 20px;
         border-radius: 10px;
         margin-top: 20px;
-        width: 90%;
-        box-sizing: border-box; /* Ensure padding doesn't increase the width */
+        width: 100%;
+        box-sizing: border-box;
     }
 
-    .card-header {
+    .calendar-card-header {
         width: 100%;
         display: flex;
         align-items: center;
         justify-content: space-between;
         margin-bottom: 20px;
-    }
-
-    .card-back-button {
-        background-color: #ffffff;
-        color: #131311;
-        border: none;
-        border-radius: 50%;
-        padding: 10px 10px 12px 10px;
-        cursor: pointer;
-        font-size: 20px;
-        line-height: 18px;
-    }
-
-    .card-forward-button {
-        background-color: #ffffff;
-        color: #131311;
-        border: none;
-        border-radius: 50%;
-        padding: 10px 10px 12px 10px;
-        cursor: pointer;
-        font-size: 20px;
-        line-height: 18px;
-    }
-
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        grid-gap: 5px;
-    }
-
-    .content-wrapper {
-        width: 100%;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 10px;
-    }
-
-    .event-list-container {
-        width: 90%; /* Make it the same width as the card */
-        box-sizing: border-box; /* Include padding/border in width */
     }
 
     .event-card {
@@ -796,32 +783,32 @@ style.textContent = `
         border-radius: 5px;
         margin-bottom: 10px;
         width: 100%;
-        box-sizing: border-box; /* Ensure padding doesn't increase the width */
+        box-sizing: border-box;
     }
+
+    .event-list-container {
+        width: 100%;
+        box-sizing: border-box;
+    }   
 
     .event-row {
         display: flex;
         align-items: center;
-        margin-bottom: 10px;
-        padding: 5px 0;
+        justify-content: space-between;
+        padding: 10px;
         border-bottom: 1px solid #ddd;
     }
 
-    .event-icon {
-        width: 30px;
-        text-align: center;
+    .event-bar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        background-color: #51c1b6;
+        border-radius: 12px;
+        z-index: 1;
     }
 
-    .event-details {
-        flex-grow: 1;
-        text-align: left;
-    }
 
-    .month-title {
-      margin: 0;
-      text-align: center;
-      flex-grow: 1;
-    }
 `;
 document.head.appendChild(style);
 
