@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.18
+// @version      0.3.19
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -101,11 +101,13 @@ function createModal() {
     backButton.style.top = '10px';
     backButton.style.color = '#131311';
     backButton.style.border = 'none';
-    backButton.style.padding = '2px 10px 2px 10px';
+    backButton.style.padding = '4px 10px 4px 10px';
     backButton.style.cursor = 'pointer';
     backButton.style.fontSize = '1em';
     backButton.style.borderRadius = '5px';
     backButton.textContent = '← Back';
+    backButton.style.clipPath = "polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%)";
+
 
     const modalTitle = document.createElement('h2');
     modalTitle.textContent = 'Faction Calendar';
@@ -399,7 +401,7 @@ function createDayElement(d, index, year, month) {
     const dateNumber = document.createElement('span');
     dateNumber.textContent = d.day;
     dateNumber.style.position = 'absolute';
-    dateNumber.style.bottom = '5px';
+    dateNumber.style.top = '5px';
     dateNumber.style.left = '5px';
 
     // Clear text content to avoid duplicate numbers
