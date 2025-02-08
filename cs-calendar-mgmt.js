@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.9
+// @version      0.3.10
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -77,7 +77,7 @@ function createModal() {
     modal.style.height = '100%';
     modal.style.backgroundColor = '#ecf1ed';
     modal.style.color = '#fff';
-    modal.style.display = 'none'; // Initially hidden
+    modal.style.display = 'none';
     modal.style.zIndex = '100001';
     modal.style.alignItems = 'center';
     modal.style.flexDirection = 'column';
@@ -89,8 +89,10 @@ function createModal() {
     headerWrapper.style.display = 'flex';
     headerWrapper.style.alignItems = 'center';
     headerWrapper.style.justifyContent = 'space-between';
-    headerWrapper.style.marginBottom = '20px';
-    headerWrapper.style.padding = '0 20px';
+    headerWrapper.style.marginBottom = '5px';
+    headerWrapper.style.padding = '0 10px';
+    headerWrapper.style.backgroundColor = '#ecf1ed';
+    headerWrapper.style.height = '20px';
 
     const backButton = document.createElement('button');
     backButton.style.backgroundColor = '#ffffff';
@@ -734,19 +736,18 @@ function initializeCalendarTool() {
     const contentWrapper = document.createElement('div');
     contentWrapper.id = 'content-wrapper';
     contentWrapper.style.width = '100%';
-    contentWrapper.style.overflowY = 'auto'; // Enable vertical scrolling
-    contentWrapper.style.height = 'calc(100% - ' + modal.querySelector(':scope > div').offsetHeight + 'px)'; // Occupy remaining height, compensating for header
-    contentWrapper.style.display = 'flex'; // Use flexbox to center content horizontally
-    contentWrapper.style.flexDirection = 'column'; // Stack children vertically
-    contentWrapper.style.alignItems = 'center'; // Center content horizontally
-    contentWrapper.style.padding = '10px'; // Add some padding to the content wrapper
+    contentWrapper.style.overflowY = 'auto';
+    contentWrapper.style.height = '100px';
+    contentWrapper.style.display = 'flex';
+    contentWrapper.style.flexDirection = 'column';
+    contentWrapper.style.alignItems = 'center';
 
     modal.appendChild(card);
 
     // Create event list container and append it to the modal *after* the card.
     const eventListContainer = document.createElement('div');
     eventListContainer.id = 'event-list-container';
-    eventListContainer.style.width = '80%'; // Make it the same width as the card
+    eventListContainer.style.width = '90%'; // Make it the same width as the card
     eventListContainer.style.boxSizing = 'border-box'; // Include padding/border in width
 
     modal.appendChild(contentWrapper);
@@ -779,7 +780,7 @@ style.textContent = `
         padding: 20px;
         border-radius: 10px;
         margin-top: 20px;
-        width: 100%;
+        width: 90%;
         box-sizing: border-box; /* Ensure padding doesn't increase the width */
     }
 
