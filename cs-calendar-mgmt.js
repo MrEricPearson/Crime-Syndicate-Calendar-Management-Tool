@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.10
+// @version      0.3.11
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -91,22 +91,17 @@ function createModal() {
     headerWrapper.style.justifyContent = 'space-between';
     headerWrapper.style.marginBottom = '5px';
     headerWrapper.style.padding = '0 10px';
-    headerWrapper.style.backgroundColor = '#ecf1ed';
+    headerWrapper.style.backgroundColor = '#007BFF';
     headerWrapper.style.height = '20px';
 
     const backButton = document.createElement('button');
     backButton.style.backgroundColor = '#ffffff';
     backButton.style.color = '#131311';
     backButton.style.border = 'none';
-    backButton.style.borderRadius = '50%';
-    backButton.style.padding = '10px 10px 13px 10px';
+    backButton.style.padding = '5px 15px 5px 15px';
     backButton.style.cursor = 'pointer';
-    backButton.style.fontSize = '30px';
-    backButton.style.lineHeight = '28px';
-    const backArrowImage = document.createElement('img');
-    backArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
-    backArrowImage.height = 18;
-    backButton.appendChild(backArrowImage);
+    backButton.style.fontSize = '1.5em';
+    backButton.textContent = '← Back';
 
     const modalTitle = document.createElement('h2');
     modalTitle.textContent = 'Faction Calendar';
@@ -779,7 +774,7 @@ style.textContent = `
         color: #333;
         padding: 20px;
         border-radius: 10px;
-        margin-top: 20px;
+        margin: 20px 0;
         width: 90%;
         box-sizing: border-box; /* Ensure padding doesn't increase the width */
     }
