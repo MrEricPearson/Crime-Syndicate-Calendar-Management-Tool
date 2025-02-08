@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.8
+// @version      0.3.9
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -140,10 +140,14 @@ function createModal() {
 // Create the card component containing the calendar and toggling buttons
 function createCard() {
     const card = document.createElement('div');
-    card.className = 'calendar-card';
+    card.className = 'calendar-card'; // Add a class for styling
     const cardHeader = document.createElement('div');
     card.appendChild(cardHeader);
-    card.className = 'calendar-card-header';
+    cardHeader.style.width = '100%';
+    cardHeader.style.display = 'flex';
+    cardHeader.style.alignItems = 'center';
+    cardHeader.style.justifyContent = 'space-between';
+    cardHeader.style.marginBottom = '20px';
 
     const cardBackButton = createBackButton();
     const monthTitle = createMonthTitle();
@@ -742,7 +746,6 @@ function initializeCalendarTool() {
     // Create event list container and append it to the modal *after* the card.
     const eventListContainer = document.createElement('div');
     eventListContainer.id = 'event-list-container';
-    eventListContainer.className = 'event-list-container';
     eventListContainer.style.width = '80%'; // Make it the same width as the card
     eventListContainer.style.boxSizing = 'border-box'; // Include padding/border in width
 
@@ -780,14 +783,6 @@ style.textContent = `
         box-sizing: border-box; /* Ensure padding doesn't increase the width */
     }
 
-    .calendar-card-header {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    }
-
     .event-card {
         background-color: #f4f9f5;
         color: #333;
@@ -796,7 +791,7 @@ style.textContent = `
         margin-bottom: 10px;
         width: 100%;
         box-sizing: border-box; /* Ensure padding doesn't increase the width */
-    }
+    }+
 `;
 document.head.appendChild(style);
 
