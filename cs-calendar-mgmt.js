@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.17
+// @version      0.3.18
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -97,13 +97,14 @@ function createModal() {
     const backButton = document.createElement('button');
     backButton.style.backgroundColor = '#ffffff';
     backButton.style.position = 'absolute';
-    backButton.style.left = '20%';
-    backButton.style.top = '6px';
+    backButton.style.left = '10%';
+    backButton.style.top = '10px';
     backButton.style.color = '#131311';
     backButton.style.border = 'none';
     backButton.style.padding = '2px 10px 2px 10px';
     backButton.style.cursor = 'pointer';
     backButton.style.fontSize = '1em';
+    backButton.style.borderRadius = '5px';
     backButton.textContent = '← Back';
 
     const modalTitle = document.createElement('h2');
@@ -717,8 +718,8 @@ function createEventElement(event, isPastEvent) {
             <span>${endDate}</span>
         </div>
         <div class="time-line">
-            <span><i class="fas fa-clock"></i> ${formatTime(startTime)}</span>
-            <span><i class="fas fa-clock"></i> ${formatTime(endTime)}</span>
+            <img src="https://epearson.me/faction_status_images/clock.svg" class="clock-icon"><span> ${formatTime(startTime)}</span>
+            <img src="https://epearson.me/faction_status_images/clock.svg" class="clock-icon"><span> ${formatTime(endTime)}</span>
         </div>
     `;
 
@@ -796,8 +797,6 @@ function initializeCalendarTool() {
 //Add these styles to the bottom
 const style = document.createElement('style');
 style.textContent = `
-    @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css");
-
     .top-bar {
         position: fixed;
         top: 0;
@@ -991,11 +990,6 @@ style.textContent = `
         vertical-align: middle;
     }
 
-    .arrow-separator::before {
-        content: "\\00a0>\\00a0\\00a0>\\00a0\\00a0>";
-        letter-spacing: -1px;
-    }
-
     .time-line {
         font-size: 12px;
         color: #797977;
@@ -1025,8 +1019,11 @@ style.textContent = `
         margin-right: 5px;
     }
 
-    .fa-clock {
-    margin-right: 5px;
+    .clock-icon {
+        width: 12px; /* Adjust size as needed */
+        height: 12px;
+        margin-right: 5px;
+        vertical-align: middle;
     }
 `;
 document.head.appendChild(style);
