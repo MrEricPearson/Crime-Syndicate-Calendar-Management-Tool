@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.13
+// @version      0.3.14
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -89,12 +89,16 @@ function createModal() {
     headerWrapper.style.alignItems = 'center';
     headerWrapper.style.justifyContent = 'space-between';
     headerWrapper.style.marginBottom = '5px';
-    headerWrapper.style.padding = '0 10%';
+    headerWrapper.style.padding = '2px 10%';
     headerWrapper.style.backgroundColor = '#333333';
-    headerWrapper.style.height = '20px';
+    headerWrapper.style.height = '30px';
+    headerWrapper.style.position = 'relative';
 
     const backButton = document.createElement('button');
     backButton.style.backgroundColor = '#ffffff';
+    backButton.style.position = 'absolute';
+    backButton.style.left = '10%';
+    backButton.style.top = '2px';
     backButton.style.color = '#131311';
     backButton.style.border = 'none';
     backButton.style.padding = '2px 10px 2px 10px';
@@ -109,7 +113,7 @@ function createModal() {
     modalTitle.style.flexGrow = '1';
     modalTitle.style.fontSize = '1.5em';
     modalTitle.style.fontWeight = '300';
-    modalTitle.style.color = '#111612';
+    modalTitle.style.color = '#ffffff';
     modalTitle.style.marginLeft = '-50px';
     modalTitle.style.zIndex = '1';
 
@@ -686,12 +690,11 @@ function createEventElement(event, isPastEvent) {
     eventRow.style.alignItems = 'center';
     eventRow.style.marginBottom = '10px';
     eventRow.style.padding = '5px 0';
-    eventRow.style.borderBottom = '1px solid #ddd';
 
     // Placeholder icon
     const icon = document.createElement('div');
     icon.textContent = '📌'; // Placeholder for now
-    icon.style.width = '30px';
+    icon.style.width = '60px';
     icon.style.textAlign = 'center';
 
     // Event details
@@ -731,7 +734,7 @@ function initializeCalendarTool() {
     contentWrapper.id = 'content-wrapper';
     contentWrapper.style.width = '100%';
     contentWrapper.style.overflowY = 'auto';
-    contentWrapper.style.height = '100px';
+    contentWrapper.style.height = '250px';
     contentWrapper.style.display = 'flex';
     contentWrapper.style.flexDirection = 'column';
     contentWrapper.style.alignItems = 'center';
@@ -775,7 +778,7 @@ style.textContent = `
         border-radius: 10px;
         margin: 20px 0;
         width: 90%;
-        box-sizing: border-box; /* Ensure padding doesn't increase the width */
+        box-sizing: border-box;
     }
 
     .event-card {
@@ -785,7 +788,7 @@ style.textContent = `
         border-radius: 5px;
         margin-bottom: 10px;
         width: 100%;
-        box-sizing: border-box; /* Ensure padding doesn't increase the width */
+        box-sizing: border-box;
     }+
 `;
 document.head.appendChild(style);
