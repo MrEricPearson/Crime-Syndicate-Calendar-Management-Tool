@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.14
+// @version      0.3.15
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -91,14 +91,14 @@ function createModal() {
     headerWrapper.style.marginBottom = '5px';
     headerWrapper.style.padding = '2px 10%';
     headerWrapper.style.backgroundColor = '#333333';
-    headerWrapper.style.height = '30px';
+    headerWrapper.style.height = '40px';
     headerWrapper.style.position = 'relative';
 
     const backButton = document.createElement('button');
     backButton.style.backgroundColor = '#ffffff';
     backButton.style.position = 'absolute';
-    backButton.style.left = '10%';
-    backButton.style.top = '2px';
+    backButton.style.left = '20%';
+    backButton.style.top = '6px';
     backButton.style.color = '#131311';
     backButton.style.border = 'none';
     backButton.style.padding = '2px 10px 2px 10px';
@@ -108,13 +108,13 @@ function createModal() {
 
     const modalTitle = document.createElement('h2');
     modalTitle.textContent = 'Faction Calendar';
+    modalTitle.style.width = '100%';
     modalTitle.style.margin = '0';
     modalTitle.style.textAlign = 'center';
     modalTitle.style.flexGrow = '1';
     modalTitle.style.fontSize = '1.5em';
     modalTitle.style.fontWeight = '300';
     modalTitle.style.color = '#ffffff';
-    modalTitle.style.marginLeft = '-50px';
     modalTitle.style.zIndex = '1';
 
     headerWrapper.appendChild(backButton);
@@ -694,7 +694,7 @@ function createEventElement(event, isPastEvent) {
     // Placeholder icon
     const icon = document.createElement('div');
     icon.textContent = '📌'; // Placeholder for now
-    icon.style.width = '60px';
+    icon.style.width = '80px';
     icon.style.textAlign = 'center';
 
     // Event details
@@ -703,9 +703,15 @@ function createEventElement(event, isPastEvent) {
     details.style.textAlign = 'left';
 
     details.innerHTML = `
-        <strong>${event.event_type}</strong><br>
-        ${event.event_start_date} >>> ${event.event_end_date || '??'}<br>
-        ${event.event_start_time || '--:--'} >>> ${event.event_end_time || '--:--'}
+        <div style="font-size: 16px; margin-bottom: 5px;">
+            <strong>${event.event_type}</strong>
+        </div>
+        <div style="font-size: 12px; color: #797977; margin-bottom: 5px;">
+            ${event.event_start_date} through ${event.event_end_date || '??'}
+        </div>
+        <div style="font-size: 12px; color: #797977; margin-bottom: 5px;">
+        ${event.event_start_time || '--:--'} through ${event.event_end_time || '--:--'}
+        </div>
     `;
 
     if (isPastEvent) {
@@ -734,7 +740,7 @@ function initializeCalendarTool() {
     contentWrapper.id = 'content-wrapper';
     contentWrapper.style.width = '100%';
     contentWrapper.style.overflowY = 'auto';
-    contentWrapper.style.height = '250px';
+    contentWrapper.style.height = '180px';
     contentWrapper.style.display = 'flex';
     contentWrapper.style.flexDirection = 'column';
     contentWrapper.style.alignItems = 'center';
@@ -775,7 +781,7 @@ style.textContent = `
         background-color: #f4f9f5;
         color: #333;
         padding: 20px;
-        border-radius: 10px;
+        border-radius: 20px;
         margin: 20px 0;
         width: 90%;
         box-sizing: border-box;
@@ -785,7 +791,7 @@ style.textContent = `
         background-color: #f4f9f5;
         color: #333;
         padding: 10px;
-        border-radius: 5px;
+        border-radius: 20px;
         margin-bottom: 10px;
         width: 100%;
         box-sizing: border-box;
