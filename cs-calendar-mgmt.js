@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.16
+// @version      0.3.17
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -691,7 +691,7 @@ function createEventElement(event, isPastEvent) {
     // Placeholder icon
     const icon = document.createElement('div');
     icon.className = 'event-icon';
-    icon.textContent = '📌'; // Placeholder for now
+    icon.textContent = '📌';
 
     // Event details
     const details = document.createElement('div');
@@ -703,23 +703,23 @@ function createEventElement(event, isPastEvent) {
     const endTime = event.event_end_time || '--:--';
 
     details.innerHTML = `
-        <div class="event-title">
-            <strong>${event.event_type}</strong>
+        <div class="event-title-container">
+            <strong class="event-title">${event.event_type}</strong>
+            ${isPastEvent || event.event_status ? `
+            <div class="status-box">
+                <span class="status-dot"></span>
+                ${isPastEvent ? 'Completed' : event.event_status}
+            </div>` : ''}
         </div>
         <div class="date-line">
             <span>${startDate}</span>
-            <span class="arrow-separator">>>></span>
+            <span class="arrow-separator">> > ></span>
             <span>${endDate}</span>
         </div>
         <div class="time-line">
             <span><i class="fas fa-clock"></i> ${formatTime(startTime)}</span>
             <span><i class="fas fa-clock"></i> ${formatTime(endTime)}</span>
         </div>
-        ${isPastEvent || event.event_status ? `
-            <div class="status-box">
-                <span class="status-dot"></span>
-                ${isPastEvent ? 'Completed' : event.event_status}
-            </div>` : ''}
     `;
 
     eventRow.appendChild(icon);
@@ -955,20 +955,21 @@ style.textContent = `
         text-align: center;
     }
 
-    .event-details {
+           .event-details {
         flex-grow: 1;
         text-align: left;
+        position: relative; /*Needed for absolute positioning of status*/
     }
 
-    .month-title {
-      margin: 0;
-      text-align: center;
-      flex-grow: 1;
+    .event-title-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 5px;
     }
 
     .event-title {
         font-size: 16px;
-        margin-bottom: 5px;
     }
 
     .date-line {
@@ -981,13 +982,13 @@ style.textContent = `
     }
 
     .date-line span {
-        white-space: nowrap; /* Prevent wrapping */
+        white-space: nowrap;
     }
 
     .arrow-separator {
         margin: 0 10px;
         opacity: 0.5;
-        vertical-align: middle; /* Align arrows vertically */
+        vertical-align: middle;
     }
 
     .arrow-separator::before {
@@ -1009,8 +1010,10 @@ style.textContent = `
         display: inline-flex;
         align-items: center;
         padding: 4px 8px;
-        margin-top: 5px;
         font-size: 12px;
+        position: absolute; /*Positions status in top right of .event-detail*/
+        top: 0;
+        right: 0;
     }
 
     .status-dot {
