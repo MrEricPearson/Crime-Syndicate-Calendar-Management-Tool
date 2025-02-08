@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.7
+// @version      0.3.8
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -625,6 +625,16 @@ function processEvents(events, currentYear, currentMonthIndex) {
             eventBar.className = "event-bar";
             eventCell.appendChild(eventBar);
 
+            eventBar.style.cssText = `
+                height: 12px;
+                position: absolute;
+                bottom: ${21 + eventLayer * 13}px;
+                left: 0px;
+                background: ${eventColor};
+                width: calc(100% + 5px);
+                margin-top: 1px;
+            `;
+
             // Special styling for the first event bar in the series
             if (index === 0) {
                 if (eventCell.getAttribute("data-week-end") === "true") {
@@ -672,7 +682,11 @@ function processEvents(events, currentYear, currentMonthIndex) {
 // Create an event element for display in the modal
 function createEventElement(event, isPastEvent) {
     const eventRow = document.createElement('div');
-    eventRow.className = 'event-row';
+    eventRow.style.display = 'flex';
+    eventRow.style.alignItems = 'center';
+    eventRow.style.marginBottom = '10px';
+    eventRow.style.padding = '5px 0';
+    eventRow.style.borderBottom = '1px solid #ddd';
 
     // Placeholder icon
     const icon = document.createElement('div');
@@ -715,7 +729,13 @@ function initializeCalendarTool() {
     //Create content wrapper
     const contentWrapper = document.createElement('div');
     contentWrapper.id = 'content-wrapper';
-    contentWrapper.className = 'content-wrapper';
+    contentWrapper.style.width = '100%';
+    contentWrapper.style.overflowY = 'auto'; // Enable vertical scrolling
+    contentWrapper.style.height = 'calc(100% - ' + modal.querySelector(':scope > div').offsetHeight + 'px)'; // Occupy remaining height, compensating for header
+    contentWrapper.style.display = 'flex'; // Use flexbox to center content horizontally
+    contentWrapper.style.flexDirection = 'column'; // Stack children vertically
+    contentWrapper.style.alignItems = 'center'; // Center content horizontally
+    contentWrapper.style.padding = '10px'; // Add some padding to the content wrapper
 
     modal.appendChild(card);
 
@@ -723,6 +743,8 @@ function initializeCalendarTool() {
     const eventListContainer = document.createElement('div');
     eventListContainer.id = 'event-list-container';
     eventListContainer.className = 'event-list-container';
+    eventListContainer.style.width = '80%'; // Make it the same width as the card
+    eventListContainer.style.boxSizing = 'border-box'; // Include padding/border in width
 
     modal.appendChild(contentWrapper);
     contentWrapper.appendChild(eventListContainer);
@@ -748,16 +770,6 @@ function initializeCalendarTool() {
 //Add these styles to the bottom
 const style = document.createElement('style');
 style.textContent = `
-    .content-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 10px;
-        width: 100%;
-        overflow-y: auto;
-        height: calc(100% - 50px);
-    }
-
     .calendar-card {
         background-color: #f4f9f5;
         color: #333;
@@ -765,7 +777,7 @@ style.textContent = `
         border-radius: 10px;
         margin-top: 20px;
         width: 100%;
-        box-sizing: border-box;
+        box-sizing: border-box; /* Ensure padding doesn't increase the width */
     }
 
     .calendar-card-header {
@@ -783,32 +795,8 @@ style.textContent = `
         border-radius: 5px;
         margin-bottom: 10px;
         width: 100%;
-        box-sizing: border-box;
+        box-sizing: border-box; /* Ensure padding doesn't increase the width */
     }
-
-    .event-list-container {
-        width: 100%;
-        box-sizing: border-box;
-    }   
-
-    .event-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
-    }
-
-    .event-bar {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        background-color: #51c1b6;
-        border-radius: 12px;
-        z-index: 1;
-    }
-
-
 `;
 document.head.appendChild(style);
 
