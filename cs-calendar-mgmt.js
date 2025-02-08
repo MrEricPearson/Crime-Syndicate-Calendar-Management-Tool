@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.15
+// @version      0.3.16
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -686,44 +686,63 @@ function processEvents(events, currentYear, currentMonthIndex) {
 // Create an event element for display in the modal
 function createEventElement(event, isPastEvent) {
     const eventRow = document.createElement('div');
-    eventRow.style.display = 'flex';
-    eventRow.style.alignItems = 'center';
-    eventRow.style.marginBottom = '10px';
-    eventRow.style.padding = '5px 0';
+    eventRow.className = 'event-row';
 
     // Placeholder icon
     const icon = document.createElement('div');
+    icon.className = 'event-icon';
     icon.textContent = '📌'; // Placeholder for now
-    icon.style.width = '80px';
-    icon.style.textAlign = 'center';
 
     // Event details
     const details = document.createElement('div');
-    details.style.flexGrow = '1';
-    details.style.textAlign = 'left';
+    details.className = 'event-details';
+
+    const startDate = new Date(event.event_start_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    const endDate = event.event_end_date ? new Date(event.event_end_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '??';
+    const startTime = event.event_start_time || '--:--';
+    const endTime = event.event_end_time || '--:--';
 
     details.innerHTML = `
-        <div style="font-size: 16px; margin-bottom: 5px;">
+        <div class="event-title">
             <strong>${event.event_type}</strong>
         </div>
-        <div style="font-size: 12px; color: #797977; margin-bottom: 5px;">
-            ${event.event_start_date} through ${event.event_end_date || '??'}
+        <div class="date-line">
+            <span>${startDate}</span>
+            <span class="arrow-separator">>>></span>
+            <span>${endDate}</span>
         </div>
-        <div style="font-size: 12px; color: #797977; margin-bottom: 5px;">
-        ${event.event_start_time || '--:--'} through ${event.event_end_time || '--:--'}
+        <div class="time-line">
+            <span><i class="fas fa-clock"></i> ${formatTime(startTime)}</span>
+            <span><i class="fas fa-clock"></i> ${formatTime(endTime)}</span>
         </div>
+        ${isPastEvent || event.event_status ? `
+            <div class="status-box">
+                <span class="status-dot"></span>
+                ${isPastEvent ? 'Completed' : event.event_status}
+            </div>` : ''}
     `;
-
-    if (isPastEvent) {
-        details.innerHTML += `<br><em>Completed</em>`; // Status only for past events
-    } else if (event.event_status) {
-        details.innerHTML += `<br><em>${event.event_status}</em>`;
-    }
 
     eventRow.appendChild(icon);
     eventRow.appendChild(details);
 
     return eventRow;
+}
+
+function formatTime(time) {
+    if (!time) return '--:--';
+    let [hours, minutes] = time.split(':');
+    let period = 'am';
+    hours = parseInt(hours);
+    if (hours >= 12) {
+        period = 'pm';
+        if (hours > 12) {
+            hours -= 12;
+        }
+    }
+    if (hours === 0) {
+        hours = 12;
+    }
+    return `${hours}:${minutes}${period}`;
 }
 
 // Initialize the calendar tool when the page is loaded
@@ -777,25 +796,235 @@ function initializeCalendarTool() {
 //Add these styles to the bottom
 const style = document.createElement('style');
 style.textContent = `
+    @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css");
+
+    .top-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: #333;
+        color: #fff;
+        padding: 5px 10px;
+        z-index: 1000;
+        text-align: right;
+    }
+
+    .modal-button {
+        background-color: #007BFF;
+        color: #fff;
+        border: none;
+        padding: 5px 10px;
+        margin-right: 8px;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #ecf1ed;
+        color: #fff;
+        display: none; /* Initially hidden */
+        z-index: 100001;
+        align-items: center;
+        flex-direction: column;
+        pointer-events: auto;
+        padding-top: 5%;
+    }
+
+    .header-wrapper {
+        width: calc(80% + 40px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding: 0 20px;
+    }
+
+    .back-button {
+        background-color: #ffffff;
+        color: #131311;
+        border: none;
+        border-radius: 50%;
+        padding: 10px 10px 13px 10px;
+        cursor: pointer;
+        font-size: 30px;
+        line-height: 28px;
+    }
+
+    .modal-title {
+        margin: 0;
+        text-align: center;
+        flex-grow: 1;
+        font-size: 1.5em;
+        font-weight: 300;
+        color: #111612;
+        margin-left: -50px;
+        z-index: 1;
+    }
+
+    .header-root {
+        position: relative;
+        margin-top: 33px;
+    }
+
     .calendar-card {
         background-color: #f4f9f5;
         color: #333;
         padding: 20px;
-        border-radius: 20px;
+        border-radius: 10px;
         margin: 20px 0;
         width: 90%;
         box-sizing: border-box;
+    }
+
+    .card-header {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .card-back-button {
+        background-color: #ffffff;
+        color: #131311;
+        border: none;
+        border-radius: 50%;
+        padding: 10px 10px 12px 10px;
+        cursor: pointer;
+        font-size: 20px;
+        line-height: 18px;
+    }
+
+    .card-forward-button {
+        background-color: #ffffff;
+        color: #131311;
+        border: none;
+        border-radius: 50%;
+        padding: 10px 10px 12px 10px;
+        cursor: pointer;
+        font-size: 20px;
+        line-height: 18px;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-gap: 5px;
+    }
+
+    .content-wrapper {
+        width: 100%;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+        box-sizing: border-box; /*Ensures padding stays within bounds*/
+    }
+
+    .event-list-container {
+        width: 90%; /* Make it the same width as the card */
+        box-sizing: border-box; /* Include padding/border in width */
     }
 
     .event-card {
         background-color: #f4f9f5;
         color: #333;
         padding: 10px;
-        border-radius: 20px;
+        border-radius: 10px;
         margin-bottom: 10px;
         width: 100%;
         box-sizing: border-box;
-    }+
+    }
+
+    .event-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 5px 0;
+    }
+
+    .event-icon {
+        width: 80px;
+        text-align: center;
+    }
+
+    .event-details {
+        flex-grow: 1;
+        text-align: left;
+    }
+
+    .month-title {
+      margin: 0;
+      text-align: center;
+      flex-grow: 1;
+    }
+
+    .event-title {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
+    .date-line {
+        font-size: 12px;
+        color: #797977;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .date-line span {
+        white-space: nowrap; /* Prevent wrapping */
+    }
+
+    .arrow-separator {
+        margin: 0 10px;
+        opacity: 0.5;
+        vertical-align: middle; /* Align arrows vertically */
+    }
+
+    .arrow-separator::before {
+        content: "\\00a0>\\00a0\\00a0>\\00a0\\00a0>";
+        letter-spacing: -1px;
+    }
+
+    .time-line {
+        font-size: 12px;
+        color: #797977;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .status-box {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    .status-dot {
+        height: 8px;
+        width: 8px;
+        background-color: #2ecc71; /* Example color */
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    .fa-clock {
+    margin-right: 5px;
+    }
 `;
 document.head.appendChild(style);
 
