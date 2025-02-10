@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.20
+// @version      0.3.21
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -97,35 +97,17 @@ function createModal() {
     const backButton = document.createElement('button');
     backButton.style.backgroundColor = '#ffffff';
     backButton.style.position = 'absolute';
-    backButton.style.left = '15%';
+    backButton.style.left = '10%';
     backButton.style.top = '10px';
     backButton.style.color = '#131311';
     backButton.style.border = 'none';
-    backButton.style.padding = '4px 15px 4px 25px'; // Extra left padding
+    backButton.style.padding = '4px 10px 4px 10px';
     backButton.style.cursor = 'pointer';
     backButton.style.fontSize = '1em';
     backButton.style.borderRadius = '5px';
-    backButton.style.textAlign = 'center';
-    backButton.style.display = 'inline-flex';
-    backButton.style.alignItems = 'center';
-    backButton.style.fontWeight = 'bold';
-    backButton.style.position = 'relative';
     backButton.textContent = 'Back';
-    
-    // Create an arrow with a rounded tip using a pseudo-element
-    const arrow = document.createElement('span');
-    arrow.style.position = 'absolute';
-    arrow.style.left = '-12px'; // Adjust position
-    arrow.style.top = '50%';
-    arrow.style.width = '15px'; // Arrow width
-    arrow.style.height = '15px'; // Arrow height
-    arrow.style.backgroundColor = '#ffffff'; // Same as button background
-    arrow.style.borderRadius = '50%'; // Makes the arrow rounded
-    arrow.style.transform = 'translateY(-50%) rotate(45deg)'; // Rotate for an arrow effect
-    arrow.style.clipPath = 'polygon(0 50%, 100% 0, 100% 100%)'; // Cut out half for an arrow shape
-    
-    // Append arrow to button
-    backButton.appendChild(arrow);
+    backButton.style.clipPath = "polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%)";
+
 
     const modalTitle = document.createElement('h2');
     modalTitle.textContent = 'Faction Calendar';
@@ -777,7 +759,7 @@ function initializeCalendarTool() {
 
     //Create content wrapper
     const contentWrapper = document.createElement('div');
-    contentWrapper.id = 'content-wrapper';
+    contentWrapper.id = 'content-wrapper-container';
     contentWrapper.style.width = '100%';
     contentWrapper.style.overflowY = 'auto';
     contentWrapper.style.height = '180px';
@@ -937,7 +919,7 @@ style.textContent = `
         grid-gap: 5px;
     }
 
-    .content-wrapper {
+    .content-wrapper-container {
         width: 100%;
         overflow-y: auto;
         display: flex;
@@ -974,7 +956,7 @@ style.textContent = `
         text-align: center;
     }
 
-           .event-details {
+    .event-details {
         flex-grow: 1;
         text-align: left;
         position: relative; /*Needed for absolute positioning of status*/
