@@ -3,7 +3,7 @@
 // @namespace    https://github.com/MrEricPearson
 // @version      0.3.21
 // @description  Adds calendar management capabilities for your faction.
-// @author       BeefDaddy
+// @author       BeefDaddy 
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @updateURL    https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @match        https://www.torn.com/factions.php*
