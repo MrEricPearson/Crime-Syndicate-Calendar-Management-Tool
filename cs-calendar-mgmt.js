@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.21
+// @version      0.3.22
 // @description  Adds calendar management capabilities for your faction.
-// @author       BeefDaddy 
+// @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @updateURL    https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @match        https://www.torn.com/factions.php*
@@ -95,19 +95,15 @@ function createModal() {
     headerWrapper.style.position = 'relative';
 
     const backButton = document.createElement('button');
-    backButton.style.backgroundColor = '#ffffff';
     backButton.style.position = 'absolute';
-    backButton.style.left = '10%';
-    backButton.style.top = '10px';
-    backButton.style.color = '#131311';
+    backButton.style.left = '15%';
+    backButton.style.top = '2px';
+    backButton.style.color = '#ffffff';
     backButton.style.border = 'none';
-    backButton.style.padding = '4px 10px 4px 10px';
+    backButton.style.padding = '10px 0 10px 0';
     backButton.style.cursor = 'pointer';
     backButton.style.fontSize = '1em';
-    backButton.style.borderRadius = '5px';
-    backButton.textContent = 'Back';
-    backButton.style.clipPath = "polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%)";
-
+    backButton.textContent = '< Back';
 
     const modalTitle = document.createElement('h2');
     modalTitle.textContent = 'Faction Calendar';
