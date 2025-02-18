@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.34
+// @version      0.3.35
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -432,7 +432,8 @@ function createDayElement(d, index, year, month) {
     dayElem.style.height = '33px';
     dayElem.style.width = '33px;';
     dayElem.style.display = 'flex';
-    dayElem.style.justifyContent = 'center';
+    dayElem.style.flexDirection = 'column';
+    dayElem.style.justifyContent = 'flex-start';
     dayElem.style.alignItems = 'center';
 
     // Create and position the day number
