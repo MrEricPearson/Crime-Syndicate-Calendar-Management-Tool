@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.37
+// @version      0.3.38
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -90,7 +90,6 @@ function createModal() {
     headerWrapper.style.justifyContent = 'space-between';
     headerWrapper.style.marginBottom = '5px';
     headerWrapper.style.padding = '2px 10%';
-    headerWrapper.style.backgroundColor = '#333333';
     headerWrapper.style.height = '40px';
     headerWrapper.style.position = 'relative';
 
@@ -98,12 +97,22 @@ function createModal() {
     backButton.style.position = 'absolute';
     backButton.style.left = '10%';
     backButton.style.top = '0px';
-    backButton.style.color = '#ffffff';
-    backButton.style.border = 'none';
-    backButton.style.padding = '10px 10px 10px 14px';
+    backButton.style.backgroundColor = 'transparent'; // Make it transparent
+    backButton.style.border = 'none'; // Remove border
+    backButton.style.padding = '0'; // Remove padding
+    backButton.style.width = '24px';
+    backButton.style.height = '24px';
     backButton.style.cursor = 'pointer';
-    backButton.style.fontSize = '1.25em';
-    backButton.textContent = '<\u00a0\u00a0Back';
+    backButton.style.display = 'flex'; // To center the image
+    backButton.style.alignItems = 'center'; // Center vertically
+    backButton.style.justifyContent = 'center'; // Center horizontally
+
+    const backButtonImage = document.createElement('img');
+    backButtonImage.src = 'https://epearson.me/faction_status_images/left.svg';
+    backButtonImage.style.width = '8px';
+    backButtonImage.style.height = '13px';
+
+    backButton.appendChild(backButtonImage); // Append the image to the button
 
     const modalTitle = document.createElement('h2');
     modalTitle.textContent = 'Faction Calendar';
@@ -112,8 +121,8 @@ function createModal() {
     modalTitle.style.textAlign = 'center';
     modalTitle.style.flexGrow = '1';
     modalTitle.style.fontSize = '1.5em';
-    modalTitle.style.fontWeight = '300';
-    modalTitle.style.color = '#ffffff';
+    modalTitle.style.fontWeight = '500';
+    modalTitle.style.color = '#3C3B52';
     modalTitle.style.zIndex = '1';
 
     headerWrapper.appendChild(backButton);
@@ -353,6 +362,12 @@ function renderCalendar(year, month, calendarGrid) {
     const totalCells = 42; // 6 rows * 7 days
     const days = [];
 
+    // Capture Today Date for comparison
+    const today = new Date();
+    const todayYear = today.getFullYear();
+    const todayMonth = today.getMonth() + 1; // Month is 0-indexed
+    const todayDay = today.getDate();
+
     // Fill previous month's overflow days
     for (let i = firstDay - 1; i >= 0; i--) {
         days.push({ day: daysInPrevMonth - i, class: 'prev', isCurrentMonth: false });
@@ -371,7 +386,7 @@ function renderCalendar(year, month, calendarGrid) {
     let currentWeekStart = null;
 
     days.forEach((d, index) => {
-        const dayElem = createDayElement(d, index, year, month);
+        const dayElem = createDayElement(d, index, year, month, todayYear, todayMonth, todayDay);
         calendarGrid.appendChild(dayElem);
 
         // Logic to identify week boundaries only for current month days
@@ -402,7 +417,7 @@ function renderCalendar(year, month, calendarGrid) {
 }
 
 // CALENDAR: Create and style each day element inside the calendar grid
-function createDayElement(d, index, year, month) {
+function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay) {
     const dayElem = document.createElement('div');
     dayElem.className = `day ${d.class}`;
 
@@ -418,11 +433,10 @@ function createDayElement(d, index, year, month) {
         dayElem.id = cellId;
 
         // Check if it's today's date
-        const today = new Date();
         const isToday = (
-            cellYear === today.getFullYear() &&
-            parseInt(cellMonth) === today.getMonth() + 1 && // Parse the month back to an integer
-            parseInt(cellDay) === today.getDate()         // Parse the day back to an integer
+            cellYear === todayYear &&
+            parseInt(cellMonth) === todayMonth && // Parse the month back to an integer
+            parseInt(cellDay) === todayDay         // Parse the day back to an integer
         );
 
         if (isToday) {
