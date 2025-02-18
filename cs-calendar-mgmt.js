@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.29
+// @version      0.3.31
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -257,7 +257,7 @@ function createMonthTitle() {
     monthTitle.style.textAlign = 'left';
     monthTitle.style.fontFamily = 'Arial';
     monthTitle.style.fontWeight = 'bold';
-    monthTitle.style.fontSize = '12px';
+    monthTitle.style.fontSize = '14px';
     return monthTitle;
 }
 
@@ -268,14 +268,14 @@ function createBackButton() {
     cardBackButton.appendChild(cardBackArrowImage);
 
     cardBackArrowImage.src = "https://epearson.me/faction_status_images/left.svg";
-    cardBackArrowImage.style.width = '6px';
-    cardBackArrowImage.style.height = '9px';
+    cardBackArrowImage.style.width = '9px';
+    cardBackArrowImage.style.height = '14px';
 
     cardBackButton.style.backgroundColor = '#ffffff';
     cardBackButton.style.color = '#131311';
     cardBackButton.style.border = '1px solid #E7E7E7';
-    cardBackButton.style.width = '19px';
-    cardBackButton.style.height = '19px';
+    cardBackButton.style.width = '24px';
+    cardBackButton.style.height = '24px';
     cardBackButton.style.padding = '0';
     cardBackButton.style.margin = '0';
     cardBackButton.style.cursor = 'pointer';
@@ -290,14 +290,14 @@ function createForwardButton() {
     cardForwardButton.appendChild(cardForwardArrowImage);
 
     cardForwardArrowImage.src = "https://epearson.me/faction_status_images/right.svg";
-    cardForwardArrowImage.style.width = '6px';
-    cardForwardArrowImage.style.height = '9px';
+    cardForwardArrowImage.style.width = '9px';
+    cardForwardArrowImage.style.height = '14px';
 
     cardForwardButton.style.backgroundColor = '#ffffff';
     cardForwardButton.style.color = '#131311';
     cardForwardButton.style.border = '1px solid #E7E7E7';
-    cardForwardButton.style.width = '19px';
-    cardForwardButton.style.height = '19px';
+    cardForwardButton.style.width = '24px';
+    cardForwardButton.style.height = '24px';
     cardForwardButton.style.padding = '0';
     cardForwardButton.style.margin = '0';
     cardForwardButton.style.cursor = 'pointer';
@@ -404,7 +404,7 @@ function createDayElement(d, index, year, month) {
         dayElem.style.backgroundColor = '#FFFFFF';
         dayElem.style.color = '#DDDFE7';
     } else if (d.class === 'current') {
-        dayElem.style.backgroundColor = '#F6FAFB';
+        dayElem.style.backgroundColor = '#FFFFFF';
         dayElem.style.color = '#6C6D71';
     }
 
@@ -416,7 +416,7 @@ function createDayElement(d, index, year, month) {
     // Create and position the day number
     const dateNumber = document.createElement('span');
     dateNumber.textContent = d.day;
-    dateNumber.style.fontSize = '10px';
+    dateNumber.style.fontSize = '12px';
     dateNumber.style.width = '100%';
     dateNumber.style.textAlign = 'center';
     dateNumber.style.display = 'flex';
@@ -893,12 +893,13 @@ style.textContent = `
     }
 
     .calendar-card {
-        background-color: #f4f9f5;
-        color: #333;
+        background-color: #FFFFFF;
+        color: #3C3B52;
         padding: 20px;
+        border: 1px solid #E7E7E7
         border-radius: 10px;
         margin: 20px 0;
-        width: 90%;
+        width: 94%;
         box-sizing: border-box;
     }
 
