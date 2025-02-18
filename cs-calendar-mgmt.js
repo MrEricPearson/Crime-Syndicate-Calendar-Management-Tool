@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.25
+// @version      0.3.26
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -97,10 +97,10 @@ function createModal() {
     const backButton = document.createElement('button');
     backButton.style.position = 'absolute';
     backButton.style.left = '10%';
-    backButton.style.top = '1px';
+    backButton.style.top = '0px';
     backButton.style.color = '#ffffff';
     backButton.style.border = 'none';
-    backButton.style.padding = '10px 10px 10px 15px';
+    backButton.style.padding = '10px 10px 10px 14px';
     backButton.style.cursor = 'pointer';
     backButton.style.fontSize = '1.25em';
     backButton.textContent = '<\u00a0\u00a0Back';
@@ -142,98 +142,24 @@ function createCard() {
     card.className = 'calendar-card'; // Add a class for styling
     const cardHeader = document.createElement('div');
     card.appendChild(cardHeader);
-
-    // Styles for cardHeader (incorporating your requirements)
     cardHeader.style.width = '100%';
     cardHeader.style.display = 'flex';
     cardHeader.style.alignItems = 'center';
+    cardHeader.style.justifyContent = 'space-between';
     cardHeader.style.marginBottom = '20px';
-    cardHeader.style.position = 'relative'; // Needed for absolute positioning
 
     const monthTitle = createMonthTitle();
-    const navigationButtons = createNavigationButtons();
+    const navButtons = createNavButtons(); // Combine back and forward buttons
 
     cardHeader.appendChild(monthTitle);
-    cardHeader.appendChild(navigationButtons);
+    cardHeader.appendChild(navButtons); // Append combined navigation buttons
 
     const calendarGrid = createCalendarGrid();
     card.appendChild(calendarGrid);
 
-    const calendarData = initializeCalendar(monthTitle, navigationButtons.cardBackButton, navigationButtons.cardForwardButton, calendarGrid);
+    const calendarData = initializeCalendar(monthTitle, navButtons.cardBackButton, navButtons.cardForwardButton, calendarGrid);
 
     return card;
-}
-
-function createNavigationButtons() {
-    const navigationButtons = document.createElement('div');
-    navigationButtons.style.position = 'absolute';
-    navigationButtons.style.right = '0';
-    navigationButtons.style.top = '0';
-    navigationButtons.style.display = 'flex';
-    navigationButtons.style.alignItems = 'center';
-    navigationButtons.style.height = '100%';
-
-    const cardBackButton = createBackButton();
-    const cardForwardButton = createForwardButton();
-
-    navigationButtons.appendChild(cardBackButton);
-    navigationButtons.appendChild(cardForwardButton);
-
-    return { navigationButtons, cardBackButton, cardForwardButton };
-}
-
-// CALENDAR: Create the month title with its styling
-function createMonthTitle() {
-    const monthTitle = document.createElement('h3');
-    monthTitle.textContent = 'January';
-    monthTitle.style.margin = '0';
-    monthTitle.style.textAlign = 'left'; // Left align
-    monthTitle.style.fontFamily = 'Arial';
-    monthTitle.style.fontWeight = 'bold';
-    monthTitle.style.fontSize = '24px';
-    monthTitle.style.color = '#000000';
-    return monthTitle;
-}
-
-// CALENDAR: Create the back button with its styling and functionality
-function createBackButton() {
-    const cardBackButton = document.createElement('button');
-    cardBackButton.style.width = '40px';
-    cardBackButton.style.height = '40px';
-    cardBackButton.style.border = '1px solid #E7E7E7';
-    cardBackButton.style.background = 'none';
-    cardBackButton.style.padding = '0';
-    cardBackButton.style.cursor = 'pointer';
-    cardBackButton.style.backgroundImage = `url("https://epearson.me/faction_status_images/left.svg")`;
-    cardBackButton.style.backgroundRepeat = 'no-repeat';
-    cardBackButton.style.backgroundPosition = 'center';
-    return cardBackButton;
-}
-
-// CALENDAR: Create the forward button with its styling and functionality
-function createForwardButton() {
-    const cardForwardButton = document.createElement('button');
-    cardForwardButton.style.width = '40px';
-    cardForwardButton.style.height = '40px';
-    cardForwardButton.style.border = '1px solid #E7E7E7';
-    cardForwardButton.style.borderLeft = 'none';
-    cardForwardButton.style.background = 'none';
-    cardForwardButton.style.padding = '0';
-    cardForwardButton.style.cursor = 'pointer';
-    cardForwardButton.style.backgroundImage = `url("https://epearson.me/faction_status_images/right.svg")`;
-    cardForwardButton.style.backgroundRepeat = 'no-repeat';
-    cardForwardButton.style.backgroundPosition = 'center';
-    return cardForwardButton;
-}
-
-// CALENDAR: Create the calendar grid for displaying days and events
-function createCalendarGrid() {
-    const calendarGrid = document.createElement('div');
-    calendarGrid.style.display = 'grid';
-    calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
-    calendarGrid.style.gridGap = '5px';
-
-    return calendarGrid;
 }
 
 // CALENDAR: Parent calendar function to organize and render the entire calendar UI
@@ -292,18 +218,88 @@ function createCalendarUI() {
 
     // Continue creating calendar UI elements
     const monthTitle = createMonthTitle();
-    const cardBackButton = createBackButton();
-    const cardForwardButton = createForwardButton();
+    const navButtons = createNavButtons(); // Combine back and forward buttons
 
-    header.appendChild(cardBackButton);
     header.appendChild(monthTitle);
-    header.appendChild(cardForwardButton);
+    header.appendChild(navButtons); // Append combined navigation buttons
 
     const calendarGrid = createCalendarGrid();
     container.appendChild(header);
     container.appendChild(calendarGrid);
 
-    return { container, monthTitle, cardBackButton, cardForwardButton, calendarGrid };
+    return { container, monthTitle, cardBackButton: navButtons.cardBackButton, cardForwardButton: navButtons.cardForwardButton, calendarGrid };
+}
+
+// CALENDAR: Create the month title with its styling
+function createMonthTitle() {
+    const monthTitle = document.createElement('h3');
+    monthTitle.textContent = 'January';
+    monthTitle.style.margin = '0';
+    monthTitle.style.textAlign = 'left'; // Left align
+    monthTitle.style.fontFamily = 'Arial'; // Arial font
+    monthTitle.style.fontWeight = 'bold'; // Bold
+    monthTitle.style.fontSize = '24px'; // 24px
+    monthTitle.style.flexGrow = '1';
+    return monthTitle;
+}
+
+function createNavButtons() {
+    const navButtonsContainer = document.createElement('div');
+    navButtonsContainer.style.display = 'flex';
+    navButtonsContainer.style.alignItems = 'center';
+
+    const cardBackButton = document.createElement('button');
+    const cardForwardButton = document.createElement('button');
+
+    // Shared styles for both buttons
+    const buttonStyle = `
+        width: 40px;
+        height: 40px;
+        background-color: #ffffff;
+        color: #131311;
+        border: 1px solid #E7E7E7;
+        cursor: pointer;
+        padding: 0; /* Remove default button padding */
+        margin: 0;  /* Remove default button margin */
+    `;
+
+    cardBackButton.style.cssText = buttonStyle;
+    cardForwardButton.style.cssText = buttonStyle;
+
+    // Remove border radius to get square buttons
+    cardBackButton.style.borderRadius = '0';
+    cardForwardButton.style.borderRadius = '0';
+
+
+    // Overlap border
+    cardForwardButton.style.borderLeft = 'none';
+
+    // Button images
+    const backImage = document.createElement('img');
+    backImage.src = 'https://epearson.me/faction_status_images/left.svg';
+    backImage.style.width = '100%';
+    backImage.style.height = '100%';
+    backImage.style.padding = '5px'; //Adjust padding as needed
+    cardBackButton.appendChild(backImage);
+
+
+    const forwardImage = document.createElement('img');
+    forwardImage.src = 'https://epearson.me/faction_status_images/right.svg';
+    forwardImage.style.width = '100%';
+    forwardImage.style.height = '100%';
+    forwardImage.style.padding = '5px'; //Adjust padding as needed
+    cardForwardButton.appendChild(forwardImage);
+
+
+
+    navButtonsContainer.appendChild(cardBackButton);
+    navButtonsContainer.appendChild(cardForwardButton);
+
+
+    //Back Button Functionality
+    cardBackButton.onclick = () => { modal.style.display = 'none'; };
+
+    return { cardBackButton, cardForwardButton, navButtonsContainer };
 }
 
 // CALENDAR: Create the calendar grid for displaying days and events
@@ -821,4 +817,231 @@ style.textContent = `
         top: 0;
         left: 0;
         width: 100%;
-        background-
+        background-color: #333;
+        color: #fff;
+        padding: 5px 10px;
+        z-index: 1000;
+        text-align: right;
+    }
+
+    .modal-button {
+        background-color: #007BFF;
+        color: #fff;
+        border: none;
+        padding: 5px 10px;
+        margin-right: 8px;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #ecf1ed;
+        color: #fff;
+        display: none; /* Initially hidden */
+        z-index: 100001;
+        align-items: center;
+        flex-direction: column;
+        pointer-events: auto;
+        padding-top: 5%;
+    }
+
+    .header-wrapper {
+        width: calc(80% + 40px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding: 0 20px;
+    }
+
+    .back-button {
+        background-color: #ffffff;
+        color: #131311;
+        border: none;
+        border-radius: 50%;
+        padding: 10px 10px 13px 10px;
+        cursor: pointer;
+        font-size: 30px;
+        line-height: 28px;
+    }
+
+    .modal-title {
+        margin: 0;
+        text-align: center;
+        flex-grow: 1;
+        font-size: 1.5em;
+        font-weight: 300;
+        color: #111612;
+        margin-left: -50px;
+        z-index: 1;
+    }
+
+    .header-root {
+        position: relative;
+        margin-top: 33px;
+    }
+
+    .calendar-card {
+        background-color: #f4f9f5;
+        color: #333;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        width: 90%;
+        box-sizing: border-box;
+    }
+
+    .card-header {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .card-back-button {
+        background-color: #ffffff;
+        color: #131311;
+        border: none;
+        border-radius: 50%;
+        padding: 10px 10px 12px 10px;
+        cursor: pointer;
+        font-size: 20px;
+        line-height: 18px;
+    }
+
+    .card-forward-button {
+        background-color: #ffffff;
+        color: #131311;
+        border: none;
+        border-radius: 50%;
+        padding: 10px 10px 12px 10px;
+        cursor: pointer;
+        font-size: 20px;
+        line-height: 18px;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-gap: 5px;
+    }
+
+    .content-wrapper-container {
+        width: 100%;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+        box-sizing: border-box; /*Ensures padding stays within bounds*/
+    }
+
+    .event-list-container {
+        width: 90%; /* Make it the same width as the card */
+        box-sizing: border-box; /* Include padding/border in width */
+    }
+
+    .event-card {
+        background-color: #f4f9f5;
+        color: #333;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .event-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 5px 0;
+    }
+
+    .event-icon {
+        width: 80px;
+        text-align: center;
+    }
+
+    .event-details {
+        flex-grow: 1;
+        text-align: left;
+        position: relative; /*Needed for absolute positioning of status*/
+    }
+
+    .event-title-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+
+    .event-title {
+        font-size: 16px;
+    }
+
+    .date-line {
+        font-size: 12px;
+        color: #797977;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .date-line span {
+        white-space: nowrap;
+    }
+
+    .arrow-separator {
+        margin: 0 10px;
+        opacity: 0.5;
+        vertical-align: middle;
+    }
+
+    .time-line {
+        font-size: 12px;
+        color: #797977;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .status-box {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        font-size: 12px;
+        position: absolute; /*Positions status in top right of .event-detail*/
+        top: 0;
+        right: 0;
+    }
+
+    .status-dot {
+        height: 8px;
+        width: 8px;
+        background-color: #2ecc71; /* Example color */
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    .clock-icon {
+        width: 12px; /* Adjust size as needed */
+        height: 12px;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+`;
+document.head.appendChild(style);
+
+// Call the function directly
+initializeCalendarTool();
