@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.31
+// @version      0.3.32
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -257,7 +257,7 @@ function createMonthTitle() {
     monthTitle.style.textAlign = 'left';
     monthTitle.style.fontFamily = 'Arial';
     monthTitle.style.fontWeight = 'bold';
-    monthTitle.style.fontSize = '14px';
+    monthTitle.style.fontSize = '16px';
     return monthTitle;
 }
 
@@ -306,12 +306,33 @@ function createForwardButton() {
     return cardForwardButton;
 }
 
+const dayOfWeekHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+function createDayOfWeekHeaderCell(dayAbbreviation) {
+    const headerCell = document.createElement('div');
+    headerCell.className = 'day-header';  // Add a class for styling
+    headerCell.textContent = dayAbbreviation;
+
+    // Apply styles for centering and appearance
+    headerCell.style.textAlign = 'center';
+    headerCell.style.fontSize = '12px';  // Set font size as desired
+    headerCell.style.height = '33px'; // Set height as desired
+
+    return headerCell;
+}
+
 // CALENDAR: Create the calendar grid for displaying days and events
 function createCalendarGrid() {
     const calendarGrid = document.createElement('div');
     calendarGrid.style.display = 'grid';
     calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
     calendarGrid.style.gridGap = '5px';
+
+    // Add day-of-week header row
+    dayOfWeekHeaders.forEach(day => {
+        const headerCell = createDayOfWeekHeaderCell(day);
+        calendarGrid.appendChild(headerCell);
+    });
 
     return calendarGrid;
 }
@@ -411,17 +432,14 @@ function createDayElement(d, index, year, month) {
     // General styles for all day elements
     dayElem.style.height = '33px';
     dayElem.style.width = '33px;';
-    dayElem.style.display = 'block';
+    dayElem.style.display = 'flex';
+    dayElem.style.justifyContent = 'center';
+    dayElem.style.alignItems = 'center';
 
     // Create and position the day number
     const dateNumber = document.createElement('span');
     dateNumber.textContent = d.day;
     dateNumber.style.fontSize = '12px';
-    dateNumber.style.width = '100%';
-    dateNumber.style.textAlign = 'center';
-    dateNumber.style.display = 'flex';
-    dateNumber.style.justifyContent = 'center';
-    dateNumber.style.alignItems = 'center';
 
     // Clear text content to avoid duplicate numbers
     dayElem.textContent = '';
