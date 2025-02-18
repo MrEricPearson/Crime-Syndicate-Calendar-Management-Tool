@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.36
+// @version      0.3.37
 // @description  Adds calendar management capabilities for your faction.
-// @author       BeefDaddy 
+// @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @updateURL    https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
 // @match        https://www.torn.com/factions.php*
@@ -405,7 +405,6 @@ function renderCalendar(year, month, calendarGrid) {
 function createDayElement(d, index, year, month) {
     const dayElem = document.createElement('div');
     dayElem.className = `day ${d.class}`;
-    dayElem.textContent = d.day;
 
     let cellId = null;
 
@@ -417,6 +416,18 @@ function createDayElement(d, index, year, month) {
         const cellDay = String(d.day).padStart(2, '0');
         cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
         dayElem.id = cellId;
+
+        // Check if it's today's date
+        const today = new Date();
+        const isToday = (
+            cellYear === today.getFullYear() &&
+            parseInt(cellMonth) === today.getMonth() + 1 && // Parse the month back to an integer
+            parseInt(cellDay) === today.getDate()         // Parse the day back to an integer
+        );
+
+        if (isToday) {
+            dayElem.classList.add('today');  // Add the 'today' class
+        }
     }
 
     // Apply default styles for day cells
@@ -429,15 +440,12 @@ function createDayElement(d, index, year, month) {
     }
 
     // General styles for all day elements
-    dayElem.style.height = '28px';
-    dayElem.style.width = '28px;';
-    dayElem.style.padding = '8px';
+    dayElem.style.height = '33px';
+    dayElem.style.width = '33px';
     dayElem.style.display = 'flex';
     dayElem.style.flexDirection = 'column';
     dayElem.style.justifyContent = 'flex-start';
     dayElem.style.alignItems = 'center';
-    dayElem.style.border = '1px solid transparent';
-    dayElem.style.borderRadius = '14px';
 
     // Create and position the day number
     const dateNumber = document.createElement('span');
@@ -445,7 +453,7 @@ function createDayElement(d, index, year, month) {
     dateNumber.style.fontSize = '12px';
 
     // Clear text content to avoid duplicate numbers
-    dayElem.textContent = '';
+    dayElem.innerHTML = '';
     dayElem.appendChild(dateNumber);
 
     return dayElem;
@@ -936,6 +944,12 @@ style.textContent = `
     .event-list-container {
         width: 90%; /* Make it the same width as the card */
         box-sizing: border-box; /* Include padding/border in width */
+    }
+
+    .day.today {
+        background-color: #F6FAFB;
+        color: #000000;
+        border-color: #F6FAFB;
     }
 
     .event-card {
