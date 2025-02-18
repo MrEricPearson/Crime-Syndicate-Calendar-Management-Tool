@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.35
+// @version      0.3.36
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -257,7 +257,7 @@ function createMonthTitle() {
     monthTitle.style.textAlign = 'left';
     monthTitle.style.fontFamily = 'Arial';
     monthTitle.style.fontWeight = 'bold';
-    monthTitle.style.fontSize = '16px';
+    monthTitle.style.fontSize = '18px';
     return monthTitle;
 }
 
@@ -429,12 +429,15 @@ function createDayElement(d, index, year, month) {
     }
 
     // General styles for all day elements
-    dayElem.style.height = '33px';
-    dayElem.style.width = '33px;';
+    dayElem.style.height = '28px';
+    dayElem.style.width = '28px;';
+    dayElem.style.padding = '8px';
     dayElem.style.display = 'flex';
     dayElem.style.flexDirection = 'column';
     dayElem.style.justifyContent = 'flex-start';
     dayElem.style.alignItems = 'center';
+    dayElem.style.border = '1px solid transparent';
+    dayElem.style.borderRadius = '14px';
 
     // Create and position the day number
     const dateNumber = document.createElement('span');
@@ -646,8 +649,8 @@ function processEvents(events, currentYear, currentMonthIndex) {
                 eventContainer.style.display = 'flex';
                 eventContainer.style.justifyContent = 'center';
                 eventContainer.style.alignItems = 'center';
-                eventContainer.style.marginTop = '12px'; // Distance below the day number
-                eventContainer.style.gap = '4px'; //Space inbetween
+                eventContainer.style.marginTop = '8px'; // Distance below the day number
+                eventContainer.style.gap = '3px'; //Space inbetween
 
                 eventCell.appendChild(eventContainer);
             }
