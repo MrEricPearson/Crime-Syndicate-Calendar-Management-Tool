@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.28
+// @version      0.3.29
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -257,7 +257,7 @@ function createMonthTitle() {
     monthTitle.style.textAlign = 'left';
     monthTitle.style.fontFamily = 'Arial';
     monthTitle.style.fontWeight = 'bold';
-    monthTitle.style.fontSize = '24px';
+    monthTitle.style.fontSize = '12px';
     return monthTitle;
 }
 
@@ -268,14 +268,14 @@ function createBackButton() {
     cardBackButton.appendChild(cardBackArrowImage);
 
     cardBackArrowImage.src = "https://epearson.me/faction_status_images/left.svg";
-    cardBackArrowImage.style.width = '11px';
-    cardBackArrowImage.style.height = '18px';
+    cardBackArrowImage.style.width = '6px';
+    cardBackArrowImage.style.height = '9px';
 
     cardBackButton.style.backgroundColor = '#ffffff';
     cardBackButton.style.color = '#131311';
     cardBackButton.style.border = '1px solid #E7E7E7';
-    cardBackButton.style.width = '40px';
-    cardBackButton.style.height = '40px';
+    cardBackButton.style.width = '19px';
+    cardBackButton.style.height = '19px';
     cardBackButton.style.padding = '0';
     cardBackButton.style.margin = '0';
     cardBackButton.style.cursor = 'pointer';
@@ -290,14 +290,14 @@ function createForwardButton() {
     cardForwardButton.appendChild(cardForwardArrowImage);
 
     cardForwardArrowImage.src = "https://epearson.me/faction_status_images/right.svg";
-    cardForwardArrowImage.style.width = '11px';
-    cardForwardArrowImage.style.height = '18px';
+    cardForwardArrowImage.style.width = '6px';
+    cardForwardArrowImage.style.height = '9px';
 
     cardForwardButton.style.backgroundColor = '#ffffff';
     cardForwardButton.style.color = '#131311';
     cardForwardButton.style.border = '1px solid #E7E7E7';
-    cardForwardButton.style.width = '40px';
-    cardForwardButton.style.height = '40px';
+    cardForwardButton.style.width = '19px';
+    cardForwardButton.style.height = '19px';
     cardForwardButton.style.padding = '0';
     cardForwardButton.style.margin = '0';
     cardForwardButton.style.cursor = 'pointer';
@@ -320,8 +320,8 @@ function createCalendarGrid() {
 function renderCalendar(year, month, calendarGrid) {
     // Clear all event highlights from previous months
     Array.from(calendarGrid.querySelectorAll('.day.current')).forEach(dayCell => {
-        dayCell.style.backgroundColor = '#eff4f1'; // Default background color
-        dayCell.style.color = '#333333'; // Default text color
+        dayCell.style.backgroundColor = '#ffffff';
+        dayCell.style.color = '#6C6D71';
     });
 
     calendarGrid.innerHTML = ''; // Clear previous grid
@@ -401,25 +401,27 @@ function createDayElement(d, index, year, month) {
 
     // Apply default styles for day cells
     if (d.class === 'prev' || d.class === 'next') {
-        dayElem.style.backgroundColor = '#ecf1ed';
-        dayElem.style.color = '#d3d8d4';
+        dayElem.style.backgroundColor = '#FFFFFF';
+        dayElem.style.color = '#DDDFE7';
     } else if (d.class === 'current') {
-        dayElem.style.backgroundColor = '#eff4f1';
-        dayElem.style.color = '#333333';
+        dayElem.style.backgroundColor = '#F6FAFB';
+        dayElem.style.color = '#6C6D71';
     }
 
     // General styles for all day elements
-    dayElem.style.height = '4.5em';
+    dayElem.style.height = '33px';
+    dayElem.style.width = '33px;';
     dayElem.style.display = 'block';
-    dayElem.style.position = 'relative';
-    dayElem.style.borderRadius = '8px';
 
     // Create and position the day number
     const dateNumber = document.createElement('span');
     dateNumber.textContent = d.day;
-    dateNumber.style.position = 'absolute';
-    dateNumber.style.top = '5px';
-    dateNumber.style.left = '5px';
+    dateNumber.style.fontSize = '10px';
+    dateNumber.style.width = '100%';
+    dateNumber.style.textAlign = 'center';
+    dateNumber.style.display = 'flex';
+    dateNumber.style.justifyContent = 'center';
+    dateNumber.style.alignItems = 'center';
 
     // Clear text content to avoid duplicate numbers
     dayElem.textContent = '';
