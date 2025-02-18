@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.33
+// @version      0.3.34
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -316,7 +316,7 @@ function createDayOfWeekHeaderCell(dayAbbreviation) {
     // Apply styles for centering and appearance
     headerCell.style.textAlign = 'center';
     headerCell.style.fontSize = '12px';  // Set font size as desired
-    headerCell.style.height = '33px'; // Set height as desired
+    headerCell.style.height = '16px'; // Set height as desired
 
     return headerCell;
 }
@@ -607,12 +607,11 @@ function processEvents(events, currentYear, currentMonthIndex) {
     });
 
     const eventBarLayerMap = new Map();
-    const maxLayer = 3;
 
     validEvents.forEach((event) => {
         const startDate = parseDateAsUTC(event.event_start_date);
         const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate;
-        const eventColor = getEventColor(event.event_type); // Use the new getEventColor function
+        const eventColor = getEventColor(event.event_type);
         const eventObjectId = event._id;
 
         let eventDays = [];
@@ -627,97 +626,46 @@ function processEvents(events, currentYear, currentMonthIndex) {
                 const formattedMonth = String(month + 1).padStart(2, "0");
                 const formattedDay = String(day).padStart(2, "0");
                 const cellId = `cell-${year}-${formattedMonth}-${formattedDay}`;
-                eventDays.push({ cellId, objectId: eventObjectId });
+                eventDays.push({ cellId, objectId: eventObjectId, eventColor: eventColor }); // Store eventColor for easy access
             }
         }
 
-        let eventLayer = 0;
-        let conflictFound = false;
-
-        // Check for conflicts in the event layers
-        eventDays.forEach(({ cellId }) => {
-            for (let layer = 0; layer <= maxLayer; layer++) {
-                if (eventBarLayerMap.get(cellId + `-layer-${layer}`)) {
-                    conflictFound = true;
-                    break;
-                }
-            }
-        });
-
-        // If there's a conflict, find the next available layer
-        if (conflictFound) {
-            while (eventLayer <= maxLayer && eventBarLayerMap.get(eventDays[0].cellId + `-layer-${eventLayer}`)) {
-                eventLayer++;
-            }
-        }
-
-        // If no layer is available, exit early
-        if (eventLayer > maxLayer) return;
-
-        // Mark the layers for each event day
-        eventDays.forEach(({ cellId }) => {
-            eventBarLayerMap.set(cellId + `-layer-${eventLayer}`, true);
-        });
-
-        // Create event bars for each event day
-        eventDays.forEach(({ cellId }, index) => {
+        // Create event bars for each event day (now circles)
+        eventDays.forEach(({ cellId, objectId, eventColor }) => {
             const eventCell = document.getElementById(cellId);
             if (!eventCell) return;
 
-            let eventBar = document.createElement("div");
-            eventBar.className = "event-bar";
-            eventCell.appendChild(eventBar);
+            // Create container for event circles
+            let eventContainer = eventCell.querySelector('.event-container');
+            if (!eventContainer) {
+                eventContainer = document.createElement('div');
+                eventContainer.className = 'event-container';
 
-            eventBar.style.cssText = `
-                height: 12px;
-                position: absolute;
-                bottom: ${21 + eventLayer * 13}px;
-                left: 0px;
+                //Center the EventContainer within the dayCell
+                eventContainer.style.display = 'flex';
+                eventContainer.style.justifyContent = 'center';
+                eventContainer.style.alignItems = 'center';
+                eventContainer.style.marginTop = '12px'; // Distance below the day number
+                eventContainer.style.gap = '4px'; //Space inbetween
+
+                eventCell.appendChild(eventContainer);
+            }
+
+            // Limit to a max of 3 event circles
+            if (eventContainer.children.length >= 3) return;
+
+            // Create the event circle element
+            let eventCircle = document.createElement("div");
+            eventCircle.className = "event-circle";
+            eventCircle.style.cssText = `
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
                 background: ${eventColor};
-                width: calc(100% + 5px);
-                margin-top: 1px;
+                display: inline-block;
             `;
 
-            // Special styling for the first event bar in the series
-            if (index === 0) {
-                if (eventCell.getAttribute("data-week-end") === "true") {
-                    eventBar.style.cssText += `
-                        border-top-left-radius: 12px;
-                        border-bottom-left-radius: 12px;
-                        width: calc(100% + 3px);
-                        left: 0px;
-                    `;
-                } else {
-                    eventBar.style.cssText += `
-                        border-top-left-radius: 12px;
-                        border-bottom-left-radius: 12px;
-                        width: calc(100% + 3px);
-                        left: 2px;
-                    `;
-                }
-            }
-
-            // Special styling for the last event bar in the series
-            if (index === eventDays.length - 1) {
-                eventBar.style.cssText += `
-                    border-top-right-radius: 12px;
-                    border-bottom-right-radius: 12px;
-                    width: calc(100% - 2px);
-                `;
-            }
-
-            // Styling for single-day events
-            if (eventDays.length === 1) {
-                eventBar.style.cssText += `
-                    border-radius: 12px;
-                    width: calc(100% - 2px);
-                `;
-            }
-
-            // If it's a weekend, make the event bar span the entire width of the cell
-            if (eventCell.getAttribute("data-week-end") === "true") {
-                eventBar.style.width = "100%";
-            }
+            eventContainer.appendChild(eventCircle);
         });
     });
 }
@@ -964,6 +912,21 @@ style.textContent = `
         align-items: center;
         padding: 10px;
         box-sizing: border-box; /*Ensures padding stays within bounds*/
+    }
+
+    .event-container {
+        display: flex;
+        justify-content: center; /* Horizontally center the circles */
+        align-items: center;
+        margin-top: 12px; /* Distance below the day number */
+        gap: 4px; /* Space inbetween */
+    }
+
+    .event-circle {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
     }
 
     .event-list-container {
