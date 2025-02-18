@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.38
+// @version      0.3.39
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -88,15 +88,13 @@ function createModal() {
     headerWrapper.style.display = 'flex';
     headerWrapper.style.alignItems = 'center';
     headerWrapper.style.justifyContent = 'space-between';
-    headerWrapper.style.marginBottom = '5px';
-    headerWrapper.style.padding = '2px 10%';
-    headerWrapper.style.height = '40px';
+    headerWrapper.style.padding = '2px 10px';
     headerWrapper.style.position = 'relative';
 
     const backButton = document.createElement('button');
     backButton.style.position = 'absolute';
     backButton.style.left = '10%';
-    backButton.style.top = '0px';
+    backButton.style.top = '5px';
     backButton.style.backgroundColor = 'transparent'; // Make it transparent
     backButton.style.border = 'none'; // Remove border
     backButton.style.padding = '0'; // Remove padding
@@ -109,19 +107,20 @@ function createModal() {
 
     const backButtonImage = document.createElement('img');
     backButtonImage.src = 'https://epearson.me/faction_status_images/left.svg';
-    backButtonImage.style.width = '8px';
-    backButtonImage.style.height = '13px';
+    backButtonImage.style.width = '12px';
+    backButtonImage.style.height = '20px';
 
     backButton.appendChild(backButtonImage); // Append the image to the button
 
     const modalTitle = document.createElement('h2');
     modalTitle.textContent = 'Faction Calendar';
+    modalTitle.style.fontFamily = 'Arial';
     modalTitle.style.width = '100%';
     modalTitle.style.margin = '0';
     modalTitle.style.textAlign = 'center';
     modalTitle.style.flexGrow = '1';
     modalTitle.style.fontSize = '1.5em';
-    modalTitle.style.fontWeight = '500';
+    modalTitle.style.fontWeight = 'bold';
     modalTitle.style.color = '#3C3B52';
     modalTitle.style.zIndex = '1';
 
@@ -956,8 +955,8 @@ style.textContent = `
     }
 
     .event-list-container {
-        width: 90%; /* Make it the same width as the card */
-        box-sizing: border-box; /* Include padding/border in width */
+        width: 95%;
+        box-sizing: border-box;
     }
 
     .day.today {
@@ -991,7 +990,7 @@ style.textContent = `
     .event-details {
         flex-grow: 1;
         text-align: left;
-        position: relative; /*Needed for absolute positioning of status*/
+        position: relative;
     }
 
     .event-title-container {
