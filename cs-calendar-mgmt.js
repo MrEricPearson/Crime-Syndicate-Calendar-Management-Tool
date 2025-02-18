@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.26
+// @version      0.3.27
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -148,16 +148,18 @@ function createCard() {
     cardHeader.style.justifyContent = 'space-between';
     cardHeader.style.marginBottom = '20px';
 
+    const cardBackButton = createBackButton();
     const monthTitle = createMonthTitle();
-    const navButtons = createNavButtons(); // Combine back and forward buttons
+    const cardForwardButton = createForwardButton();
 
+    cardHeader.appendChild(cardBackButton);
     cardHeader.appendChild(monthTitle);
-    cardHeader.appendChild(navButtons); // Append combined navigation buttons
+    cardHeader.appendChild(cardForwardButton);
 
     const calendarGrid = createCalendarGrid();
     card.appendChild(calendarGrid);
 
-    const calendarData = initializeCalendar(monthTitle, navButtons.cardBackButton, navButtons.cardForwardButton, calendarGrid);
+    const calendarData = initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid);
 
     return card;
 }
@@ -218,16 +220,18 @@ function createCalendarUI() {
 
     // Continue creating calendar UI elements
     const monthTitle = createMonthTitle();
-    const navButtons = createNavButtons(); // Combine back and forward buttons
+    const cardBackButton = createBackButton();
+    const cardForwardButton = createForwardButton();
 
+    header.appendChild(cardBackButton);
     header.appendChild(monthTitle);
-    header.appendChild(navButtons); // Append combined navigation buttons
+    header.appendChild(cardForwardButton);
 
     const calendarGrid = createCalendarGrid();
     container.appendChild(header);
     container.appendChild(calendarGrid);
 
-    return { container, monthTitle, cardBackButton: navButtons.cardBackButton, cardForwardButton: navButtons.cardForwardButton, calendarGrid };
+    return { container, monthTitle, cardBackButton, cardForwardButton, calendarGrid };
 }
 
 // CALENDAR: Create the month title with its styling
@@ -235,71 +239,50 @@ function createMonthTitle() {
     const monthTitle = document.createElement('h3');
     monthTitle.textContent = 'January';
     monthTitle.style.margin = '0';
-    monthTitle.style.textAlign = 'left'; // Left align
-    monthTitle.style.fontFamily = 'Arial'; // Arial font
-    monthTitle.style.fontWeight = 'bold'; // Bold
-    monthTitle.style.fontSize = '24px'; // 24px
+    monthTitle.style.textAlign = 'center';
     monthTitle.style.flexGrow = '1';
     return monthTitle;
 }
 
-function createNavButtons() {
-    const navButtonsContainer = document.createElement('div');
-    navButtonsContainer.style.display = 'flex';
-    navButtonsContainer.style.alignItems = 'center';
-
+// CALENDAR: Create the back button with its styling and functionality
+function createBackButton() {
     const cardBackButton = document.createElement('button');
-    const cardForwardButton = document.createElement('button');
+    const cardBackArrowImage = document.createElement('img');
+    cardBackButton.appendChild(cardBackArrowImage);
 
-    // Shared styles for both buttons
-    const buttonStyle = `
-        width: 40px;
-        height: 40px;
-        background-color: #ffffff;
-        color: #131311;
-        border: 1px solid #E7E7E7;
-        cursor: pointer;
-        padding: 0; /* Remove default button padding */
-        margin: 0;  /* Remove default button margin */
-    `;
+    cardBackArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
+    cardBackArrowImage.height = 12;
+    cardBackButton.style.backgroundColor = '#ffffff';
+    cardBackButton.style.color = '#131311';
+    cardBackButton.style.border = 'none';
+    cardBackButton.style.borderRadius = '50%';
+    cardBackButton.style.padding = '10px 10px 12px 10px';
+    cardBackButton.style.cursor = 'pointer';
+    cardBackButton.style.fontSize = '20px';
+    cardBackButton.style.lineHeight = '18px';
 
-    cardBackButton.style.cssText = buttonStyle;
-    cardForwardButton.style.cssText = buttonStyle;
-
-    // Remove border radius to get square buttons
-    cardBackButton.style.borderRadius = '0';
-    cardForwardButton.style.borderRadius = '0';
-
-
-    // Overlap border
-    cardForwardButton.style.borderLeft = 'none';
-
-    // Button images
-    const backImage = document.createElement('img');
-    backImage.src = 'https://epearson.me/faction_status_images/left.svg';
-    backImage.style.width = '100%';
-    backImage.style.height = '100%';
-    backImage.style.padding = '5px'; //Adjust padding as needed
-    cardBackButton.appendChild(backImage);
-
-
-    const forwardImage = document.createElement('img');
-    forwardImage.src = 'https://epearson.me/faction_status_images/right.svg';
-    forwardImage.style.width = '100%';
-    forwardImage.style.height = '100%';
-    forwardImage.style.padding = '5px'; //Adjust padding as needed
-    cardForwardButton.appendChild(forwardImage);
-
-
-
-    navButtonsContainer.appendChild(cardBackButton);
-    navButtonsContainer.appendChild(cardForwardButton);
-
-
-    //Back Button Functionality
     cardBackButton.onclick = () => { modal.style.display = 'none'; };
+    return cardBackButton;
+}
 
-    return { cardBackButton, cardForwardButton, navButtonsContainer };
+// CALENDAR: Create the forward button with its styling and functionality
+function createForwardButton() {
+    const cardForwardButton = document.createElement('button');
+    const cardForwardArrowImage = document.createElement('img');
+    cardForwardButton.appendChild(cardForwardArrowImage);
+
+    cardForwardArrowImage.src = "https://epearson.me/faction_status_images/arrow-forward.svg";
+    cardForwardArrowImage.height = 12;
+    cardForwardButton.style.backgroundColor = '#ffffff';
+    cardForwardButton.style.color = '#131311';
+    cardForwardButton.style.border = 'none';
+    cardForwardButton.style.borderRadius = '50%';
+    cardForwardButton.style.padding = '10px 10px 12px 10px';
+    cardForwardButton.style.cursor = 'pointer';
+    cardForwardButton.style.fontSize = '20px';
+    cardForwardButton.style.lineHeight = '18px';
+
+    return cardForwardButton;
 }
 
 // CALENDAR: Create the calendar grid for displaying days and events
