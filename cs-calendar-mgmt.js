@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.27
+// @version      0.3.28
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -152,9 +152,23 @@ function createCard() {
     const monthTitle = createMonthTitle();
     const cardForwardButton = createForwardButton();
 
-    cardHeader.appendChild(cardBackButton);
-    cardHeader.appendChild(monthTitle);
-    cardHeader.appendChild(cardForwardButton);
+    // Container for the title and buttons
+    const titleAndButtonsContainer = document.createElement('div');
+    titleAndButtonsContainer.style.display = 'flex';
+    titleAndButtonsContainer.style.width = '100%';
+    titleAndButtonsContainer.style.alignItems = 'center'; // Vertically center
+    titleAndButtonsContainer.style.justifyContent = 'space-between';
+
+    titleAndButtonsContainer.appendChild(monthTitle);
+
+    const navButtonsContainer = document.createElement('div');
+    navButtonsContainer.style.display = 'flex';
+    navButtonsContainer.style.alignItems = 'center'; // Vertically center
+    navButtonsContainer.appendChild(cardBackButton);
+    navButtonsContainer.appendChild(cardForwardButton);
+    titleAndButtonsContainer.appendChild(navButtonsContainer);
+
+    cardHeader.appendChild(titleAndButtonsContainer);
 
     const calendarGrid = createCalendarGrid();
     card.appendChild(calendarGrid);
@@ -240,7 +254,10 @@ function createMonthTitle() {
     monthTitle.textContent = 'January';
     monthTitle.style.margin = '0';
     monthTitle.style.textAlign = 'center';
-    monthTitle.style.flexGrow = '1';
+    monthTitle.style.textAlign = 'left';
+    monthTitle.style.fontFamily = 'Arial';
+    monthTitle.style.fontWeight = 'bold';
+    monthTitle.style.fontSize = '24px';
     return monthTitle;
 }
 
@@ -250,18 +267,19 @@ function createBackButton() {
     const cardBackArrowImage = document.createElement('img');
     cardBackButton.appendChild(cardBackArrowImage);
 
-    cardBackArrowImage.src = "https://epearson.me/faction_status_images/arrow-back.svg";
-    cardBackArrowImage.height = 12;
+    cardBackArrowImage.src = "https://epearson.me/faction_status_images/left.svg";
+    cardBackArrowImage.style.width = '11px';
+    cardBackArrowImage.style.height = '18px';
+
     cardBackButton.style.backgroundColor = '#ffffff';
     cardBackButton.style.color = '#131311';
-    cardBackButton.style.border = 'none';
-    cardBackButton.style.borderRadius = '50%';
-    cardBackButton.style.padding = '10px 10px 12px 10px';
+    cardBackButton.style.border = '1px solid #E7E7E7';
+    cardBackButton.style.width = '40px';
+    cardBackButton.style.height = '40px';
+    cardBackButton.style.padding = '0';
+    cardBackButton.style.margin = '0';
     cardBackButton.style.cursor = 'pointer';
-    cardBackButton.style.fontSize = '20px';
-    cardBackButton.style.lineHeight = '18px';
 
-    cardBackButton.onclick = () => { modal.style.display = 'none'; };
     return cardBackButton;
 }
 
@@ -271,16 +289,19 @@ function createForwardButton() {
     const cardForwardArrowImage = document.createElement('img');
     cardForwardButton.appendChild(cardForwardArrowImage);
 
-    cardForwardArrowImage.src = "https://epearson.me/faction_status_images/arrow-forward.svg";
-    cardForwardArrowImage.height = 12;
+    cardForwardArrowImage.src = "https://epearson.me/faction_status_images/right.svg";
+    cardForwardArrowImage.style.width = '11px';
+    cardForwardArrowImage.style.height = '18px';
+
     cardForwardButton.style.backgroundColor = '#ffffff';
     cardForwardButton.style.color = '#131311';
-    cardForwardButton.style.border = 'none';
-    cardForwardButton.style.borderRadius = '50%';
-    cardForwardButton.style.padding = '10px 10px 12px 10px';
+    cardForwardButton.style.border = '1px solid #E7E7E7';
+    cardForwardButton.style.width = '40px';
+    cardForwardButton.style.height = '40px';
+    cardForwardButton.style.padding = '0';
+    cardForwardButton.style.margin = '0';
     cardForwardButton.style.cursor = 'pointer';
-    cardForwardButton.style.fontSize = '20px';
-    cardForwardButton.style.lineHeight = '18px';
+    cardForwardButton.style.marginLeft = '-1px';
 
     return cardForwardButton;
 }
