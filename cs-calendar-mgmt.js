@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.32
+// @version      0.3.33
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -328,12 +328,6 @@ function createCalendarGrid() {
     calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
     calendarGrid.style.gridGap = '5px';
 
-    // Add day-of-week header row
-    dayOfWeekHeaders.forEach(day => {
-        const headerCell = createDayOfWeekHeaderCell(day);
-        calendarGrid.appendChild(headerCell);
-    });
-
     return calendarGrid;
 }
 
@@ -346,6 +340,11 @@ function renderCalendar(year, month, calendarGrid) {
     });
 
     calendarGrid.innerHTML = ''; // Clear previous grid
+
+    dayOfWeekHeaders.forEach(day => {
+        const headerCell = createDayOfWeekHeaderCell(day);
+        calendarGrid.appendChild(headerCell);
+    });
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = getDaysInMonth(year, month);
