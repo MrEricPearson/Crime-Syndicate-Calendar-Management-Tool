@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.41
+// @version      0.3.42
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -93,8 +93,8 @@ function createModal() {
 
     const backButton = document.createElement('button');
     backButton.style.position = 'absolute';
-    backButton.style.left = '10%';
-    backButton.style.top = '5px';
+    backButton.style.left = '5%';
+    backButton.style.top = '10px';
     backButton.style.backgroundColor = 'transparent'; // Make it transparent
     backButton.style.border = 'none'; // Remove border
     backButton.style.padding = '0'; // Remove padding
@@ -116,12 +116,10 @@ function createModal() {
     modalTitle.textContent = 'Faction Calendar';
     modalTitle.style.fontFamily = 'Arial';
     modalTitle.style.width = '100%';
-    modalTitle.style.height = '40px';
-    modalTitle.style.margin = '0';
+    modalTitle.style.margin = '20px 0';
     modalTitle.style.textAlign = 'center';
     modalTitle.style.flexGrow = '1';
     modalTitle.style.fontSize = '1.5em';
-    modalTitle.style.lineHeight = '40px';
     modalTitle.style.fontWeight = 'bold';
     modalTitle.style.color = '#3C3B52';
     modalTitle.style.zIndex = '1';
@@ -453,13 +451,24 @@ function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay
         }
     }
 
+    // Apply default styles for day cells
+    if (d.class === 'prev' || d.class === 'next') {
+        dayElem.style.backgroundColor = 'transparent';
+        dayElem.style.color = '#DDDFE7';
+    } else if (d.class === 'current') {
+        dayElem.style.backgroundColor = 'transparent'; // No Background
+        dayElem.style.color = '#6C6D71';
+    }
+
     // General styles for all day elements
-    dayElem.style.height = '33px';
+    dayElem.style.height = '50px'; // Changed Height
     dayElem.style.width = '33px';
+    dayElem.style.borderRadius = '25px/50px';  // Pill Shaped
     dayElem.style.display = 'flex';
     dayElem.style.flexDirection = 'column';
-    dayElem.style.justifyContent = 'flex-start';
+    dayElem.style.justifyContent = 'space-between'; // Space Between Content
     dayElem.style.alignItems = 'center';
+    dayElem.style.padding = '4px 0'; // 4px padding on top and bottom
 
     // Create and position the day number
     const dateNumber = document.createElement('span');
@@ -944,7 +953,7 @@ style.textContent = `
         display: flex;
         justify-content: center; /* Horizontally center the circles */
         align-items: center;
-        margin-top: 12px; /* Distance below the day number */
+        margin-bottom: 4px;  /* Push them to the bottom by 4px */
         gap: 4px; /* Space inbetween */
     }
 
@@ -960,7 +969,7 @@ style.textContent = `
         box-sizing: border-box;
     }
 
-    .today {
+    day.today {
         background-color: #F6FAFB !important;
         border-color: #F6FAFB;
     }
