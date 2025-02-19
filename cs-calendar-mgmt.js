@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.39
+// @version      0.3.40
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -116,10 +116,12 @@ function createModal() {
     modalTitle.textContent = 'Faction Calendar';
     modalTitle.style.fontFamily = 'Arial';
     modalTitle.style.width = '100%';
+    modalTitle.style.height = '40px';
     modalTitle.style.margin = '0';
     modalTitle.style.textAlign = 'center';
     modalTitle.style.flexGrow = '1';
     modalTitle.style.fontSize = '1.5em';
+    modalTitle.style.lineHeight = '40px';
     modalTitle.style.fontWeight = 'bold';
     modalTitle.style.color = '#3C3B52';
     modalTitle.style.zIndex = '1';
@@ -325,6 +327,9 @@ function createDayOfWeekHeaderCell(dayAbbreviation) {
     headerCell.style.textAlign = 'center';
     headerCell.style.fontSize = '12px';  // Set font size as desired
     headerCell.style.height = '16px'; // Set height as desired
+    headerCell.style.display = 'flex';       // Use flexbox for alignment
+    headerCell.style.alignItems = 'center';  // Vertically center text
+    headerCell.style.justifyContent = 'center'; // Horizontally center text
 
     return headerCell;
 }
@@ -363,9 +368,9 @@ function renderCalendar(year, month, calendarGrid) {
 
     // Capture Today Date for comparison
     const today = new Date();
-    const todayYear = today.getFullYear();
-    const todayMonth = today.getMonth() + 1; // Month is 0-indexed
-    const todayDay = today.getDate();
+    const todayYear = today.getUTCFullYear();
+    const todayMonth = String(today.getUTCMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+    const todayDay = String(today.getUTCDate()).padStart(2, '0');
 
     // Fill previous month's overflow days
     for (let i = firstDay - 1; i >= 0; i--) {
@@ -425,17 +430,17 @@ function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay
     // Assign unique identifier only if the day belongs to the current month
     if (d.isCurrentMonth) {
         const cellDate = new Date(year, month, d.day);
-        const cellYear = cellDate.getFullYear();
-        const cellMonth = String(cellDate.getMonth() + 1).padStart(2, '0'); // Ensure two-digit month
-        const cellDay = String(d.day).padStart(2, '0');
+        const cellYear = cellDate.getUTCFullYear();
+        const cellMonth = String(cellDate.getUTCMonth() + 1).padStart(2, '0'); // Ensure two-digit month
+        const cellDay = String(cellDate.getUTCDate()).padStart(2, '0');
         cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
         dayElem.id = cellId;
 
         // Check if it's today's date
         const isToday = (
-            cellYear === todayYear &&
-            parseInt(cellMonth) === todayMonth && // Parse the month back to an integer
-            parseInt(cellDay) === todayDay         // Parse the day back to an integer
+            cellYear === String(todayYear) &&
+            cellMonth === String(todayMonth).padStart(2, '0') &&
+            cellDay === String(todayDay).padStart(2, '0')
         );
 
         if (isToday) {
@@ -926,7 +931,7 @@ style.textContent = `
     .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        grid-gap: 5px;
+        grid-gap: 5px 5px;
     }
 
     .content-wrapper-container {
@@ -961,7 +966,6 @@ style.textContent = `
 
     .day.today {
         background-color: #F6FAFB;
-        color: #000000;
         border-color: #F6FAFB;
     }
 
