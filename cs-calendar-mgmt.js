@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.42
+// @version      0.3.43
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -88,13 +88,12 @@ function createModal() {
     headerWrapper.style.display = 'flex';
     headerWrapper.style.alignItems = 'center';
     headerWrapper.style.justifyContent = 'space-between';
-    headerWrapper.style.padding = '2px 10px';
     headerWrapper.style.position = 'relative';
 
     const backButton = document.createElement('button');
     backButton.style.position = 'absolute';
     backButton.style.left = '5%';
-    backButton.style.top = '10px';
+    backButton.style.top = '15px';
     backButton.style.backgroundColor = 'transparent'; // Make it transparent
     backButton.style.border = 'none'; // Remove border
     backButton.style.padding = '0'; // Remove padding
@@ -136,7 +135,6 @@ function createModal() {
     const headerRoot = document.getElementById('header-root');
     if (headerRoot) {
         headerRoot.style.position = 'relative';
-        headerRoot.style.marginTop = '33px';
         const topBar = createTopBar(modal);
         document.body.insertBefore(topBar, headerRoot);
     }
@@ -441,13 +439,8 @@ function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay
             cellDay === todayDay
         );
 
-        console.log(`cellDate ${year}-${month}-${d.day}`);
-        console.log(`today ${todayYear}-${todayMonth}-${todayDay}`);
-        console.log(`className ${dayElem.className}`);
-
         if (isToday) {
             dayElem.classList.add('today');  // Add the 'today' class
-            console.log("Added 'today' class to cell");
         }
     }
 
@@ -463,7 +456,7 @@ function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay
     // General styles for all day elements
     dayElem.style.height = '50px'; // Changed Height
     dayElem.style.width = '33px';
-    dayElem.style.borderRadius = '25px/50px';  // Pill Shaped
+    dayElem.style.borderRadius = '25px';
     dayElem.style.display = 'flex';
     dayElem.style.flexDirection = 'column';
     dayElem.style.justifyContent = 'space-between'; // Space Between Content
@@ -474,6 +467,7 @@ function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay
     const dateNumber = document.createElement('span');
     dateNumber.textContent = d.day;
     dateNumber.style.fontSize = '12px';
+    dateNumber.style.margin = '4px 0'; // 4px margin on top and bottom
 
     // Clear text content to avoid duplicate numbers
     dayElem.innerHTML = '';
@@ -969,7 +963,7 @@ style.textContent = `
         box-sizing: border-box;
     }
 
-    day.today {
+    .today {
         background-color: #F6FAFB !important;
         border-color: #F6FAFB;
     }
