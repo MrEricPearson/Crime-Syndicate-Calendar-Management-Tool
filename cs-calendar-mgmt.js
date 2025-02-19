@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.40
+// @version      0.3.41
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -368,7 +368,7 @@ function renderCalendar(year, month, calendarGrid) {
 
     // Capture Today Date for comparison
     const today = new Date();
-    const todayYear = today.getUTCFullYear();
+    const todayYear = String(today.getUTCFullYear());
     const todayMonth = String(today.getUTCMonth() + 1).padStart(2, '0'); // Month is 0-indexed
     const todayDay = String(today.getUTCDate()).padStart(2, '0');
 
@@ -430,31 +430,27 @@ function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay
     // Assign unique identifier only if the day belongs to the current month
     if (d.isCurrentMonth) {
         const cellDate = new Date(year, month, d.day);
-        const cellYear = cellDate.getUTCFullYear();
-        const cellMonth = String(cellDate.getUTCMonth() + 1).padStart(2, '0'); // Ensure two-digit month
-        const cellDay = String(cellDate.getUTCDate()).padStart(2, '0');
+        const cellYear = String(year);
+        const cellMonth = String(month + 1).padStart(2, '0');
+        const cellDay = String(d.day).padStart(2, '0');
         cellId = `cell-${cellYear}-${cellMonth}-${cellDay}`;
         dayElem.id = cellId;
 
         // Check if it's today's date
         const isToday = (
-            cellYear === String(todayYear) &&
-            cellMonth === String(todayMonth).padStart(2, '0') &&
-            cellDay === String(todayDay).padStart(2, '0')
+            cellYear === todayYear &&
+            cellMonth === todayMonth &&
+            cellDay === todayDay
         );
+
+        console.log(`cellDate ${year}-${month}-${d.day}`);
+        console.log(`today ${todayYear}-${todayMonth}-${todayDay}`);
+        console.log(`className ${dayElem.className}`);
 
         if (isToday) {
             dayElem.classList.add('today');  // Add the 'today' class
+            console.log("Added 'today' class to cell");
         }
-    }
-
-    // Apply default styles for day cells
-    if (d.class === 'prev' || d.class === 'next') {
-        dayElem.style.backgroundColor = '#FFFFFF';
-        dayElem.style.color = '#DDDFE7';
-    } else if (d.class === 'current') {
-        dayElem.style.backgroundColor = '#FFFFFF';
-        dayElem.style.color = '#6C6D71';
     }
 
     // General styles for all day elements
@@ -964,8 +960,8 @@ style.textContent = `
         box-sizing: border-box;
     }
 
-    .day.today {
-        background-color: #F6FAFB;
+    .today {
+        background-color: #F6FAFB !important;
         border-color: #F6FAFB;
     }
 
