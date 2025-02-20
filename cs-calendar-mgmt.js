@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.54
+// @version      0.3.55
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -694,10 +694,10 @@ function createEventElement(event, isPastEvent) {
     const eventRow = document.createElement('div');
     eventRow.className = 'event-row';
 
-    // Colored rectangle icon (no textContent needed)
+    // Colored rectangle icon
     const icon = document.createElement('div');
     icon.className = 'event-icon';
-    icon.style.backgroundColor = getEventColor(event.event_type); // Dynamic color
+    icon.style.backgroundColor = getEventColor(event.event_type);
 
     // Event details container
     const details = document.createElement('div');
@@ -705,24 +705,22 @@ function createEventElement(event, isPastEvent) {
     details.style.display = 'flex';        // Use flexbox
     details.style.flexDirection = 'column'; // Stack title/date vertically
 
-    // 1. Event Title Row (now using a container div)
+    // 1. Event Title Row (container div)
     const titleRow = document.createElement('div');
-    titleRow.className = 'event-title-row';
-    titleRow.style.display = 'flex';       // Use flexbox for horizontal alignment
-    titleRow.style.alignItems = 'center'; // Vertically center title and type
+    titleRow.style.display = 'flex';       // Flexbox for horizontal alignment
+    titleRow.style.alignItems = 'center';   // Vertical centering
 
     const eventTitleSpan = document.createElement('span');
     eventTitleSpan.className = 'event-title';
     eventTitleSpan.textContent = event.event_title;
-    titleRow.appendChild(eventTitleSpan); // Append to titleRow
+    titleRow.appendChild(eventTitleSpan);
 
     const eventTypeSpan = document.createElement('span');
     eventTypeSpan.className = 'event-type';
     eventTypeSpan.textContent = `(${event.event_type})`;
-    titleRow.appendChild(eventTypeSpan);   // Append to titleRow
+    titleRow.appendChild(eventTypeSpan);
 
     details.appendChild(titleRow); // Append titleRow to details
-
 
     // 2. Date Line Row
     const dateLineRow = document.createElement('div');
@@ -735,31 +733,43 @@ function createEventElement(event, isPastEvent) {
     dateLineRow.appendChild(calendarIcon);
 
     const startDateSpan = document.createElement('span');
-    startDateSpan.className = 'start-date-details';
+    startDateSpan.className = "start-date-details" //add class for CSS control
     startDateSpan.textContent = new Date(event.event_start_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
     dateLineRow.appendChild(startDateSpan);
 
+    //Status Box (Conditional)
     if (isPastEvent || event.event_status) {
         const statusSpan = document.createElement('span');
         statusSpan.className = 'status-box';
 
         const statusDot = document.createElement('span');
         statusDot.className = 'status-dot';
-        statusDot.style.backgroundColor = isPastEvent ? '#5ED8C1' : '#D8C25E'; // Set color dynamically
-        statusSpan.appendChild(statusDot);
+        statusDot.style.backgroundColor = isPastEvent ? '#5ED8C1' : '#D8C25E';
+        statusSpan.appendChild(statusDot); // Dot *inside* the status container
 
         const statusMessageSpan = document.createElement('span');
         statusMessageSpan.className = 'status-message-details';
         statusMessageSpan.textContent = isPastEvent ? 'Completed' : 'Upcoming Event';
-        statusSpan.appendChild(statusMessageSpan);
+        statusSpan.appendChild(statusMessageSpan); // Message *inside* the status container
 
-        dateLineRow.appendChild(statusSpan);
+        dateLineRow.appendChild(statusSpan); // Status container to dateLineRow
     }
 
     details.appendChild(dateLineRow); // Append dateLineRow to details
 
+    // --- Third Column (Dropdown Button) ---
+    const dropdownButton = document.createElement('button');
+    dropdownButton.className = 'event-dropdown-button'; // Add class for styling
+    const dropdownImg = document.createElement('img');
+    dropdownImg.src = 'https://epearson.me/faction_status_images/dropdown-more.svg';
+    dropdownImg.style.width = '17px'; // Set image size
+    dropdownImg.style.height = '21px';
+    dropdownButton.appendChild(dropdownImg);
+    // --- End of third column ---
+
     eventRow.appendChild(icon);
     eventRow.appendChild(details);
+    eventRow.appendChild(dropdownButton); // Add the dropdown button
 
     return eventRow;
 }
@@ -1019,7 +1029,7 @@ style.textContent = `
     .event-card {
         background-color: #FFFFFF;
         color: #333;
-        padding: 10px;
+        padding: 5px 10px;
         border-radius: 10px;
         margin-bottom: 10px;
         width: 100%;
@@ -1044,7 +1054,7 @@ style.textContent = `
     .event-details {
         flex-grow: 1;
         text-align: left;
-        position: relative;
+        padding-top: 2px;
     }
 
     .date-line {
@@ -1053,7 +1063,7 @@ style.textContent = `
         font-size: 12px;
         font-family: Arial;
         margin-top: 5px;
-        line-height: 20px;
+        line-height: 17px;
     }
 
     .date-line span {
@@ -1122,6 +1132,7 @@ style.textContent = `
         margin-right: 5px;
         vertical-align: middle;
         display: inline-block;
+        margin-top: 2px;
     }
 
     .status-box {
@@ -1130,6 +1141,18 @@ style.textContent = `
         font-family: Arial;
         display: inline-block;
         vertical-align: middle;
+    }
+
+    .event-dropdown-button {
+        width: 45px;
+        height: 45px;
+        border-radius: 6px;
+        border: 1px solid #E7E7E7;
+        background-color: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 `;
 document.head.appendChild(style);
