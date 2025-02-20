@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.60
+// @version      0.3.61
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -763,6 +763,7 @@ function createEventElement(event, isPastEvent) {
 
     // Add the click event listener
     dropdownButton.addEventListener('click', (event) => {
+        console.log("Dropdown button clicked!");
         event.stopPropagation(); // Prevent click from bubbling up to the document
         toggleDropdown(dropdownButton); // Call toggleDropdown, passing the button
     });
@@ -775,6 +776,8 @@ function createEventElement(event, isPastEvent) {
 }
 
 function toggleDropdown(button) {
+    console.log("toggleDropdown called!", button); 
+
     // Check if a dropdown already exists, and remove it if it does.  This
     // prevents multiple dropdowns from being open at the same time.
     let existingDropdown = document.querySelector('.event-dropdown-menu');
@@ -787,6 +790,8 @@ function toggleDropdown(button) {
 
     const dropdownMenu = document.createElement('div');
     dropdownMenu.className = 'event-dropdown-menu';
+
+    console.log("Dropdown menu created:", dropdownMenu);
 
     // --- Create the unordered list ---
     const ul = document.createElement('ul');
@@ -825,6 +830,8 @@ function toggleDropdown(button) {
     button.appendChild(dropdownMenu); // Temporarily append to the button for measurement.  *CRUCIAL*.
 
     const buttonRect = button.getBoundingClientRect(); // Get button's position
+    console.log("Button Rect:", buttonRect);
+
     let top = buttonRect.bottom;  // Initial position: below the button
     let left = buttonRect.left;   // Initial position: aligned with button's left edge
 
@@ -851,16 +858,20 @@ function toggleDropdown(button) {
 
     // Append the dropdown menu to the *document body* (AFTER positioning calculations)
     document.body.appendChild(dropdownMenu);
+    console.log("Dropdown menu appended to body.");
 
     // --- Click-Outside Handler (Close the Dropdown) ---
     function closeDropdown(event) {
+        console.log("closeDropdown called", event.target);
         if (!dropdownMenu.contains(event.target) && !button.contains(event.target)) {
+            console.log("Closing dropdown");
             dropdownMenu.remove();
             document.removeEventListener('click', closeDropdown); // Clean up listener!  VERY IMPORTANT.
         }
     }
 
     // Add a click listener to the *document* to close the dropdown when clicking outside
+    console.log("Adding click listener to document");
     document.addEventListener('click', closeDropdown);
 }
 
