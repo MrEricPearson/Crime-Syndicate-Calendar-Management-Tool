@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.58
+// @version      0.3.59
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -10,8 +10,8 @@
 // @grant        none
 // ==/UserScript==
 
-// Helper function to map event types to background colors
-const getEventColor = (eventType) => {
+ // Helper function to map event types to background colors
+ const getEventColor = (eventType) => {
     const colorMap = {
         event: '#51c1b6',
         training: '#4d8dca',
@@ -154,7 +154,7 @@ function createCard() {
     cardHeader.style.display = 'flex';
     cardHeader.style.alignItems = 'center';
     cardHeader.style.justifyContent = 'space-between';
-    cardHeader.style.marginBottom = '20px';
+    cardHeader.style.marginBottom = '5px';
 
     const cardBackButton = createBackButton();
     const monthTitle = createMonthTitle();
@@ -284,7 +284,7 @@ function createBackButton() {
     cardBackButton.style.border = '1px solid #E7E7E7';
     cardBackButton.style.width = '24px';
     cardBackButton.style.height = '24px';
-    cardBackButton.style.padding = '0';
+    cardBackButton.style.padding = '4px 0';
     cardBackButton.style.margin = '0';
     cardBackButton.style.cursor = 'pointer';
 
@@ -306,7 +306,7 @@ function createForwardButton() {
     cardForwardButton.style.border = '1px solid #E7E7E7';
     cardForwardButton.style.width = '24px';
     cardForwardButton.style.height = '24px';
-    cardForwardButton.style.padding = '0';
+    cardForwardButton.style.padding = '4px 0';
     cardForwardButton.style.margin = '0';
     cardForwardButton.style.cursor = 'pointer';
     cardForwardButton.style.marginLeft = '-1px';
@@ -324,7 +324,7 @@ function createDayOfWeekHeaderCell(dayAbbreviation) {
     // Apply styles for centering and appearance
     headerCell.style.textAlign = 'center';
     headerCell.style.fontSize = '12px';  // Set font size as desired
-    headerCell.style.height = '33px'; // Set height as desired
+    headerCell.style.height = '45px'; // Set height as desired
     headerCell.style.display = 'flex';       // Use flexbox for alignment
     headerCell.style.alignItems = 'center';  // Vertically center text
     headerCell.style.justifyContent = 'center'; // Horizontally center text
@@ -435,13 +435,8 @@ function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay
             cellDay === todayDay
         );
 
-        console.log(`cellDate ${year}-${month}-${d.day}`);
-        console.log(`today ${todayYear}-${todayMonth}-${todayDay}`);
-        console.log(`className ${dayElem.className}`);
-
         if (isToday) {
             dayElem.classList.add('today');  // Add the 'today' class
-            console.log("Added 'today' class to cell");
         }
     }
 
@@ -698,9 +693,6 @@ function createEventElement(event, isPastEvent) {
     const icon = document.createElement('div');
     icon.className = 'event-icon';
     icon.style.backgroundColor = getEventColor(event.event_type);
-    icon.style.width = '35px'; //Added
-    icon.style.height = '3px';  //Added
-    icon.style.marginRight = '10px'; //keep space
 
     // Event details container
     const details = document.createElement('div');
@@ -990,6 +982,7 @@ style.textContent = `
         flex-direction: column;
         pointer-events: auto;
         padding-top: 5%;
+        font-family: Arial;
     }
 
     .header-wrapper {
@@ -1032,11 +1025,12 @@ style.textContent = `
         background-color: #FFFFFF;
         color: #3C3B52;
         padding: 20px;
-        border: 1px solid #E7E7E7
+        border: 1px solid #E7E7E7;
         border-radius: 10px;
         margin: 20px 0;
         width: 94%;
         box-sizing: border-box;
+        font-family: Arial;
     }
 
     .card-header {
@@ -1114,16 +1108,14 @@ style.textContent = `
         align-items: center;
         border-radius: 33px;
         margin-bottom: 2px;
-        background-color: #FFFFFF;
     }
 
-    day.today {
-        background-color: #F6FAFB;
+    .today {
+        background-color: #F6FAFB !important;
         border-color: #F6FAFB;
     }
 
-    day.today .date-number {
-        font-size: 12px;
+    .day .date-number {
         margin: 12px 0;
     }
 
