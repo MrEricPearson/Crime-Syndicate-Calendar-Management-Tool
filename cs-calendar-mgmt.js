@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.48
+// @version      0.3.49
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -697,10 +697,7 @@ function createEventElement(event, isPastEvent) {
     // Colored rectangle icon (no textContent needed)
     const icon = document.createElement('div');
     icon.className = 'event-icon';
-    icon.style.width = '35px';  // Set width
-    icon.style.height = '3px';   // Set height
     icon.style.backgroundColor = getEventColor(event.event_type); // Dynamic color
-    icon.style.marginRight = '10px'; // Add spacing.  Critical for layout
 
     // Event details container
     const details = document.createElement('div');
@@ -710,6 +707,7 @@ function createEventElement(event, isPastEvent) {
 
     // 1. Event Title Row (now using a container div)
     const titleRow = document.createElement('div');
+    titleRow.className = 'event-title-row';
     titleRow.style.display = 'flex';       // Use flexbox for horizontal alignment
     titleRow.style.alignItems = 'center'; // Vertically center title and type
 
@@ -762,23 +760,6 @@ function createEventElement(event, isPastEvent) {
     eventRow.appendChild(details);
 
     return eventRow;
-}
-
-function formatTime(time) {
-    if (!time) return '--:--';
-    let [hours, minutes] = time.split(':');
-    let period = 'am';
-    hours = parseInt(hours);
-    if (hours >= 12) {
-        period = 'pm';
-        if (hours > 12) {
-            hours -= 12;
-        }
-    }
-    if (hours === 0) {
-        hours = 12;
-    }
-    return `${hours}:${minutes}${period}`;
 }
 
 function formatTime(time) {
@@ -861,315 +842,306 @@ function initializeCalendarTool() {
 const style = document.createElement('style');
 style.textContent = `
     .top-bar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background-color: #333;
-        color: #fff;
-        padding: 5px 10px;
-        z-index: 1000;
-        text-align: right;
-    }
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    z-index: 1000;
+    text-align: right;
+}
 
-    .modal-button {
-        background-color: #007BFF;
-        color: #fff;
-        border: none;
-        padding: 5px 10px;
-        margin-right: 8px;
-        cursor: pointer;
-        border-radius: 5px;
-    }
+.modal-button {
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    margin-right: 8px;
+    cursor: pointer;
+    border-radius: 5px;
+}
 
-    .modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: #ecf1ed;
-        color: #fff;
-        display: none; /* Initially hidden */
-        z-index: 100001;
-        align-items: center;
-        flex-direction: column;
-        pointer-events: auto;
-        padding-top: 5%;
-    }
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #ecf1ed;
+    color: #fff;
+    display: none; /* Initially hidden */
+    z-index: 100001;
+    align-items: center;
+    flex-direction: column;
+    pointer-events: auto;
+    padding-top: 5%;
+}
 
-    .header-wrapper {
-        width: calc(80% + 40px);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 20px;
-        padding: 0 20px;
-    }
+.header-wrapper {
+    width: calc(80% + 40px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 0 20px;
+}
 
-    .back-button {
-        background-color: #ffffff;
-        color: #131311;
-        border: none;
-        border-radius: 50%;
-        padding: 10px 10px 13px 10px;
-        cursor: pointer;
-        font-size: 30px;
-        line-height: 28px;
-    }
+.back-button {
+    background-color: #ffffff;
+    color: #131311;
+    border: none;
+    border-radius: 50%;
+    padding: 10px 10px 13px 10px;
+    cursor: pointer;
+    font-size: 30px;
+    line-height: 28px;
+}
 
-    .modal-title {
-        margin: 0;
-        text-align: center;
-        flex-grow: 1;
-        font-size: 1.5em;
-        font-weight: 300;
-        color: #111612;
-        margin-left: -50px;
-        z-index: 1;
-    }
+.modal-title {
+    margin: 0;
+    text-align: center;
+    flex-grow: 1;
+    font-size: 1.5em;
+    font-weight: 300;
+    color: #111612;
+    margin-left: -50px;
+    z-index: 1;
+}
 
-    .header-root {
-        position: relative;
-        margin-top: 33px;
-    }
+.header-root {
+    position: relative;
+    margin-top: 33px;
+}
 
-    .calendar-card {
-        background-color: #FFFFFF;
-        color: #3C3B52;
-        padding: 20px;
-        border: 1px solid #E7E7E7
-        border-radius: 10px;
-        margin: 20px 0;
-        width: 94%;
-        box-sizing: border-box;
-    }
+.calendar-card {
+    background-color: #FFFFFF;
+    color: #3C3B52;
+    padding: 20px;
+    border: 1px solid #E7E7E7
+    border-radius: 10px;
+    margin: 20px 0;
+    width: 94%;
+    box-sizing: border-box;
+}
 
-    .card-header {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    }
+.card-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
 
-    .card-back-button {
-        background-color: #ffffff;
-        color: #131311;
-        border: none;
-        border-radius: 50%;
-        padding: 10px 10px 12px 10px;
-        cursor: pointer;
-        font-size: 20px;
-        line-height: 18px;
-    }
+.card-back-button {
+    background-color: #ffffff;
+    color: #131311;
+    border: none;
+    border-radius: 50%;
+    padding: 10px 10px 12px 10px;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 18px;
+}
 
-    .card-forward-button {
-        background-color: #ffffff;
-        color: #131311;
-        border: none;
-        border-radius: 50%;
-        padding: 10px 10px 12px 10px;
-        cursor: pointer;
-        font-size: 20px;
-        line-height: 18px;
-    }
+.card-forward-button {
+    background-color: #ffffff;
+    color: #131311;
+    border: none;
+    border-radius: 50%;
+    padding: 10px 10px 12px 10px;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 18px;
+}
 
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        grid-gap: 5px 5px;
-    }
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-gap: 5px 5px;
+}
 
-    .content-wrapper-container {
-        width: 100%;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 10px;
-        box-sizing: border-box;
-    }
+.content-wrapper-container {
+    width: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+}
 
-    .event-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 4px;
-        gap: 4px;
-    }
+.event-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 4px;
+    gap: 4px;
+}
 
-    .event-circle {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        display: inline-block;
-    }
+.event-circle {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
 
-    .event-list-container {
-        width: 95%;
-        box-sizing: border-box;
-    }
+.event-list-container {
+    width: 95%;
+    box-sizing: border-box;
+}
 
-    .day {
-        color: #6C6D71;
-        height: 60px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        border-radius: 33px;
-        margin-bottom: 2px;
-        background-color: #FFFFFF;
-    }
+.day {
+    color: #6C6D71;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    border-radius: 33px;
+    margin-bottom: 2px;
+    background-color: #FFFFFF;
+}
 
-    day.today {
-        background-color: #F6FAFB;
-        border-color: #F6FAFB;
-    }
+day.today {
+    background-color: #F6FAFB;
+    border-color: #F6FAFB;
+}
 
-    day.today .date-number {
-        font-size: 12px;
-        margin: 12px 0;
-    }
+day.today .date-number {
+    font-size: 12px;
+    margin: 12px 0;
+}
 
-    .event-card {
-        background-color: #f4f9f5;
-        color: #333;
-        padding: 10px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        width: 100%;
-        box-sizing: border-box;
-    }
+.event-card {
+    background-color: #FFFFFF;
+    color: #333;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
 
-    .event-row {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-        padding: 5px 0;
-    }
+.event-row {
+    display: flex;
+    align-items: center;
+    padding: 5px 0;
+}
 
-    .event-icon {
-        width: 80px;
-        text-align: center;
-    }
+.event-icon {
+    width: 6px;
+    height: 46px;
+    text-align: center;
+    margin-right: 15px;
+    background-color: #C79B7A; /* This color is programatically determined elsewhere and not hardcoded. Line only for testing. */
+}
 
-    .event-details {
-        flex-grow: 1;
-        text-align: left;
-        position: relative;
-    }
+.event-details {
+    flex-grow: 1;
+    text-align: left;
+    position: relative;
+}
 
-    .event-title-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 5px;
-    }
+.event-title-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
 
-    .event-title {
-        font-size: 16px;
-    }
+.event-title {
+    font-size: 16px;
+}
 
-    .date-line {
-        font-size: 12px;
-        color: #797977;
-        margin-bottom: 5px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+.date-line {
+    color: #ABADB2;
+    display: flex;
+    align-items: left;
+    font-size: 0.90em;
+    font-family: Arial;
+    margin-top: 5px;
+}
 
-    .date-line span {
-        white-space: nowrap;
-    }
+.date-line span {
+    white-space: nowrap;
+}
 
-    .arrow-separator {
-        margin: 0 10px;
-        opacity: 0.5;
-        vertical-align: middle;
-    }
+.arrow-separator {
+    margin: 0 10px;
+    opacity: 0.5;
+    vertical-align: middle;
+}
 
-    .time-line {
-        font-size: 12px;
-        color: #797977;
-        margin-bottom: 5px;
-        display: flex;
-        justify-content: space-between;
-    }
+.time-line {
+    font-size: 12px;
+    color: #797977;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+}
 
-    .status-dot {
-        height: 8px;
-        width: 8px;
-        background-color: #2ecc71; /* Example color */
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 5px;
-    }
+.status-dot {
+    height: 8px;
+    width: 8px;
+    background-color: #2ecc71; /* Example color */
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
 
-    .clock-icon {
-        width: 12px; /* Adjust size as needed */
-        height: 12px;
-        margin-right: 5px;
-        vertical-align: middle;
-    }
+.clock-icon {
+    width: 12px; /* Adjust size as needed */
+    height: 12px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
 
-    .event-icon {
-        width: 35px;
-    }
+.event-details {
+    width: 90%
+}
 
-    .event-details {
-        width: 90%
-    }
+.event-title {
+    font-family: Arial;
+    font-size: 1.35em;
+    font-weight: bold;
+    margin-right: 5px;
+    display: inline-block; /* Keeps it on the same line as event-type */
+}
 
-    .event-title {
-        font-family: Arial;
-        font-size: 1.35em;
-        font-weight: bold;
-        margin-right: 5px;
-        display: inline-block; /* Keeps it on the same line as event-type */
-    }
+.event-type {
+    font-size: 0.90em;
+    color: #ABADB2;
+    vertical-align: middle; /* Visually center with event-title */
+    display: inline-block;  /* Keep it inline */
+    margin-top: -5px;
+    margin-left: 5px;
+}
 
-    .event-type {
-        font-size: 0.90em;
-        color: #ABADB2;
-        vertical-align: middle; /* Visually center with event-title */
-        display: inline-block;  /* Keep it inline */
-    }
+.date-line img {
+    width: 12px;
+    height: 15px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
 
-    .date-line {
-        display: flex;
-        align-items: center;  /* Vertically align the content */
-        font-size: 0.90em;
-        color: #ABADB2;
-        font-family: Arial;
-        margin-top: 5px;  /* Adjust as needed */
-    }
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin: 0 5px;
+    vertical-align: middle;
+}
 
-    .date-line img {
-        width: 12px;
-        height: 15px;
-        margin-right: 5px;
-        vertical-align: middle;
-    }
-
-    .status-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        display: inline-block;
-        margin: 0 5px;
-        vertical-align: middle;
-    }
-
-    .status-box {
-        font-size: 0.90em;
-        color: #ABADB2;
-        font-family: Arial;
-        display: inline-block;
-        vertical-align: middle;
-    }
+.status-box {
+    font-size: 0.90em;
+    color: #ABADB2;
+    font-family: Arial;
+    display: inline-block;
+    vertical-align: middle;
+}
 `;
 document.head.appendChild(style);
 
