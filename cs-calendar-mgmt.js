@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.45
+// @version      0.3.46
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -460,20 +460,10 @@ function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay
         dayElem.style.color = '#6C6D71';
     }
 
-    // General styles for all day elements
-    dayElem.style.height = '50px';
-    dayElem.style.borderRadius = '25px/50px';  // Pill Shaped
-    dayElem.style.width = '33px';
-    dayElem.style.display = 'flex';
-    dayElem.style.flexDirection = 'column';
-    dayElem.style.justifyContent = 'space-between'; // Space Between Content
-    dayElem.style.alignItems = 'center';
-    dayElem.style.padding = '4px 0'; // 4px padding on top and bottom
-
     // Create and position the day number
     const dateNumber = document.createElement('span');
     dateNumber.textContent = d.day;
-    dateNumber.style.fontSize = '12px';
+    dateNumber.className = 'date-number';
 
     // Clear text content to avoid duplicate numbers
     dayElem.innerHTML = '';
@@ -713,8 +703,8 @@ function createEventElement(event, isPastEvent) {
     // Replace the placeholder icon with a colored rectangle
     const icon = document.createElement('div');
     icon.className = 'event-icon';
-    icon.style.width = '35px';
-    icon.style.height = '3px';
+    icon.style.width = '3px';
+    icon.style.height = '35px';
     icon.style.backgroundColor = getEventColor(event.event_type);
 
     // Event details container
@@ -832,11 +822,11 @@ function initializeCalendarTool() {
     const eventsHeader = document.createElement('h2');
     eventsHeader.textContent = 'Events';
     eventsHeader.style.fontFamily = 'Arial';
-    eventsHeader.style.margin = '30px 0 10px 0';
+    eventsHeader.style.margin = '20px 0 10px 0';
     eventsHeader.style.textAlign = 'left';
     eventsHeader.style.fontSize = '1.5em';
     eventsHeader.style.color = '#3C3B52';
-    eventsHeader.style.width = '100%'; // Take full width
+    eventsHeader.style.width = '95%'; // Take full width
 
     modal.appendChild(card);
 
@@ -1022,9 +1012,26 @@ style.textContent = `
         box-sizing: border-box;
     }
 
-    .today {
-        background-color: #F6FAFB !important;
+    .day {
+        color: #6C6D71;
+        height: 60px;
+        width: 33px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        border-radius: 33px;
+        margin-bottom: 2px;
+    }
+
+    day.today {
+        background-color: #F6FAFB;
         border-color: #F6FAFB;
+    }
+
+    day.today .date-number {
+        font-size: 12px;
+        margin: 12px 0;
     }
 
     .event-card {
@@ -1118,6 +1125,62 @@ style.textContent = `
         width: 12px; /* Adjust size as needed */
         height: 12px;
         margin-right: 5px;
+        vertical-align: middle;
+    }
+
+    .event-icon {
+    width: 35px;
+    }
+
+    .event-details {
+        width: 90%
+    }
+
+    .event-title {
+        font-family: Arial;
+        font-size: 1.35em;
+        font-weight: bold;
+        margin-right: 5px;
+        display: inline-block; /* Keeps it on the same line as event-type */
+    }
+
+    .event-type {
+        font-size: 0.90em;
+        color: #ABADB2;
+        vertical-align: middle; /* Visually center with event-title */
+        display: inline-block;  /* Keep it inline */
+    }
+
+    .date-line {
+        display: flex;
+        align-items: center;  /* Vertically align the content */
+        font-size: 0.90em;
+        color: #ABADB2;
+        font-family: Arial;
+        margin-top: 5px;  /* Adjust as needed */
+    }
+
+    .date-line img {
+        width: 12px;
+        height: 15px;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+
+    .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 5px;
+        vertical-align: middle;
+    }
+
+    .status-box {
+        font-size: 0.90em;
+        color: #ABADB2;
+        font-family: Arial;
+        display: inline-block;
         vertical-align: middle;
     }
 `;
