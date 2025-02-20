@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.51
+// @version      0.3.52
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -1037,6 +1037,7 @@ style.textContent = `
         height: 46px;
         text-align: center;
         margin-right: 15px;
+        margin-left: 5px;
         background-color: #C79B7A; /* This color is programatically determined elsewhere and not hardcoded. Line only for testing. */
     }
 
@@ -1044,17 +1045,6 @@ style.textContent = `
         flex-grow: 1;
         text-align: left;
         position: relative;
-    }
-
-    .event-title-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 5px;
-    }
-
-    .event-title {
-        font-size: 16px;
     }
 
     .date-line {
@@ -1108,10 +1098,11 @@ style.textContent = `
 
     .event-title {
         font-family: Arial;
-        font-size: 1.35em;
+        font-size: 16px;
         font-weight: bold;
         margin-right: 5px;
-        display: inline-block; /* Keeps it on the same line as event-type */
+        display: inline-block;
+        margin-bottom: 2px;
     }
 
     .event-type {
@@ -1119,8 +1110,8 @@ style.textContent = `
         color: #ABADB2;
         vertical-align: middle; /* Visually center with event-title */
         display: inline-block;  /* Keep it inline */
-        margin-top: -5px;
-        margin-left: 5px;
+        margin-top: -3px;
+        margin-left: 3px;
     }
 
     .date-line img {
@@ -1141,6 +1132,11 @@ style.textContent = `
     .status-box .start-date-details,
     .status-box .status-message-details {
         font-size: 12px;
+        margin-bottom: -1px;
+    }
+
+    .status-box .start-date-details {
+        margin-bottom: -2px;
     }
 `;
 document.head.appendChild(style);
