@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.59
+// @version      0.3.60
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -757,16 +757,15 @@ function createEventElement(event, isPastEvent) {
     dropdownButton.className = 'event-dropdown-button';
     const dropdownImg = document.createElement('img');
     dropdownImg.src = 'https://epearson.me/faction_status_images/dropdown-more.svg';
-    dropdownImg.width = 17;  // Correct way
-    dropdownImg.height = 21; // Correct way
+    dropdownImg.width = 17;  
+    dropdownImg.height = 21; 
     dropdownButton.appendChild(dropdownImg);
 
-    // Add the click event listener DIRECTLY here.  MUCH BETTER.
+    // Add the click event listener
     dropdownButton.addEventListener('click', (event) => {
         event.stopPropagation(); // Prevent click from bubbling up to the document
         toggleDropdown(dropdownButton); // Call toggleDropdown, passing the button
     });
-
 
     eventRow.appendChild(icon);  // icon, then details
     eventRow.appendChild(details); // ... then details
@@ -775,14 +774,12 @@ function createEventElement(event, isPastEvent) {
     return eventRow;
 }
 
-
 function toggleDropdown(button) {
     // Check if a dropdown already exists, and remove it if it does.  This
     // prevents multiple dropdowns from being open at the same time.
     let existingDropdown = document.querySelector('.event-dropdown-menu');
     if (existingDropdown) {
         existingDropdown.remove();
-        // If the existing dropdown was attached to the *same* button, we're done.
         if (existingDropdown.parentElement === button) {
             return; // Exit early.  The menu is now closed.
         }
@@ -842,8 +839,8 @@ function toggleDropdown(button) {
         top = buttonRect.top - menuHeight; // Position *above* the button
     }
 
-   // Horizontal adjustment.
-   if (left + menuWidth > viewportWidth) {
+    // Horizontal adjustment.
+    if (left + menuWidth > viewportWidth) {
         left = buttonRect.right - menuWidth;
     }
 
