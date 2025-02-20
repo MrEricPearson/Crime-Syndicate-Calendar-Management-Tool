@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.52
+// @version      0.3.53
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -804,7 +804,7 @@ function initializeCalendarTool() {
     const eventsHeader = document.createElement('h2');
     eventsHeader.textContent = 'Events';
     eventsHeader.style.fontFamily = 'Arial';
-    eventsHeader.style.margin = '5px 1px';
+    eventsHeader.style.margin = '0 1px 10px 1px';
     eventsHeader.style.textAlign = 'left';
     eventsHeader.style.fontSize = '1.5em';
     eventsHeader.style.color = '#3C3B52';
@@ -843,7 +843,7 @@ function initializeCalendarTool() {
 //Add these styles to the bottom
 const style = document.createElement('style');
 style.textContent = `
-    .top-bar {
+   .top-bar {
         position: fixed;
         top: 0;
         left: 0;
@@ -921,7 +921,7 @@ style.textContent = `
         background-color: #FFFFFF;
         color: #3C3B52;
         padding: 20px;
-        border: 1px solid #E7E7E7
+        border: 1px solid #E7E7E7;
         border-radius: 10px;
         margin: 20px 0;
         width: 94%;
@@ -971,15 +971,24 @@ style.textContent = `
         flex-direction: column;
         align-items: center;
         padding: 10px;
-        box-sizing: border-box;
+        box-sizing: border-box; /*Ensures padding stays within bounds*/
+    }
+
+    .events-header { /*Combined*/
+        font-family: Arial;
+        margin: 20px 0 10px 0;
+        text-align: left;
+        font-size: 1.5em;
+        color: #3C3B52;
+        width: 95%;
     }
 
     .event-container {
         display: flex;
-        justify-content: center;
+        justify-content: center; /* Horizontally center the circles */
         align-items: center;
-        margin-bottom: 4px;
-        gap: 4px;
+        margin-bottom: 4px;  /* Push them to the bottom by 4px */
+        gap: 4px; /* Space inbetween */
     }
 
     .event-circle {
@@ -994,30 +1003,13 @@ style.textContent = `
         box-sizing: border-box;
     }
 
-    .day {
-        color: #6C6D71;
-        height: 60px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        border-radius: 33px;
-        margin-bottom: 2px;
-        background-color: #FFFFFF;
-    }
-
-    day.today {
-        background-color: #F6FAFB;
+    .day.today {
+        background-color: #F6FAFB !important;
         border-color: #F6FAFB;
     }
 
-    day.today .date-number {
-        font-size: 12px;
-        margin: 12px 0;
-    }
-
     .event-card {
-        background-color: #FFFFFF;
+        background-color: #f4f9f5;
         color: #333;
         padding: 10px;
         border-radius: 10px;
@@ -1029,76 +1021,34 @@ style.textContent = `
     .event-row {
         display: flex;
         align-items: center;
+        margin-bottom: 10px;
         padding: 5px 0;
     }
 
+    /* Removed width and text-align */
     .event-icon {
-        width: 6px;
-        height: 46px;
-        text-align: center;
-        margin-right: 15px;
-        margin-left: 5px;
-        background-color: #C79B7A; /* This color is programatically determined elsewhere and not hardcoded. Line only for testing. */
+        height: 3px;
+        margin-right: 10px;
     }
 
     .event-details {
         flex-grow: 1;
         text-align: left;
-        position: relative;
+        width: 90%; /* Added width back */
+        display: flex;        /* Added for vertical stacking */
+        flex-direction: column; /* Added for vertical stacking */
     }
 
-    .date-line {
-        color: #ABADB2;
-        display: flex;
-        align-items: left;
-        font-size: 0.90em;
-        font-family: Arial;
-        margin-top: 5px;
-    }
-
-    .date-line span {
-        white-space: nowrap;
-    }
-
-    .arrow-separator {
-        margin: 0 10px;
-        opacity: 0.5;
-        vertical-align: middle;
-    }
-
-    .time-line {
-        font-size: 12px;
-        color: #797977;
-        margin-bottom: 5px;
-        display: flex;
+    .event-title-container, .time-line {
+        display: flex; /*These are not needed*/
+        align-items: center;
         justify-content: space-between;
-    }
-
-    .status-dot {
-        height: 14px;
-        width: 14px;
-        background-color: #2ecc71; /* Example color */
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 5px;
-        margin-left: 10px;
-        vertical-align: middle;
-    }
-
-    .clock-icon {
-        width: 12px; /* Adjust size as needed */
-        height: 12px;
-        margin-right: 5px;
-        vertical-align: middle;
-    }
-
-    .event-details {
-        width: 90%
+        margin-bottom: 5px;
     }
 
     .event-title {
         font-family: Arial;
-        font-size: 16px;
+        font-size: 1.35em;
         font-weight: bold;
         margin-right: 5px;
         display: inline-block;
@@ -1106,12 +1056,21 @@ style.textContent = `
     }
 
     .event-type {
-        font-size: 12px;
+        font-size: 0.90em;
         color: #ABADB2;
-        vertical-align: middle; /* Visually center with event-title */
-        display: inline-block;  /* Keep it inline */
+        vertical-align: middle;
+        display: inline-block;
         margin-top: -3px;
         margin-left: 3px;
+    }
+
+    .date-line {
+        display: flex;
+        align-items: center;  /* Vertically align the content */
+        font-size: 0.90em;
+        color: #ABADB2;
+        font-family: Arial;
+        margin-top: 5px;  /* Adjust as needed */
     }
 
     .date-line img {
@@ -1121,22 +1080,44 @@ style.textContent = `
         vertical-align: middle;
     }
 
-    .status-box {
-        font-size: 12px;
-        color: #ABADB2;
-        font-family: Arial;
+    .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
         display: inline-block;
+        margin: 0 5px;
         vertical-align: middle;
     }
 
-    .status-box .start-date-details,
-    .status-box .status-message-details {
+    .status-box {
+        font-size: 0.90em;
+        color: #ABADB2;
+        font-family: Arial;
+        display: inline-flex; /* Use inline-flex, not flex */
+        align-items: center; /* Vertically center dot and text */
+        margin-left: 15px;    /* Correct placement */
+    }
+    .status-message-details{
         font-size: 12px;
+        font-family: Arial;
         margin-bottom: -1px;
     }
 
-    .status-box .start-date-details {
-        margin-bottom: -2px;
+    .day {
+        color: #6C6D71;
+        height: 50px;
+        width: 33px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 25px/50px;
+        padding: 4px 0;
+        background-color: transparent;
+    }
+
+    .date-number {
+        font-size: 12px;
     }
 `;
 document.head.appendChild(style);
