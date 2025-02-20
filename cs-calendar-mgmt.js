@@ -804,7 +804,7 @@ function initializeCalendarTool() {
     const eventsHeader = document.createElement('h2');
     eventsHeader.textContent = 'Events';
     eventsHeader.style.fontFamily = 'Arial';
-    eventsHeader.style.margin = '0 1px 10px 1px';
+    eventsHeader.style.margin = '5px 1px 10px 1px';
     eventsHeader.style.textAlign = 'left';
     eventsHeader.style.fontSize = '1.5em';
     eventsHeader.style.color = '#3C3B52';
@@ -843,7 +843,7 @@ function initializeCalendarTool() {
 //Add these styles to the bottom
 const style = document.createElement('style');
 style.textContent = `
-   .top-bar {
+    .top-bar {
         position: fixed;
         top: 0;
         left: 0;
@@ -873,7 +873,7 @@ style.textContent = `
         height: 100%;
         background-color: #ecf1ed;
         color: #fff;
-        display: none; /* Initially hidden */
+        display: none;
         z-index: 100001;
         align-items: center;
         flex-direction: column;
@@ -921,7 +921,7 @@ style.textContent = `
         background-color: #FFFFFF;
         color: #3C3B52;
         padding: 20px;
-        border: 1px solid #E7E7E7;
+        border: 1px solid #E7E7E7
         border-radius: 10px;
         margin: 20px 0;
         width: 94%;
@@ -971,24 +971,15 @@ style.textContent = `
         flex-direction: column;
         align-items: center;
         padding: 10px;
-        box-sizing: border-box; /*Ensures padding stays within bounds*/
-    }
-
-    .events-header { /*Combined*/
-        font-family: Arial;
-        margin: 20px 0 10px 0;
-        text-align: left;
-        font-size: 1.5em;
-        color: #3C3B52;
-        width: 95%;
+        box-sizing: border-box;
     }
 
     .event-container {
         display: flex;
-        justify-content: center; /* Horizontally center the circles */
+        justify-content: center;
         align-items: center;
-        margin-bottom: 4px;  /* Push them to the bottom by 4px */
-        gap: 4px; /* Space inbetween */
+        margin-bottom: 4px;
+        gap: 4px;
     }
 
     .event-circle {
@@ -1003,13 +994,30 @@ style.textContent = `
         box-sizing: border-box;
     }
 
-    .day.today {
-        background-color: #F6FAFB !important;
+    .day {
+        color: #6C6D71;
+        height: 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        border-radius: 33px;
+        margin-bottom: 2px;
+        background-color: #FFFFFF;
+    }
+
+    day.today {
+        background-color: #F6FAFB;
         border-color: #F6FAFB;
     }
 
+    day.today .date-number {
+        font-size: 12px;
+        margin: 12px 0;
+    }
+
     .event-card {
-        background-color: #f4f9f5;
+        background-color: #FFFFFF;
         color: #333;
         padding: 10px;
         border-radius: 10px;
@@ -1021,34 +1029,78 @@ style.textContent = `
     .event-row {
         display: flex;
         align-items: center;
-        margin-bottom: 10px;
         padding: 5px 0;
     }
 
-    /* Removed width and text-align */
     .event-icon {
-        height: 3px;
-        margin-right: 10px;
+        width: 6px;
+        height: 46px;
+        text-align: center;
+        margin-right: 15px;
+        margin-left: 5px;
+        background-color: #C79B7A; /* This color is programatically determined elsewhere and not hardcoded. Line only for testing. */
     }
 
     .event-details {
         flex-grow: 1;
         text-align: left;
-        width: 90%; /* Added width back */
-        display: flex;        /* Added for vertical stacking */
-        flex-direction: column; /* Added for vertical stacking */
+        position: relative;
     }
 
-    .event-title-container, .time-line {
-        display: flex; /*These are not needed*/
-        align-items: center;
-        justify-content: space-between;
+    .date-line {
+        color: #ABADB2;
+        display: flex;
+        font-size: 12px;
+        font-family: Arial;
+        margin-top: 5px;
+        line-height: 20px;
+    }
+
+    .date-line span {
+        white-space: nowrap;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .arrow-separator {
+        margin: 0 10px;
+        opacity: 0.5;
+        vertical-align: middle;
+    }
+
+    .time-line {
+        font-size: 12px;
+        color: #797977;
         margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .status-dot {
+        height: 14px;
+        width: 14px;
+        background-color: #2ecc71; /* Example color */
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+        margin-left: 10px;
+        vertical-align: middle;
+    }
+
+    .clock-icon {
+        width: 12px; /* Adjust size as needed */
+        height: 12px;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+
+    .event-details {
+        width: 90%
     }
 
     .event-title {
         font-family: Arial;
-        font-size: 1.35em;
+        font-size: 16px;
         font-weight: bold;
         margin-right: 5px;
         display: inline-block;
@@ -1056,21 +1108,12 @@ style.textContent = `
     }
 
     .event-type {
-        font-size: 0.90em;
+        font-size: 12px;
         color: #ABADB2;
-        vertical-align: middle;
-        display: inline-block;
+        vertical-align: middle; /* Visually center with event-title */
+        display: inline-block;  /* Keep it inline */
         margin-top: -3px;
         margin-left: 3px;
-    }
-
-    .date-line {
-        display: flex;
-        align-items: center;  /* Vertically align the content */
-        font-size: 0.90em;
-        color: #ABADB2;
-        font-family: Arial;
-        margin-top: 5px;  /* Adjust as needed */
     }
 
     .date-line img {
@@ -1078,46 +1121,15 @@ style.textContent = `
         height: 15px;
         margin-right: 5px;
         vertical-align: middle;
-    }
-
-    .status-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
         display: inline-block;
-        margin: 0 5px;
-        vertical-align: middle;
     }
 
     .status-box {
-        font-size: 0.90em;
+        font-size: 12px;
         color: #ABADB2;
         font-family: Arial;
-        display: inline-flex; /* Use inline-flex, not flex */
-        align-items: center; /* Vertically center dot and text */
-        margin-left: 15px;    /* Correct placement */
-    }
-    .status-message-details{
-        font-size: 12px;
-        font-family: Arial;
-        margin-bottom: -1px;
-    }
-
-    .day {
-        color: #6C6D71;
-        height: 50px;
-        width: 33px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 25px/50px;
-        padding: 4px 0;
-        background-color: transparent;
-    }
-
-    .date-number {
-        font-size: 12px;
+        display: inline-block;
+        vertical-align: middle;
     }
 `;
 document.head.appendChild(style);
