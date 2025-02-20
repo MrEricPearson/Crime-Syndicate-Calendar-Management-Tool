@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.56
+// @version      0.3.57
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -697,7 +697,10 @@ function createEventElement(event, isPastEvent) {
     // Colored rectangle icon (no textContent needed)
     const icon = document.createElement('div');
     icon.className = 'event-icon';
+    icon.style.width = '35px';  // Set width
+    icon.style.height = '3px';   // Set height
     icon.style.backgroundColor = getEventColor(event.event_type); // Dynamic color
+    icon.style.marginRight = '10px'; // Add spacing.  Critical for layout
 
     // Event details container
     const details = document.createElement('div');
@@ -707,6 +710,7 @@ function createEventElement(event, isPastEvent) {
 
     // 1. Event Title Row (now using a container div)
     const titleRow = document.createElement('div');
+    titleRow.className = "event-title-row";
     titleRow.style.display = 'flex';       // Use flexbox for horizontal alignment
     titleRow.style.alignItems = 'center'; // Vertically center title and type
 
@@ -745,12 +749,12 @@ function createEventElement(event, isPastEvent) {
         const statusDot = document.createElement('span');
         statusDot.className = 'status-dot';
         statusDot.style.backgroundColor = isPastEvent ? '#5ED8C1' : '#D8C25E'; // Set color dynamically
-        statusSpan.appendChild(statusDot);
+        statusSpan.appendChild(statusDot); // Dot *inside* the status container
 
         const statusMessageSpan = document.createElement('span');
         statusMessageSpan.className = 'status-message-details';
         statusMessageSpan.textContent = isPastEvent ? 'Completed' : 'Upcoming Event';
-        statusSpan.appendChild(statusMessageSpan);
+        statusSpan.appendChild(statusMessageSpan); // Message *inside* the status container
 
         dateLineRow.appendChild(statusSpan);
     }
@@ -764,8 +768,8 @@ function createEventElement(event, isPastEvent) {
     dropdownButton.className = 'event-dropdown-button';
     const dropdownImg = document.createElement('img');
     dropdownImg.src = 'https://epearson.me/faction_status_images/dropdown-more.svg';
-    dropdownImg.style.width = '17px';
-    dropdownImg.style.height = '21px';
+    dropdownImg.width = 17; // Correct way to set image size
+    dropdownImg.height = 21;
     dropdownButton.appendChild(dropdownImg);
 
     // Add the click event listener DIRECTLY here
@@ -775,17 +779,16 @@ function createEventElement(event, isPastEvent) {
     });
 
     eventRow.appendChild(dropdownButton); // Add the dropdown button
-
     return eventRow;
 }
 
 function toggleDropdown(button) {
-    // Check for existing dropdown, and remove if present.
+    // Check if a dropdown already exists, and remove it if it does
     let existingDropdown = document.querySelector('.event-dropdown-menu');
     if (existingDropdown) {
         existingDropdown.remove();
-        if (existingDropdown.parentElement === button) {
-            return; // Exit if the same button was clicked.
+        if (existingDropdown.parentElement === button) { // The menu was already open for the button
+            return; // Exit early.  The menu is now closed.
         }
     }
 
@@ -806,8 +809,7 @@ function toggleDropdown(button) {
         li.style.padding = '8px 16px'; // Add padding to each list item
         li.style.cursor = 'pointer';    // Change cursor on hover
         li.style.fontFamily = 'Arial, sans-serif'; //Consistent Font
-        li.style.fontSize = '.9em'; //Consistent Font Size
-        li.style.color = '#ABADB2';
+        li.style.fontSize = '.9em'; //Consistent Font
 
         // (Optional) Add hover effect using Javascript (cleaner than :hover in this case)
         li.addEventListener('mouseover', () => li.style.backgroundColor = '#f0f0f0');
