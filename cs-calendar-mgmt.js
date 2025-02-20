@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.49
+// @version      0.3.50
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -802,7 +802,7 @@ function initializeCalendarTool() {
     const eventsHeader = document.createElement('h2');
     eventsHeader.textContent = 'Events';
     eventsHeader.style.fontFamily = 'Arial';
-    eventsHeader.style.margin = '20px 0 10px 0';
+    eventsHeader.style.margin = '10px 1px';
     eventsHeader.style.textAlign = 'left';
     eventsHeader.style.fontSize = '1.5em';
     eventsHeader.style.color = '#3C3B52';
@@ -1075,9 +1075,8 @@ day.today .date-number {
 }
 
 .time-line {
-    font-size: 12px;
+    font-size: 1.1em;
     color: #797977;
-    margin-bottom: 5px;
     display: flex;
     justify-content: space-between;
 }
@@ -1111,12 +1110,12 @@ day.today .date-number {
 }
 
 .event-type {
-    font-size: 0.90em;
+    font-size: 1.0em;
     color: #ABADB2;
     vertical-align: middle; /* Visually center with event-title */
     display: inline-block;  /* Keep it inline */
-    margin-top: -5px;
-    margin-left: 5px;
+    margin-top: -2px;
+    margin-left: 2px;
 }
 
 .date-line img {
@@ -1136,7 +1135,7 @@ day.today .date-number {
 }
 
 .status-box {
-    font-size: 0.90em;
+    font-size: 1.1em;
     color: #ABADB2;
     font-family: Arial;
     display: inline-block;
