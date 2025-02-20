@@ -89,7 +89,7 @@ function createModal() {
     headerWrapper.style.alignItems = 'center';
     headerWrapper.style.justifyContent = 'space-between';
     headerWrapper.style.position = 'relative';
-    headerWrapper.style.marginBottom = '-15px';
+    headerWrapper.style.marginBottom = '-20px';
 
     const backButton = document.createElement('button');
     backButton.style.position = 'absolute';
@@ -324,7 +324,7 @@ function createDayOfWeekHeaderCell(dayAbbreviation) {
     // Apply styles for centering and appearance
     headerCell.style.textAlign = 'center';
     headerCell.style.fontSize = '12px';  // Set font size as desired
-    headerCell.style.height = '16px'; // Set height as desired
+    headerCell.style.height = '33px'; // Set height as desired
     headerCell.style.display = 'flex';       // Use flexbox for alignment
     headerCell.style.alignItems = 'center';  // Vertically center text
     headerCell.style.justifyContent = 'center'; // Horizontally center text
@@ -337,7 +337,7 @@ function createCalendarGrid() {
     const calendarGrid = document.createElement('div');
     calendarGrid.style.display = 'grid';
     calendarGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
-    calendarGrid.style.gridGap = '5px';
+    calendarGrid.style.gridGap = '5px 5px';
 
     return calendarGrid;
 }
@@ -441,8 +441,13 @@ function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay
             cellDay === todayDay
         );
 
+        console.log(`cellDate ${year}-${month}-${d.day}`);
+        console.log(`today ${todayYear}-${todayMonth}-${todayDay}`);
+        console.log(`className ${dayElem.className}`);
+
         if (isToday) {
             dayElem.classList.add('today');  // Add the 'today' class
+            console.log("Added 'today' class to cell");
         }
     }
 
@@ -456,9 +461,9 @@ function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay
     }
 
     // General styles for all day elements
-    dayElem.style.height = '50px'; // Changed Height
+    dayElem.style.height = '50px';
+    dayElem.style.borderRadius = '25px/50px';  // Pill Shaped
     dayElem.style.width = '33px';
-    dayElem.style.borderRadius = '25px';
     dayElem.style.display = 'flex';
     dayElem.style.flexDirection = 'column';
     dayElem.style.justifyContent = 'space-between'; // Space Between Content
@@ -469,7 +474,6 @@ function createDayElement(d, index, year, month, todayYear, todayMonth, todayDay
     const dateNumber = document.createElement('span');
     dateNumber.textContent = d.day;
     dateNumber.style.fontSize = '12px';
-    dateNumber.style.margin = '4px 0'; // 4px margin on top and bottom
 
     // Clear text content to avoid duplicate numbers
     dayElem.innerHTML = '';
@@ -706,44 +710,86 @@ function createEventElement(event, isPastEvent) {
     const eventRow = document.createElement('div');
     eventRow.className = 'event-row';
 
-    // Placeholder icon
+    // Replace the placeholder icon with a colored rectangle
     const icon = document.createElement('div');
     icon.className = 'event-icon';
-    icon.textContent = '📌';
+    icon.style.width = '35px';
+    icon.style.height = '3px';
+    icon.style.backgroundColor = getEventColor(event.event_type);
 
-    // Event details
+    // Event details container
     const details = document.createElement('div');
     details.className = 'event-details';
 
-    const startDate = new Date(event.event_start_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-    const endDate = event.event_end_date ? new Date(event.event_end_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '??';
-    const startTime = event.event_start_time || '--:--';
-    const endTime = event.event_end_time || '--:--';
+    // 1. Event Title Row
+    const titleRow = document.createElement('div');
 
-    details.innerHTML = `
-        <div class="event-title-container">
-            <strong class="event-title">${event.event_type}</strong>
-            ${isPastEvent || event.event_status ? `
-            <div class="status-box">
-                <span class="status-dot"></span>
-                ${isPastEvent ? 'Completed' : event.event_status}
-            </div>` : ''}
-        </div>
-        <div class="date-line">
-            <span>${startDate}</span>
-            <span class="arrow-separator">> > ></span>
-            <span>${endDate}</span>
-        </div>
-        <div class="time-line">
-            <img src="https://epearson.me/faction_status_images/clock.svg" class="clock-icon"><span> ${formatTime(startTime)}</span>
-            <img src="https://epearson.me/faction_status_images/clock.svg" class="clock-icon"><span> ${formatTime(endTime)}</span>
-        </div>
-    `;
+    const eventTitleSpan = document.createElement('span');
+    eventTitleSpan.className = 'event-title';
+    eventTitleSpan.textContent = event.event_title;
+    titleRow.appendChild(eventTitleSpan);
+
+    const eventTypeSpan = document.createElement('span');
+    eventTypeSpan.className = 'event-type';
+    eventTypeSpan.textContent = `(${event.event_type})`;
+    titleRow.appendChild(eventTypeSpan);
+
+    details.appendChild(titleRow);
+
+    // 2. Date Line Row
+    const dateLineRow = document.createElement('div');
+    dateLineRow.className = 'date-line';
+
+    const calendarIcon = document.createElement('img');
+    calendarIcon.src = 'https://epearson.me/faction_status_images/event_calendar.svg';
+    calendarIcon.width = 12;
+    calendarIcon.height = 15;
+    dateLineRow.appendChild(calendarIcon);
+
+    const startDateSpan = document.createElement('span');
+    startDateSpan.textContent = new Date(event.event_start_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    dateLineRow.appendChild(startDateSpan);
+
+    if (isPastEvent || event.event_status) {
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'status-box';
+
+        const statusDot = document.createElement('span');
+        statusDot.className = 'status-dot';
+        statusDot.style.backgroundColor = isPastEvent ? '#5ED8C1' : '#D8C25E'; // Set color dynamically
+        statusSpan.appendChild(statusDot);
+
+        const statusMessageSpan = document.createElement('span');
+        statusMessageSpan.textContent = isPastEvent ? 'Completed' : 'Upcoming Event';
+        statusSpan.appendChild(statusMessageSpan);
+
+        dateLineRow.appendChild(statusSpan);
+    }
+
+    details.appendChild(dateLineRow);
+
 
     eventRow.appendChild(icon);
     eventRow.appendChild(details);
 
     return eventRow;
+}
+
+function formatTime(time) {
+    if (!time) return '--:--';
+    let [hours, minutes] = time.split(':');
+    let period = 'am';
+    hours = parseInt(hours);
+    if (hours >= 12) {
+        period = 'pm';
+        if (hours > 12) {
+            hours -= 12;
+        }
+    }
+    if (hours === 0) {
+        hours = 12;
+    }
+    return `${hours}:${minutes}${period}`;
 }
 
 function formatTime(time) {
@@ -782,14 +828,25 @@ function initializeCalendarTool() {
     contentWrapper.style.flexDirection = 'column';
     contentWrapper.style.alignItems = 'center';
 
+    // Create Events Header
+    const eventsHeader = document.createElement('h2');
+    eventsHeader.textContent = 'Events';
+    eventsHeader.style.fontFamily = 'Arial';
+    eventsHeader.style.margin = '30px 0 10px 0';
+    eventsHeader.style.textAlign = 'left';
+    eventsHeader.style.fontSize = '1.5em';
+    eventsHeader.style.color = '#3C3B52';
+    eventsHeader.style.width = '100%'; // Take full width
+
     modal.appendChild(card);
 
     // Create event list container and append it to the modal *after* the card.
     const eventListContainer = document.createElement('div');
     eventListContainer.id = 'event-list-container';
-    eventListContainer.style.width = '90%'; // Make it the same width as the card
-    eventListContainer.style.boxSizing = 'border-box'; // Include padding/border in width
+    eventListContainer.style.width = '95%';
+    eventListContainer.style.boxSizing = 'border-box';
 
+    contentWrapper.appendChild(eventsHeader);
     modal.appendChild(contentWrapper);
     contentWrapper.appendChild(eventListContainer);
 
