@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.46
+// @version      0.3.47
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -344,12 +344,6 @@ function createCalendarGrid() {
 
 // CALENDAR: Render the calendar days, filling in the grid and handling events
 function renderCalendar(year, month, calendarGrid) {
-    // Clear all event highlights from previous months
-    Array.from(calendarGrid.querySelectorAll('.day.current')).forEach(dayCell => {
-        dayCell.style.backgroundColor = '#ffffff';
-        dayCell.style.color = '#6C6D71';
-    });
-
     calendarGrid.innerHTML = ''; // Clear previous grid
 
     dayOfWeekHeaders.forEach(day => {
@@ -989,15 +983,15 @@ style.textContent = `
         flex-direction: column;
         align-items: center;
         padding: 10px;
-        box-sizing: border-box; /*Ensures padding stays within bounds*/
+        box-sizing: border-box;
     }
 
     .event-container {
         display: flex;
-        justify-content: center; /* Horizontally center the circles */
+        justify-content: center;
         align-items: center;
-        margin-bottom: 4px;  /* Push them to the bottom by 4px */
-        gap: 4px; /* Space inbetween */
+        margin-bottom: 4px;
+        gap: 4px;
     }
 
     .event-circle {
@@ -1015,13 +1009,13 @@ style.textContent = `
     .day {
         color: #6C6D71;
         height: 60px;
-        width: 33px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
         align-items: center;
         border-radius: 33px;
         margin-bottom: 2px;
+        background-color: #FFFFFF;
     }
 
     day.today {
@@ -1100,18 +1094,6 @@ style.textContent = `
         justify-content: space-between;
     }
 
-    .status-box {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        display: inline-flex;
-        align-items: center;
-        padding: 4px 8px;
-        font-size: 12px;
-        position: absolute; /*Positions status in top right of .event-detail*/
-        top: 0;
-        right: 0;
-    }
-
     .status-dot {
         height: 8px;
         width: 8px;
@@ -1129,7 +1111,7 @@ style.textContent = `
     }
 
     .event-icon {
-    width: 35px;
+        width: 35px;
     }
 
     .event-details {
