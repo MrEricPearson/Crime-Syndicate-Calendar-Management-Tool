@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.47
+// @version      0.3.48
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -694,31 +694,37 @@ function createEventElement(event, isPastEvent) {
     const eventRow = document.createElement('div');
     eventRow.className = 'event-row';
 
-    // Replace the placeholder icon with a colored rectangle
+    // Colored rectangle icon (no textContent needed)
     const icon = document.createElement('div');
     icon.className = 'event-icon';
-    icon.style.width = '3px';
-    icon.style.height = '35px';
-    icon.style.backgroundColor = getEventColor(event.event_type);
+    icon.style.width = '35px';  // Set width
+    icon.style.height = '3px';   // Set height
+    icon.style.backgroundColor = getEventColor(event.event_type); // Dynamic color
+    icon.style.marginRight = '10px'; // Add spacing.  Critical for layout
 
     // Event details container
     const details = document.createElement('div');
     details.className = 'event-details';
+    details.style.display = 'flex';        // Use flexbox
+    details.style.flexDirection = 'column'; // Stack title/date vertically
 
-    // 1. Event Title Row
+    // 1. Event Title Row (now using a container div)
     const titleRow = document.createElement('div');
+    titleRow.style.display = 'flex';       // Use flexbox for horizontal alignment
+    titleRow.style.alignItems = 'center'; // Vertically center title and type
 
     const eventTitleSpan = document.createElement('span');
     eventTitleSpan.className = 'event-title';
     eventTitleSpan.textContent = event.event_title;
-    titleRow.appendChild(eventTitleSpan);
+    titleRow.appendChild(eventTitleSpan); // Append to titleRow
 
     const eventTypeSpan = document.createElement('span');
     eventTypeSpan.className = 'event-type';
     eventTypeSpan.textContent = `(${event.event_type})`;
-    titleRow.appendChild(eventTypeSpan);
+    titleRow.appendChild(eventTypeSpan);   // Append to titleRow
 
-    details.appendChild(titleRow);
+    details.appendChild(titleRow); // Append titleRow to details
+
 
     // 2. Date Line Row
     const dateLineRow = document.createElement('div');
@@ -750,8 +756,7 @@ function createEventElement(event, isPastEvent) {
         dateLineRow.appendChild(statusSpan);
     }
 
-    details.appendChild(dateLineRow);
-
+    details.appendChild(dateLineRow); // Append dateLineRow to details
 
     eventRow.appendChild(icon);
     eventRow.appendChild(details);
