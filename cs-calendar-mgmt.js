@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.69
+// @version      0.3.70
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -863,7 +863,8 @@ function createEventElement(event, isPastEvent) {
     const icon = document.createElement('div');
     icon.className = 'event-icon';
     icon.style.backgroundColor = getEventColor(event.event_type);
-    icon.style.height = '46px'; // Keep consistent height
+    icon.style.height = '46px'; // Consistent height, independent of row height
+    icon.style.width = '6px'; // Make sure width is set
 
     // Event details container
     const details = document.createElement('div');
@@ -871,17 +872,21 @@ function createEventElement(event, isPastEvent) {
     details.style.display = 'flex';
     details.style.flexDirection = 'column';
     details.style.flexGrow = '1'; // Allow details to take up remaining space
+    details.style.width = 'calc(100% - 61px)'
 
     // 1. Event Title Row
     const titleRow = document.createElement('div');
     titleRow.className = 'event-title-row';
     titleRow.style.display = 'flex';
     titleRow.style.alignItems = 'center';
-    titleRow.style.justifyContent = 'space-between'; // Key change: Push button to the right
+    titleRow.style.justifyContent = 'space-between';
+    titleRow.style.padding = '0';
+    titleRow.style.margin = '0';
+    titleRow.style.height = '46px';
 
     // Inner container for title and type (left side)
     const titleAndTypeContainer = document.createElement('div');
-    titleAndTypeContainer.style.display = 'flex'; // Keep title and type together
+    titleAndTypeContainer.style.display = 'flex';
     titleAndTypeContainer.style.alignItems = 'center';
 
     const eventTitleSpan = document.createElement('span');
@@ -894,8 +899,7 @@ function createEventElement(event, isPastEvent) {
     eventTypeSpan.textContent = `(${event.event_type})`;
     titleAndTypeContainer.appendChild(eventTypeSpan);
 
-    titleRow.appendChild(titleAndTypeContainer); // Add the container to the title row
-
+    titleRow.appendChild(titleAndTypeContainer);
 
     // --- Toggle Button ---
     const toggleButton = document.createElement('button');
@@ -906,30 +910,24 @@ function createEventElement(event, isPastEvent) {
     toggleImg.height = 21;
     toggleButton.appendChild(toggleImg);
 
-    // Add the click event listener to TOGGLE visibility
+    // Add the click event listener
     toggleButton.addEventListener('touchstart', (event) => {
         event.preventDefault();
         event.stopPropagation();
-
-        // Toggle visibility
         const isHidden = actionsRow.style.display === 'none';
         actionsRow.style.display = isHidden ? 'flex' : 'none';
         separator.style.display = isHidden ? 'block' : 'none';
-
-        // Change button image and background
         toggleImg.src = isHidden ? 'https://epearson.me/faction_status_images/dropdown-more-open.svg' : 'https://epearson.me/faction_status_images/dropdown-more.svg';
         toggleButton.style.backgroundColor = isHidden ? '#E7E7E7' : 'transparent';
     });
 
-    titleRow.appendChild(toggleButton); // Add button to the title row (on the right)
-
-
-    details.appendChild(titleRow); // Add title row to details
-
+    titleRow.appendChild(toggleButton); // Add to titleRow
+    details.appendChild(titleRow);
 
     // 2. Date Line Row
     const dateLineRow = document.createElement('div');
     dateLineRow.className = 'date-line';
+    dateLineRow.style.marginTop = '5px'; // Controlled gap
 
     const calendarIcon = document.createElement('img');
     calendarIcon.src = 'https://epearson.me/faction_status_images/event_calendar.svg';
@@ -945,12 +943,10 @@ function createEventElement(event, isPastEvent) {
     if (isPastEvent || event.event_status) {
         const statusSpan = document.createElement('span');
         statusSpan.className = 'status-box';
-
         const statusDot = document.createElement('span');
         statusDot.className = 'status-dot';
         statusDot.style.backgroundColor = isPastEvent ? '#5ED8C1' : '#D8C25E';
         statusSpan.appendChild(statusDot);
-
         const statusMessageSpan = document.createElement('span');
         statusMessageSpan.className = 'status-message-details';
         statusMessageSpan.textContent = isPastEvent ? 'Completed' : 'Upcoming Event';
@@ -963,8 +959,8 @@ function createEventElement(event, isPastEvent) {
     // --- Action Buttons Row (Initially Hidden) ---
     const actionsRow = document.createElement('div');
     actionsRow.className = 'event-actions-row';
-    actionsRow.style.marginTop = '8px';
-    actionsRow.style.display = 'none'; // Initially hidden
+    actionsRow.style.marginTop = '8px'; //Consistent space
+    actionsRow.style.display = 'none';
 
     // Horizontal Rule
     const separator = document.createElement('hr');
@@ -972,10 +968,8 @@ function createEventElement(event, isPastEvent) {
     separator.style.border = 'none';
     separator.style.borderTop = '1px solid #E7E7E7';
     separator.style.margin = '8px 0';
-    separator.style.display = 'none'; // Initially hidden
+    separator.style.display = 'none';
 
-
-    // Create the buttons
     const viewButton = createActionButton('View', 'view', event);
     const editButton = createActionButton('Edit', 'edit', event);
     const deleteButton = createActionButton('Delete', 'delete', event);
@@ -983,14 +977,12 @@ function createEventElement(event, isPastEvent) {
     actionsRow.appendChild(viewButton);
     actionsRow.appendChild(editButton);
     actionsRow.appendChild(deleteButton);
-    details.appendChild(separator); // Add separator *before* actions row
+
+    details.appendChild(separator);
     details.appendChild(actionsRow);
 
-    // Add the icon to the event row
     eventRow.appendChild(icon);
-    // Add the details to the event row
     eventRow.appendChild(details);
-    // NO separate container for the button; it's in the title row
 
     return eventRow;
 }
@@ -1348,6 +1340,7 @@ style.textContent = `
         flex-grow: 1;
         text-align: left;
         padding-top: 2px;
+        width: calc(100% - 61px)
     }
 
     .date-line {
