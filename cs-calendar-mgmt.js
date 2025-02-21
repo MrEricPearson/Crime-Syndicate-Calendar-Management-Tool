@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.64
+// @version      0.3.65
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -700,13 +700,13 @@ function createEventElement(event, isPastEvent) {
     details.className = 'event-details';
     details.style.display = 'flex';
     details.style.flexDirection = 'column';
-    details.style.flexGrow = '1'; // Add this line
+    details.style.flexGrow = '1';
 
-    // 1. Event Title Row
+    // 1. Event Title Row (same as before)
     const titleRow = document.createElement('div');
-    titleRow.className = 'event-title-row'; // Add class for styling
-    titleRow.style.display = 'flex';      // Use flexbox
-    titleRow.style.alignItems = 'center'; // Vertical centering
+    titleRow.className = 'event-title-row';
+    titleRow.style.display = 'flex';
+    titleRow.style.alignItems = 'center';
 
     const eventTitleSpan = document.createElement('span');
     eventTitleSpan.className = 'event-title';
@@ -720,153 +720,91 @@ function createEventElement(event, isPastEvent) {
 
     details.appendChild(titleRow);
 
-    // 2. Date Line Row
+    // 2. Date Line Row (same as before)
     const dateLineRow = document.createElement('div');
     dateLineRow.className = 'date-line';
 
     const calendarIcon = document.createElement('img');
     calendarIcon.src = 'https://epearson.me/faction_status_images/event_calendar.svg';
-    calendarIcon.width = 12;  // Set the correct width.
-    calendarIcon.height = 15; // Set the correct height.
+    calendarIcon.width = 12;
+    calendarIcon.height = 15;
     dateLineRow.appendChild(calendarIcon);
 
     const startDateSpan = document.createElement('span');
-    startDateSpan.className = 'start-date-details';  // Add class
+    startDateSpan.className = 'start-date-details';
     startDateSpan.textContent = new Date(event.event_start_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
     dateLineRow.appendChild(startDateSpan);
 
+
     if (isPastEvent || event.event_status) {
-      const statusSpan = document.createElement('span');
-      statusSpan.className = 'status-box';
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'status-box';
 
-      const statusDot = document.createElement('span');
-      statusDot.className = 'status-dot';
-      statusDot.style.backgroundColor = isPastEvent ? '#5ED8C1' : '#D8C25E';
-      statusSpan.appendChild(statusDot);
+        const statusDot = document.createElement('span');
+        statusDot.className = 'status-dot';
+        statusDot.style.backgroundColor = isPastEvent ? '#5ED8C1' : '#D8C25E';
+        statusSpan.appendChild(statusDot);
 
-      const statusMessageSpan = document.createElement('span');
-      statusMessageSpan.className = 'status-message-details';//add class
-      statusMessageSpan.textContent = isPastEvent ? 'Completed' : 'Upcoming Event';
-      statusSpan.appendChild(statusMessageSpan);
-      dateLineRow.appendChild(statusSpan); //add to row
+        const statusMessageSpan = document.createElement('span');
+        statusMessageSpan.className = 'status-message-details';
+        statusMessageSpan.textContent = isPastEvent ? 'Completed' : 'Upcoming Event';
+        statusSpan.appendChild(statusMessageSpan);
+        dateLineRow.appendChild(statusSpan);
     }
 
     details.appendChild(dateLineRow);
 
-    // --- Dropdown Button (Now with click handler) ---
-    const dropdownButton = document.createElement('button');
-    dropdownButton.className = 'event-dropdown-button';
-    const dropdownImg = document.createElement('img');
-    dropdownImg.src = 'https://epearson.me/faction_status_images/dropdown-more.svg';
-    dropdownImg.width = 17;  
-    dropdownImg.height = 21; 
-    dropdownButton.appendChild(dropdownImg);
 
-    // Add the click event listener
-    dropdownButton.addEventListener('touchstart', (event) => {
-        console.log("Dropdown button touchstart!");
-        event.preventDefault();
-        event.stopPropagation();
-        toggleDropdown(dropdownButton);
-    });
+    // --- NEW: Action Buttons Row ---
+    const actionsRow = document.createElement('div');
+    actionsRow.className = 'event-actions-row'; // Add a class for styling
+    actionsRow.style.marginTop = '8px'; // Add some spacing
 
-    eventRow.appendChild(icon);  // icon, then details
-    eventRow.appendChild(details); // ... then details
-    eventRow.appendChild(dropdownButton); // Add the dropdown button LAST
+    // Create the buttons
+    const viewButton = createActionButton('View', 'view', event);
+    const editButton = createActionButton('Edit', 'edit', event);
+    const deleteButton = createActionButton('Delete', 'delete', event);
+
+    actionsRow.appendChild(viewButton);
+    actionsRow.appendChild(editButton);
+    actionsRow.appendChild(deleteButton);
+
+    details.appendChild(actionsRow); // Add the actions row to the details
+
+
+    eventRow.appendChild(icon);
+    eventRow.appendChild(details);
+    // NO dropdown button anymore
 
     return eventRow;
 }
 
-function toggleDropdown(button) {
-    console.log("toggleDropdown called!", button);
+// NEW: Helper function to create action buttons for modifying events
+function createActionButton(text, actionType, event) {
+    const button = document.createElement('button');
+    button.textContent = text;
+    button.className = `event-action-button event-action-${actionType}`; // Add classes
 
-    let existingDropdown = document.querySelector('.event-dropdown-menu');
-    if (existingDropdown) {
-        console.log("Existing dropdown found, removing:", existingDropdown);
-        existingDropdown.remove();
-        if (existingDropdown.parentElement === button) {
-            console.log("Existing dropdown was from the same button. Exiting.");
-            return;
-        }
-    }
+    // Basic styling (you can customize this in your CSS)
+    button.style.backgroundColor = actionType === 'delete' ? '#ff6961' : '#f0f0f0'; // Example: red for delete
+    button.style.color = actionType === 'delete' ? '#fff' : '#333';
+    button.style.border = '1px solid #ccc';
+    button.style.padding = '4px 8px';
+    button.style.marginRight = '8px'; // Space between buttons
+    button.style.borderRadius = '4px';
+    button.style.cursor = 'pointer';
+    button.style.fontFamily = 'Arial, sans-serif';
+    button.style.fontSize = '0.8em';
 
-    const dropdownMenu = document.createElement('div');
-    dropdownMenu.className = 'event-dropdown-menu';
-    dropdownMenu.style.zIndex = '100002'; // ADDED: Higher z-index
-
-    console.log("Dropdown menu created:", dropdownMenu);
-
-    // --- Create the unordered list ---
-    const ul = document.createElement('ul');
-    ul.style.listStyleType = 'none';
-    ul.style.padding = '0';
-    ul.style.margin = '0';
-
-    // --- Create list items ---
-    const items = ['View Event', 'Edit Event', 'Delete Event'];
-    items.forEach(itemText => {
-        const li = document.createElement('li');
-        li.textContent = itemText;
-        li.style.padding = '8px 16px';
-        li.style.cursor = 'pointer';
-        li.style.fontFamily = 'Arial, sans-serif';
-        li.style.fontSize = '.9em';
-
-        li.addEventListener('click', () => {
-            console.log(`Clicked: ${itemText}`);
-            dropdownMenu.remove();
-            document.removeEventListener('touchstart', closeDropdown); // Keep touchstart
-        });
-
-        ul.appendChild(li);
+     // Add a click handler (replace with your actual logic)
+     button.addEventListener('click', () => {
+        console.log(`${text} clicked for event:`, event);
+        // Here you would call a function to handle the specific action,
+        // e.g., viewEvent(event), editEvent(event), deleteEvent(event)
+        // You'll need to implement those functions.
     });
 
-    dropdownMenu.appendChild(ul);
-
-    // --- Positioning Logic ---
-    button.appendChild(dropdownMenu); // Temporarily append
-
-    const buttonRect = button.getBoundingClientRect();
-    console.log("Button Rect:", buttonRect);
-
-    let top = buttonRect.bottom;
-    let left = buttonRect.left;
-
-    const menuHeight = dropdownMenu.offsetHeight;
-    const menuWidth = dropdownMenu.offsetWidth;
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
-
-    console.log("Menu Height:", menuHeight, "Menu Width:", menuWidth);
-    console.log("Viewport Height:", viewportHeight, "Viewport Width:", viewportWidth);
-
-    if (top + menuHeight > viewportHeight) {
-        top = buttonRect.top - menuHeight;
-    }
-
-    if (left + menuWidth > viewportWidth) {
-        left = buttonRect.right - menuWidth;
-    }
-
-    dropdownMenu.style.top = `${top}px`;
-    dropdownMenu.style.left = `${left}px`;
-    dropdownMenu.style.position = 'absolute';
-
-    document.body.appendChild(dropdownMenu);
-    console.log("Dropdown menu appended to body.");
-
-    // --- Click-Outside Handler ---
-    function closeDropdown(event) {
-        console.log("closeDropdown called", event.target);
-        if (!dropdownMenu.contains(event.target) && !button.contains(event.target)) {
-            console.log("Closing dropdown");
-            dropdownMenu.remove();
-            document.removeEventListener('touchstart', closeDropdown); // Keep touchstart
-        }
-    }
-
-    console.log("Adding touchstart listener to document"); // Keep touchstart log message
-    document.addEventListener('touchstart', closeDropdown); // Keep touchstart
+    return button;
 }
 
 function formatTime(time) {
@@ -1246,29 +1184,6 @@ style.textContent = `
         justify-content: center;
     }
 
-    .event-dropdown-menu {
-        position: absolute;
-        background-color: #fff;
-        border: 1px solid #ccc;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
-        border-radius: 4px;
-        padding: 8px 0;
-        z-index: 1001;
-        min-width: 150px;
-        white-space: nowrap;
-    }
-
-    .event-dropdown-menu div {
-        padding: 8px 16px;
-        cursor: pointer;
-        font-family: Arial, sans-serif;
-        font-size: 0.9em;
-    }
-
-    .event-dropdown-menu div:hover {
-        background-color: #f0f0f0;
-    }
-
     .event-dropdown-button {
         width: 45px;
         height: 45px;
@@ -1280,6 +1195,21 @@ style.textContent = `
         align-items: center;
         justify-content: center;
     }
+
+    .event-actions-row {
+        display: flex; /* Use flexbox for easy button alignment */
+        /* Add other styling as needed */
+    }
+
+    .event-action-button {
+        /* General button styles */
+        margin-right: 8px; /* Spacing between buttons */
+        /* Add other styles as needed */
+    }
+
+    .event-action-view {}
+    .event-action-edit {}
+    .event-action-delete {}
 `;
 document.head.appendChild(style);
 
