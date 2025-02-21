@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.61
+// @version      0.3.62
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -776,64 +776,64 @@ function createEventElement(event, isPastEvent) {
 }
 
 function toggleDropdown(button) {
-    console.log("toggleDropdown called!", button); 
+    console.log("toggleDropdown called!", button); // You have this
 
-    // Check if a dropdown already exists, and remove it if it does.  This
-    // prevents multiple dropdowns from being open at the same time.
+    // Check if a dropdown already exists, and remove it if it does.
     let existingDropdown = document.querySelector('.event-dropdown-menu');
     if (existingDropdown) {
+        console.log("Existing dropdown found, removing:", existingDropdown); // You have this
         existingDropdown.remove();
         if (existingDropdown.parentElement === button) {
-            return; // Exit early.  The menu is now closed.
+            console.log("Existing dropdown was from the same button. Exiting."); // You have this
+            return; // Exit early.
         }
     }
 
     const dropdownMenu = document.createElement('div');
     dropdownMenu.className = 'event-dropdown-menu';
 
-    console.log("Dropdown menu created:", dropdownMenu);
+    console.log("Dropdown menu created:", dropdownMenu); // You have this
 
     // --- Create the unordered list ---
     const ul = document.createElement('ul');
-    ul.style.listStyleType = 'none'; // Remove bullet points
-    ul.style.padding = '0';          // Remove default padding
-    ul.style.margin = '0';           // Remove default margin
+    ul.style.listStyleType = 'none';
+    ul.style.padding = '0';
+    ul.style.margin = '0';
 
     // --- Create list items ---
     const items = ['View Event', 'Edit Event', 'Delete Event'];
     items.forEach(itemText => {
         const li = document.createElement('li');
         li.textContent = itemText;
-        li.style.padding = '8px 16px'; // Add padding to each list item
-        li.style.cursor = 'pointer';    // Change cursor on hover
-        li.style.fontFamily = 'Arial, sans-serif'; //Consistent Font
-        li.style.fontSize = '.9em'; //Consistent Font
+        li.style.padding = '8px 16px';
+        li.style.cursor = 'pointer';
+        li.style.fontFamily = 'Arial, sans-serif';
+        li.style.fontSize = '.9em';
 
-        // Add hover effect using Javascript (cleaner than :hover in this case)
-        li.addEventListener('mouseover', () => li.style.backgroundColor = '#f0f0f0');
-        li.addEventListener('mouseout', () => li.style.backgroundColor = ''); //remove on mouseoff
+        // Add hover effect (removed, as per your request)
+        // li.addEventListener('mouseover', () => li.style.backgroundColor = '#f0f0f0');
+        // li.addEventListener('mouseout', () => li.style.backgroundColor = '');
 
-        // Add a click handler to each list item (for future functionality)
+        // Add a click handler to each list item
         li.addEventListener('click', () => {
-            // Placeholder for actual event handling.  Replace with your logic.
             console.log(`Clicked: ${itemText}`);
-            dropdownMenu.remove();  // Close dropdown after click
-            document.removeEventListener('click', closeDropdown); // Cleanup (Important!)
+            dropdownMenu.remove();
+            document.removeEventListener('click', closeDropdown);
         });
 
         ul.appendChild(li);
     });
 
-    dropdownMenu.appendChild(ul); // Append the list to the dropdown
+    dropdownMenu.appendChild(ul);
 
     // --- Positioning Logic ---
-    button.appendChild(dropdownMenu); // Temporarily append to the button for measurement.  *CRUCIAL*.
+    button.appendChild(dropdownMenu); // Temporarily append
 
-    const buttonRect = button.getBoundingClientRect(); // Get button's position
-    console.log("Button Rect:", buttonRect);
+    const buttonRect = button.getBoundingClientRect();
+    console.log("Button Rect:", buttonRect); // You have this (but we need the values!)
 
-    let top = buttonRect.bottom;  // Initial position: below the button
-    let left = buttonRect.left;   // Initial position: aligned with button's left edge
+    let top = buttonRect.bottom;
+    let left = buttonRect.left;
 
     // --- Viewport Edge Detection and Adjustment ---
     const menuHeight = dropdownMenu.offsetHeight;
@@ -841,37 +841,35 @@ function toggleDropdown(button) {
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
 
-    // Vertical adjustment
+    console.log("Menu Height:", menuHeight, "Menu Width:", menuWidth); // ADD THIS - CRITICAL
+    console.log("Viewport Height:", viewportHeight, "Viewport Width:", viewportWidth); // ADD THIS - CRITICAL
+
     if (top + menuHeight > viewportHeight) {
-        top = buttonRect.top - menuHeight; // Position *above* the button
+        top = buttonRect.top - menuHeight;
     }
 
-    // Horizontal adjustment.
     if (left + menuWidth > viewportWidth) {
         left = buttonRect.right - menuWidth;
     }
 
-    // Apply the calculated position.
     dropdownMenu.style.top = `${top}px`;
     dropdownMenu.style.left = `${left}px`;
-    dropdownMenu.style.position = 'absolute'; // VERY IMPORTANT.
+    dropdownMenu.style.position = 'absolute';
 
-    // Append the dropdown menu to the *document body* (AFTER positioning calculations)
     document.body.appendChild(dropdownMenu);
-    console.log("Dropdown menu appended to body.");
+    console.log("Dropdown menu appended to body."); // You have this
 
-    // --- Click-Outside Handler (Close the Dropdown) ---
+    // --- Click-Outside Handler ---
     function closeDropdown(event) {
-        console.log("closeDropdown called", event.target);
+        console.log("closeDropdown called", event.target); // You have this
         if (!dropdownMenu.contains(event.target) && !button.contains(event.target)) {
-            console.log("Closing dropdown");
+            console.log("Closing dropdown"); // You have this
             dropdownMenu.remove();
-            document.removeEventListener('click', closeDropdown); // Clean up listener!  VERY IMPORTANT.
+            document.removeEventListener('click', closeDropdown);
         }
     }
 
-    // Add a click listener to the *document* to close the dropdown when clicking outside
-    console.log("Adding click listener to document");
+    console.log("Adding click listener to document"); // You have this
     document.addEventListener('click', closeDropdown);
 }
 
