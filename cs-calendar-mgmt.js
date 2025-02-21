@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.66
+// @version      0.3.67
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -689,11 +689,15 @@ function processEvents(events, currentYear, currentMonthIndex) {
 function createEventElement(event, isPastEvent) {
     const eventRow = document.createElement('div');
     eventRow.className = 'event-row';
+    // NO flex or align-items here
 
     // Colored rectangle icon
     const icon = document.createElement('div');
     icon.className = 'event-icon';
     icon.style.backgroundColor = getEventColor(event.event_type);
+    // Set a fixed height for the icon to match the first row:
+    icon.style.height = '46px'; // Or whatever height your first row is
+
 
     // Event details container
     const details = document.createElement('div');
@@ -705,7 +709,7 @@ function createEventElement(event, isPastEvent) {
     // 1. Event Title Row
     const titleRow = document.createElement('div');
     titleRow.className = 'event-title-row';
-    titleRow.style.display = 'flex';
+    titleRow.style.display = 'flex'; // Flexbox applies to title row
     titleRow.style.alignItems = 'center';
 
     const eventTitleSpan = document.createElement('span');
@@ -723,6 +727,7 @@ function createEventElement(event, isPastEvent) {
     // 2. Date Line Row
     const dateLineRow = document.createElement('div');
     dateLineRow.className = 'date-line';
+    // No flexbox needed here
 
     const calendarIcon = document.createElement('img');
     calendarIcon.src = 'https://epearson.me/faction_status_images/event_calendar.svg';
@@ -753,6 +758,7 @@ function createEventElement(event, isPastEvent) {
 
     details.appendChild(dateLineRow);
 
+
     // --- Action Buttons Row (Initially Hidden) ---
     const actionsRow = document.createElement('div');
     actionsRow.className = 'event-actions-row';
@@ -761,13 +767,13 @@ function createEventElement(event, isPastEvent) {
 
     // Horizontal Rule
     const separator = document.createElement('hr');
-    separator.className = 'event-separator'; // Add class for styling
-    separator.style.border = 'none'; // Remove default border
-    separator.style.borderTop = '1px solid #E7E7E7'; // 1px top border
-    separator.style.margin = '8px 0'; // Add some vertical margin
-    separator.style.display = 'none'; //Initially hidden
+    separator.className = 'event-separator';
+    separator.style.border = 'none';
+    separator.style.borderTop = '1px solid #E7E7E7';
+    separator.style.margin = '8px 0';
+    separator.style.display = 'none'; // Initially hidden
 
-    // Create the buttons (using the helper function)
+    // Create the buttons
     const viewButton = createActionButton('View', 'view', event);
     const editButton = createActionButton('Edit', 'edit', event);
     const deleteButton = createActionButton('Delete', 'delete', event);
@@ -778,61 +784,72 @@ function createEventElement(event, isPastEvent) {
 
     // --- Toggle Button ---
     const toggleButton = document.createElement('button');
-    toggleButton.className = 'event-toggle-button'; // Use a more descriptive class
+    toggleButton.className = 'event-toggle-button';
     const toggleImg = document.createElement('img');
     toggleImg.src = 'https://epearson.me/faction_status_images/dropdown-more.svg';
     toggleImg.width = 17;
     toggleImg.height = 21;
     toggleButton.appendChild(toggleImg);
 
+
     // Add the click event listener to TOGGLE visibility
     toggleButton.addEventListener('touchstart', (event) => {
         event.preventDefault();
         event.stopPropagation();
 
-        // Toggle the visibility of the actions row and separator
+        // Toggle visibility
         const isHidden = actionsRow.style.display === 'none';
-        actionsRow.style.display = isHidden ? 'flex' : 'none'; // Use flex when showing
+        actionsRow.style.display = isHidden ? 'flex' : 'none';
         separator.style.display = isHidden ? 'block' : 'none';
 
-        // Change the button image and background color
+        // Change button image and background
         toggleImg.src = isHidden ? 'https://epearson.me/faction_status_images/dropdown-more-open.svg' : 'https://epearson.me/faction_status_images/dropdown-more.svg';
         toggleButton.style.backgroundColor = isHidden ? '#E7E7E7' : 'transparent';
     });
 
+    // --- Container for Icon and Toggle Button ---
+    const iconAndButtonContainer = document.createElement('div');
+    iconAndButtonContainer.style.display = 'flex'; // Use flexbox
+    iconAndButtonContainer.style.flexDirection = 'column'; // Stack vertically
+    iconAndButtonContainer.style.alignItems = 'center'; // Center horizontally
+    iconAndButtonContainer.style.marginRight = '15px'; // Add some spacing
 
-    details.appendChild(separator); //Add the separator
-    details.appendChild(actionsRow); // Add the actions row
+    iconAndButtonContainer.appendChild(icon);
+    iconAndButtonContainer.appendChild(toggleButton);
+     // Add the icon and button container to the event row
+    eventRow.appendChild(iconAndButtonContainer);
 
-    eventRow.appendChild(icon);
+    details.appendChild(separator);
+    details.appendChild(actionsRow);
+
+
     eventRow.appendChild(details);
-    eventRow.appendChild(toggleButton); // Add the toggle button
+
 
     return eventRow;
 }
 
-// Helper function remains the same
+// Helper function (no changes)
 function createActionButton(text, actionType, event) {
-	const button = document.createElement('button');
-	button.textContent = text;
-	button.className = `event-action-button event-action-${actionType}`;
+    const button = document.createElement('button');
+    button.textContent = text;
+    button.className = `event-action-button event-action-${actionType}`;
 
-	button.style.backgroundColor =
-		actionType === 'delete' ? '#ff6961' : '#f0f0f0';
-	button.style.color = actionType === 'delete' ? '#fff' : '#333';
-	button.style.border = '1px solid #ccc';
-	button.style.padding = '4px 8px';
-	button.style.marginRight = '8px';
-	button.style.borderRadius = '4px';
-	button.style.cursor = 'pointer';
-	button.style.fontFamily = 'Arial, sans-serif';
-	button.style.fontSize = '0.8em';
+    button.style.backgroundColor = actionType === 'delete' ? '#ff6961' : '#f0f0f0';
+    button.style.color = actionType === 'delete' ? '#fff' : '#333';
+    button.style.border = '1px solid #ccc';
+    button.style.padding = '4px 8px';
+    button.style.marginRight = '8px';
+    button.style.borderRadius = '4px';
+    button.style.cursor = 'pointer';
+    button.style.fontFamily = 'Arial, sans-serif';
+    button.style.fontSize = '0.8em';
 
-	button.addEventListener('click', () => {
-		console.log(`${text} clicked for event:`, event);
-	});
+    button.addEventListener('click', () => {
+        console.log(`${text} clicked for event:`, event);
+    });
 
-	return button;
+    return button;
 }
 
 function formatTime(time) {
@@ -1192,6 +1209,11 @@ style.textContent = `
         margin-top: 1px;
     }
 
+    .date-line > * {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
     .status-box {
         font-size: 12px;
         color: #ABADB2;
@@ -1213,14 +1235,11 @@ style.textContent = `
     }
 
     .event-actions-row {
-        display: flex; /* Use flexbox for easy button alignment */
-        /* Add other styling as needed */
+        display: flex;
     }
 
     .event-action-button {
-        /* General button styles */
-        margin-right: 8px; /* Spacing between buttons */
-        /* Add other styles as needed */
+        margin-right: 8px;
     }
 
     .event-action-view {}
