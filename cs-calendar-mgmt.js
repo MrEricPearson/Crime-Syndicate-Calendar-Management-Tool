@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.71
+// @version      0.3.72
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -858,38 +858,37 @@ function processEvents(events, currentYear, currentMonthIndex) {
 function createEventElement(event, isPastEvent) {
     const eventRow = document.createElement('div');
     eventRow.className = 'event-row';
-    eventRow.style.display = 'flex'; // Now eventRow is the flex container
-    eventRow.style.flexDirection = 'column'; // Stack rows vertically
+    eventRow.style.display = 'flex'; // eventRow is the main column container
+    eventRow.style.flexDirection = 'column';
 
-    // --- First Row (Icon, Details, Toggle Button) ---
+    // --- First Row (Icon, Details Wrapper, Toggle Button) ---
     const firstRow = document.createElement('div');
-    firstRow.style.display = 'flex'; // Three columns
-    firstRow.style.alignItems = 'center'; // Vertically align items in the first row
+    firstRow.style.display = 'flex'; // Three columns: icon, details, button
+    firstRow.style.alignItems = 'center'; // Vertical alignment in the first row
     firstRow.style.width = '100%';
 
     // 1. Icon
     const icon = document.createElement('div');
     icon.className = 'event-icon';
     icon.style.backgroundColor = getEventColor(event.event_type);
-    icon.style.height = '46px';
+    icon.style.height = '46px'; // Consistent height
     icon.style.width = '6px';
     firstRow.appendChild(icon);
 
     // 2. Details Wrapper (Contains Title Row and Date Line)
     const detailsWrapper = document.createElement('div');
-    detailsWrapper.className = 'event-details-wrapper'; // New class
+    detailsWrapper.className = 'event-details-wrapper';
     detailsWrapper.style.flexGrow = '1'; // Take up remaining space
     detailsWrapper.style.display = 'flex';
     detailsWrapper.style.flexDirection = 'column';
     detailsWrapper.style.width = 'calc(100% - 61px)';
 
-
     // Event Title Row
     const titleRow = document.createElement('div');
     titleRow.className = 'event-title-row';
-    titleRow.style.display = 'flex'; // Keep for horizontal alignment
+    titleRow.style.display = 'flex'; // Horizontal alignment within title row
     titleRow.style.alignItems = 'center';
-    titleRow.style.height = '46px'; // Maintain consistent height
+    titleRow.style.height = '46px'
 
     const titleAndTypeContainer = document.createElement('div');
     titleAndTypeContainer.style.display = 'flex';
@@ -939,9 +938,8 @@ function createEventElement(event, isPastEvent) {
     }
 
     detailsWrapper.appendChild(dateLineRow); // Add dateLineRow to detailsWrapper
-    firstRow.appendChild(detailsWrapper);
 
-    // 3. Toggle Button
+    // --- 3. Toggle Button (NOW CORRECTLY PLACED) ---
     const toggleButton = document.createElement('button');
     toggleButton.className = 'event-toggle-button';
     const toggleImg = document.createElement('img');
@@ -960,33 +958,35 @@ function createEventElement(event, isPastEvent) {
         toggleImg.src = isHidden ? 'https://epearson.me/faction_status_images/dropdown-more-open.svg' : 'https://epearson.me/faction_status_images/dropdown-more.svg';
         toggleButton.style.backgroundColor = isHidden ? '#E7E7E7' : 'transparent';
     });
+    firstRow.appendChild(toggleButton); // Correctly added to firstRow
 
-    firstRow.appendChild(toggleButton); // Add toggleButton to firstRow
-    eventRow.appendChild(firstRow); // Add firstRow to eventRow
+    // --- Add Rows to Main Container ---
+        eventRow.appendChild(firstRow);
 
-    // --- Separator (Second Row) ---
-    const separator = document.createElement('hr');
-    separator.className = 'event-separator';
-    separator.style.border = 'none';
-    separator.style.borderTop = '1px solid #E7E7E7';
-    separator.style.margin = '8px 0';
-    separator.style.display = 'none'; // Initially hidden
-    eventRow.appendChild(separator); // Add to eventRow
+        // --- Separator (Second Row) ---
+        const separator = document.createElement('hr');
+        separator.className = 'event-separator';
+        separator.style.border = 'none';
+        separator.style.borderTop = '1px solid #E7E7E7';
+        separator.style.margin = '8px 0';
+        separator.style.display = 'none'; // Initially hidden
+        eventRow.appendChild(separator); // Add to eventRow
 
-    // --- Actions Row (Third Row) ---
-    const actionsRow = document.createElement('div');
-    actionsRow.className = 'event-actions-row';
-    actionsRow.style.marginTop = '8px';
-    actionsRow.style.display = 'none'; // Initially hidden
+        // --- Actions Row (Third Row) ---
+        const actionsRow = document.createElement('div');
+        actionsRow.className = 'event-actions-row';
+        actionsRow.style.marginTop = '8px';
+        actionsRow.style.display = 'none'; // Initially hidden
 
-    const viewButton = createActionButton('View', 'view', event);
-    const editButton = createActionButton('Edit', 'edit', event);
-    const deleteButton = createActionButton('Delete', 'delete', event);
+        const viewButton = createActionButton('View', 'view', event);
+        const editButton = createActionButton('Edit', 'edit', event);
+        const deleteButton = createActionButton('Delete', 'delete', event);
 
-    actionsRow.appendChild(viewButton);
-    actionsRow.appendChild(editButton);
-    actionsRow.appendChild(deleteButton);
-    eventRow.appendChild(actionsRow); // Add to eventRow
+        actionsRow.appendChild(viewButton);
+        actionsRow.appendChild(editButton);
+        actionsRow.appendChild(deleteButton);
+
+        eventRow.appendChild(actionsRow);
 
     return eventRow;
 }
