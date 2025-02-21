@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.65
+// @version      0.3.66
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -702,7 +702,7 @@ function createEventElement(event, isPastEvent) {
     details.style.flexDirection = 'column';
     details.style.flexGrow = '1';
 
-    // 1. Event Title Row (same as before)
+    // 1. Event Title Row
     const titleRow = document.createElement('div');
     titleRow.className = 'event-title-row';
     titleRow.style.display = 'flex';
@@ -720,7 +720,7 @@ function createEventElement(event, isPastEvent) {
 
     details.appendChild(titleRow);
 
-    // 2. Date Line Row (same as before)
+    // 2. Date Line Row
     const dateLineRow = document.createElement('div');
     dateLineRow.className = 'date-line';
 
@@ -734,7 +734,6 @@ function createEventElement(event, isPastEvent) {
     startDateSpan.className = 'start-date-details';
     startDateSpan.textContent = new Date(event.event_start_date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
     dateLineRow.appendChild(startDateSpan);
-
 
     if (isPastEvent || event.event_status) {
         const statusSpan = document.createElement('span');
@@ -754,13 +753,21 @@ function createEventElement(event, isPastEvent) {
 
     details.appendChild(dateLineRow);
 
-
-    // --- NEW: Action Buttons Row ---
+    // --- Action Buttons Row (Initially Hidden) ---
     const actionsRow = document.createElement('div');
-    actionsRow.className = 'event-actions-row'; // Add a class for styling
-    actionsRow.style.marginTop = '8px'; // Add some spacing
+    actionsRow.className = 'event-actions-row';
+    actionsRow.style.marginTop = '8px';
+    actionsRow.style.display = 'none'; // Initially hidden
 
-    // Create the buttons
+    // Horizontal Rule
+    const separator = document.createElement('hr');
+    separator.className = 'event-separator'; // Add class for styling
+    separator.style.border = 'none'; // Remove default border
+    separator.style.borderTop = '1px solid #E7E7E7'; // 1px top border
+    separator.style.margin = '8px 0'; // Add some vertical margin
+    separator.style.display = 'none'; //Initially hidden
+
+    // Create the buttons (using the helper function)
     const viewButton = createActionButton('View', 'view', event);
     const editButton = createActionButton('Edit', 'edit', event);
     const deleteButton = createActionButton('Delete', 'delete', event);
@@ -769,42 +776,63 @@ function createEventElement(event, isPastEvent) {
     actionsRow.appendChild(editButton);
     actionsRow.appendChild(deleteButton);
 
-    details.appendChild(actionsRow); // Add the actions row to the details
+    // --- Toggle Button ---
+    const toggleButton = document.createElement('button');
+    toggleButton.className = 'event-toggle-button'; // Use a more descriptive class
+    const toggleImg = document.createElement('img');
+    toggleImg.src = 'https://epearson.me/faction_status_images/dropdown-more.svg';
+    toggleImg.width = 17;
+    toggleImg.height = 21;
+    toggleButton.appendChild(toggleImg);
 
+    // Add the click event listener to TOGGLE visibility
+    toggleButton.addEventListener('touchstart', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Toggle the visibility of the actions row and separator
+        const isHidden = actionsRow.style.display === 'none';
+        actionsRow.style.display = isHidden ? 'flex' : 'none'; // Use flex when showing
+        separator.style.display = isHidden ? 'block' : 'none';
+
+        // Change the button image and background color
+        toggleImg.src = isHidden ? 'https://epearson.me/faction_status_images/dropdown-more-open.svg' : 'https://epearson.me/faction_status_images/dropdown-more.svg';
+        toggleButton.style.backgroundColor = isHidden ? '#E7E7E7' : 'transparent';
+    });
+
+
+    details.appendChild(separator); //Add the separator
+    details.appendChild(actionsRow); // Add the actions row
 
     eventRow.appendChild(icon);
     eventRow.appendChild(details);
-    // NO dropdown button anymore
+    eventRow.appendChild(toggleButton); // Add the toggle button
 
     return eventRow;
 }
 
-// NEW: Helper function to create action buttons for modifying events
+// Helper function remains the same
 function createActionButton(text, actionType, event) {
-    const button = document.createElement('button');
-    button.textContent = text;
-    button.className = `event-action-button event-action-${actionType}`; // Add classes
+	const button = document.createElement('button');
+	button.textContent = text;
+	button.className = `event-action-button event-action-${actionType}`;
 
-    // Basic styling (you can customize this in your CSS)
-    button.style.backgroundColor = actionType === 'delete' ? '#ff6961' : '#f0f0f0'; // Example: red for delete
-    button.style.color = actionType === 'delete' ? '#fff' : '#333';
-    button.style.border = '1px solid #ccc';
-    button.style.padding = '4px 8px';
-    button.style.marginRight = '8px'; // Space between buttons
-    button.style.borderRadius = '4px';
-    button.style.cursor = 'pointer';
-    button.style.fontFamily = 'Arial, sans-serif';
-    button.style.fontSize = '0.8em';
+	button.style.backgroundColor =
+		actionType === 'delete' ? '#ff6961' : '#f0f0f0';
+	button.style.color = actionType === 'delete' ? '#fff' : '#333';
+	button.style.border = '1px solid #ccc';
+	button.style.padding = '4px 8px';
+	button.style.marginRight = '8px';
+	button.style.borderRadius = '4px';
+	button.style.cursor = 'pointer';
+	button.style.fontFamily = 'Arial, sans-serif';
+	button.style.fontSize = '0.8em';
 
-     // Add a click handler (replace with your actual logic)
-     button.addEventListener('click', () => {
-        console.log(`${text} clicked for event:`, event);
-        // Here you would call a function to handle the specific action,
-        // e.g., viewEvent(event), editEvent(event), deleteEvent(event)
-        // You'll need to implement those functions.
-    });
+	button.addEventListener('click', () => {
+		console.log(`${text} clicked for event:`, event);
+	});
 
-    return button;
+	return button;
 }
 
 function formatTime(time) {
@@ -1172,19 +1200,7 @@ style.textContent = `
         vertical-align: middle;
     }
 
-    .event-dropdown-button {
-        width: 45px;
-        height: 45px;
-        border-radius: 6px;
-        border: 1px solid #E7E7E7;
-        background-color: transparent;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .event-dropdown-button {
+    .event-toggle-button {
         width: 45px;
         height: 45px;
         border-radius: 6px;
