@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.72
+// @version      0.3.73
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -860,9 +860,11 @@ function createEventElement(event, isPastEvent) {
     eventRow.className = 'event-row';
     eventRow.style.display = 'flex'; // eventRow is the main column container
     eventRow.style.flexDirection = 'column';
+    eventRow.style.width = '100%'; // Ensure eventRow takes full width
 
     // --- First Row (Icon, Details Wrapper, Toggle Button) ---
     const firstRow = document.createElement('div');
+    firstRow.className = 'first-row'; // Add class for easier styling
     firstRow.style.display = 'flex'; // Three columns: icon, details, button
     firstRow.style.alignItems = 'center'; // Vertical alignment in the first row
     firstRow.style.width = '100%';
@@ -881,7 +883,8 @@ function createEventElement(event, isPastEvent) {
     detailsWrapper.style.flexGrow = '1'; // Take up remaining space
     detailsWrapper.style.display = 'flex';
     detailsWrapper.style.flexDirection = 'column';
-    detailsWrapper.style.width = 'calc(100% - 61px)';
+    detailsWrapper.style.width = 'calc(100% - 101px)'; //icon + button width
+    detailsWrapper.style.marginLeft = '15px'
 
     // Event Title Row
     const titleRow = document.createElement('div');
@@ -938,6 +941,7 @@ function createEventElement(event, isPastEvent) {
     }
 
     detailsWrapper.appendChild(dateLineRow); // Add dateLineRow to detailsWrapper
+    firstRow.appendChild(detailsWrapper);
 
     // --- 3. Toggle Button (NOW CORRECTLY PLACED) ---
     const toggleButton = document.createElement('button');
@@ -958,37 +962,38 @@ function createEventElement(event, isPastEvent) {
         toggleImg.src = isHidden ? 'https://epearson.me/faction_status_images/dropdown-more-open.svg' : 'https://epearson.me/faction_status_images/dropdown-more.svg';
         toggleButton.style.backgroundColor = isHidden ? '#E7E7E7' : 'transparent';
     });
+
     firstRow.appendChild(toggleButton); // Correctly added to firstRow
 
+
     // --- Add Rows to Main Container ---
-        eventRow.appendChild(firstRow);
+    eventRow.appendChild(firstRow);
 
-        // --- Separator (Second Row) ---
-        const separator = document.createElement('hr');
-        separator.className = 'event-separator';
-        separator.style.border = 'none';
-        separator.style.borderTop = '1px solid #E7E7E7';
-        separator.style.margin = '8px 0';
-        separator.style.display = 'none'; // Initially hidden
-        eventRow.appendChild(separator); // Add to eventRow
+    // --- Separator (Second Row) ---
+    const separator = document.createElement('hr');
+    separator.className = 'event-separator';
+    separator.style.border = 'none';
+    separator.style.borderTop = '1px solid #E7E7E7';
+    separator.style.margin = '8px 0';
+    separator.style.display = 'none'; // Initially hidden
+    eventRow.appendChild(separator); // Re-add the separator here
 
-        // --- Actions Row (Third Row) ---
-        const actionsRow = document.createElement('div');
-        actionsRow.className = 'event-actions-row';
-        actionsRow.style.marginTop = '8px';
-        actionsRow.style.display = 'none'; // Initially hidden
+    // --- Actions Row (Third Row) ---
+    const actionsRow = document.createElement('div');
+    actionsRow.className = 'event-actions-row';
+    actionsRow.style.marginTop = '8px';
+    actionsRow.style.display = 'none'; // Initially hidden
+    actionsRow.style.justifyContent = 'flex-start'; // Left align the buttons
 
-        const viewButton = createActionButton('View', 'view', event);
-        const editButton = createActionButton('Edit', 'edit', event);
-        const deleteButton = createActionButton('Delete', 'delete', event);
+    const viewButton = createActionButton('View', 'view', event);
+    const editButton = createActionButton('Edit', 'edit', event);
+    const deleteButton = createActionButton('Delete', 'delete', event);
 
-        actionsRow.appendChild(viewButton);
-        actionsRow.appendChild(editButton);
-        actionsRow.appendChild(deleteButton);
-
-        eventRow.appendChild(actionsRow);
-
-    return eventRow;
+    actionsRow.appendChild(viewButton);
+    actionsRow.appendChild(editButton);
+    actionsRow.appendChild(deleteButton);
+    eventRow.appendChild(actionsRow);
+     return eventRow;
 }
 
 // Helper function (no changes needed)
@@ -1330,6 +1335,8 @@ style.textContent = `
         display: flex;
         align-items: center;
         padding: 5px 0;
+        flex-direction: column;
+        width: 100%;
     }
 
     .event-icon {
