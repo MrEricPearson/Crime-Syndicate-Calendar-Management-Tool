@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.70
+// @version      0.3.71
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -858,33 +858,39 @@ function processEvents(events, currentYear, currentMonthIndex) {
 function createEventElement(event, isPastEvent) {
     const eventRow = document.createElement('div');
     eventRow.className = 'event-row';
+    eventRow.style.display = 'flex'; // Now eventRow is the flex container
+    eventRow.style.flexDirection = 'column'; // Stack rows vertically
 
-    // Colored rectangle icon (fixed height)
+    // --- First Row (Icon, Details, Toggle Button) ---
+    const firstRow = document.createElement('div');
+    firstRow.style.display = 'flex'; // Three columns
+    firstRow.style.alignItems = 'center'; // Vertically align items in the first row
+    firstRow.style.width = '100%';
+
+    // 1. Icon
     const icon = document.createElement('div');
     icon.className = 'event-icon';
     icon.style.backgroundColor = getEventColor(event.event_type);
-    icon.style.height = '46px'; // Consistent height, independent of row height
-    icon.style.width = '6px'; // Make sure width is set
+    icon.style.height = '46px';
+    icon.style.width = '6px';
+    firstRow.appendChild(icon);
 
-    // Event details container
-    const details = document.createElement('div');
-    details.className = 'event-details';
-    details.style.display = 'flex';
-    details.style.flexDirection = 'column';
-    details.style.flexGrow = '1'; // Allow details to take up remaining space
-    details.style.width = 'calc(100% - 61px)'
+    // 2. Details Wrapper (Contains Title Row and Date Line)
+    const detailsWrapper = document.createElement('div');
+    detailsWrapper.className = 'event-details-wrapper'; // New class
+    detailsWrapper.style.flexGrow = '1'; // Take up remaining space
+    detailsWrapper.style.display = 'flex';
+    detailsWrapper.style.flexDirection = 'column';
+    detailsWrapper.style.width = 'calc(100% - 61px)';
 
-    // 1. Event Title Row
+
+    // Event Title Row
     const titleRow = document.createElement('div');
     titleRow.className = 'event-title-row';
-    titleRow.style.display = 'flex';
+    titleRow.style.display = 'flex'; // Keep for horizontal alignment
     titleRow.style.alignItems = 'center';
-    titleRow.style.justifyContent = 'space-between';
-    titleRow.style.padding = '0';
-    titleRow.style.margin = '0';
-    titleRow.style.height = '46px';
+    titleRow.style.height = '46px'; // Maintain consistent height
 
-    // Inner container for title and type (left side)
     const titleAndTypeContainer = document.createElement('div');
     titleAndTypeContainer.style.display = 'flex';
     titleAndTypeContainer.style.alignItems = 'center';
@@ -900,34 +906,12 @@ function createEventElement(event, isPastEvent) {
     titleAndTypeContainer.appendChild(eventTypeSpan);
 
     titleRow.appendChild(titleAndTypeContainer);
+    detailsWrapper.appendChild(titleRow); // Add titleRow to detailsWrapper
 
-    // --- Toggle Button ---
-    const toggleButton = document.createElement('button');
-    toggleButton.className = 'event-toggle-button';
-    const toggleImg = document.createElement('img');
-    toggleImg.src = 'https://epearson.me/faction_status_images/dropdown-more.svg';
-    toggleImg.width = 17;
-    toggleImg.height = 21;
-    toggleButton.appendChild(toggleImg);
-
-    // Add the click event listener
-    toggleButton.addEventListener('touchstart', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const isHidden = actionsRow.style.display === 'none';
-        actionsRow.style.display = isHidden ? 'flex' : 'none';
-        separator.style.display = isHidden ? 'block' : 'none';
-        toggleImg.src = isHidden ? 'https://epearson.me/faction_status_images/dropdown-more-open.svg' : 'https://epearson.me/faction_status_images/dropdown-more.svg';
-        toggleButton.style.backgroundColor = isHidden ? '#E7E7E7' : 'transparent';
-    });
-
-    titleRow.appendChild(toggleButton); // Add to titleRow
-    details.appendChild(titleRow);
-
-    // 2. Date Line Row
+    // Date Line Row
     const dateLineRow = document.createElement('div');
     dateLineRow.className = 'date-line';
-    dateLineRow.style.marginTop = '5px'; // Controlled gap
+    dateLineRow.style.marginTop = '5px';
 
     const calendarIcon = document.createElement('img');
     calendarIcon.src = 'https://epearson.me/faction_status_images/event_calendar.svg';
@@ -954,21 +938,46 @@ function createEventElement(event, isPastEvent) {
         dateLineRow.appendChild(statusSpan);
     }
 
-    details.appendChild(dateLineRow);
+    detailsWrapper.appendChild(dateLineRow); // Add dateLineRow to detailsWrapper
+    firstRow.appendChild(detailsWrapper);
 
-    // --- Action Buttons Row (Initially Hidden) ---
-    const actionsRow = document.createElement('div');
-    actionsRow.className = 'event-actions-row';
-    actionsRow.style.marginTop = '8px'; //Consistent space
-    actionsRow.style.display = 'none';
+    // 3. Toggle Button
+    const toggleButton = document.createElement('button');
+    toggleButton.className = 'event-toggle-button';
+    const toggleImg = document.createElement('img');
+    toggleImg.src = 'https://epearson.me/faction_status_images/dropdown-more.svg';
+    toggleImg.width = 17;
+    toggleImg.height = 21;
+    toggleButton.appendChild(toggleImg);
 
-    // Horizontal Rule
+    // Add the click event listener
+    toggleButton.addEventListener('touchstart', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const isHidden = actionsRow.style.display === 'none';
+        actionsRow.style.display = isHidden ? 'flex' : 'none';
+        separator.style.display = isHidden ? 'block' : 'none';
+        toggleImg.src = isHidden ? 'https://epearson.me/faction_status_images/dropdown-more-open.svg' : 'https://epearson.me/faction_status_images/dropdown-more.svg';
+        toggleButton.style.backgroundColor = isHidden ? '#E7E7E7' : 'transparent';
+    });
+
+    firstRow.appendChild(toggleButton); // Add toggleButton to firstRow
+    eventRow.appendChild(firstRow); // Add firstRow to eventRow
+
+    // --- Separator (Second Row) ---
     const separator = document.createElement('hr');
     separator.className = 'event-separator';
     separator.style.border = 'none';
     separator.style.borderTop = '1px solid #E7E7E7';
     separator.style.margin = '8px 0';
-    separator.style.display = 'none';
+    separator.style.display = 'none'; // Initially hidden
+    eventRow.appendChild(separator); // Add to eventRow
+
+    // --- Actions Row (Third Row) ---
+    const actionsRow = document.createElement('div');
+    actionsRow.className = 'event-actions-row';
+    actionsRow.style.marginTop = '8px';
+    actionsRow.style.display = 'none'; // Initially hidden
 
     const viewButton = createActionButton('View', 'view', event);
     const editButton = createActionButton('Edit', 'edit', event);
@@ -977,12 +986,7 @@ function createEventElement(event, isPastEvent) {
     actionsRow.appendChild(viewButton);
     actionsRow.appendChild(editButton);
     actionsRow.appendChild(deleteButton);
-
-    details.appendChild(separator);
-    details.appendChild(actionsRow);
-
-    eventRow.appendChild(icon);
-    eventRow.appendChild(details);
+    eventRow.appendChild(actionsRow); // Add to eventRow
 
     return eventRow;
 }
