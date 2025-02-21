@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.67
+// @version      0.3.68
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -170,12 +170,23 @@ function createCard() {
 
     titleAndButtonsContainer.appendChild(monthTitle);
 
+    // --- Navigation and Toggle Container ---
+    const navAndToggleContainer = document.createElement('div');
+    navAndToggleContainer.style.display = 'flex';
+    navAndToggleContainer.style.alignItems = 'center';
+
+    // --- Week/Month Toggle ---
+    const viewToggle = createViewToggle(); // Create the toggle switch
+    navAndToggleContainer.appendChild(viewToggle);
+
     const navButtonsContainer = document.createElement('div');
     navButtonsContainer.style.display = 'flex';
     navButtonsContainer.style.alignItems = 'center'; // Vertically center
     navButtonsContainer.appendChild(cardBackButton);
     navButtonsContainer.appendChild(cardForwardButton);
-    titleAndButtonsContainer.appendChild(navButtonsContainer);
+
+    navAndToggleContainer.appendChild(navButtonsContainer); // Add nav buttons
+    titleAndButtonsContainer.appendChild(navAndToggleContainer);
 
     cardHeader.appendChild(titleAndButtonsContainer);
 
@@ -185,6 +196,39 @@ function createCard() {
     const calendarData = initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid);
 
     return card;
+}
+
+function createViewToggle() {
+    const toggleContainer = document.createElement('div');
+    toggleContainer.className = 'view-toggle-container';
+
+    const weekButton = document.createElement('button');
+    weekButton.className = 'view-toggle-button view-toggle-week';
+    weekButton.textContent = 'Week';
+    weekButton.dataset.view = 'week'; // Use data attribute to store view type
+
+    const monthButton = document.createElement('button');
+    monthButton.className = 'view-toggle-button view-toggle-month';
+    monthButton.textContent = 'Month';
+    monthButton.dataset.view = 'month'; // Use data attribute
+
+    // Initially, let's assume "Month" is selected:
+    monthButton.classList.add('active');
+
+    toggleContainer.appendChild(weekButton);
+    toggleContainer.appendChild(monthButton);
+
+    // --- Add Event Listeners (for later) ---
+    weekButton.addEventListener('click', () => {
+      //Placeholder
+    });
+
+    monthButton.addEventListener('click', () => {
+       //Placeholder
+    });
+
+
+    return toggleContainer;
 }
 
 // CALENDAR: Parent calendar function to organize and render the entire calendar UI
@@ -689,45 +733,78 @@ function processEvents(events, currentYear, currentMonthIndex) {
 function createEventElement(event, isPastEvent) {
     const eventRow = document.createElement('div');
     eventRow.className = 'event-row';
-    // NO flex or align-items here
 
-    // Colored rectangle icon
+    // Colored rectangle icon (fixed height)
     const icon = document.createElement('div');
     icon.className = 'event-icon';
     icon.style.backgroundColor = getEventColor(event.event_type);
-    // Set a fixed height for the icon to match the first row:
-    icon.style.height = '46px'; // Or whatever height your first row is
-
+    icon.style.height = '46px'; // Keep consistent height
 
     // Event details container
     const details = document.createElement('div');
     details.className = 'event-details';
     details.style.display = 'flex';
     details.style.flexDirection = 'column';
-    details.style.flexGrow = '1';
+    details.style.flexGrow = '1'; // Allow details to take up remaining space
 
     // 1. Event Title Row
     const titleRow = document.createElement('div');
     titleRow.className = 'event-title-row';
-    titleRow.style.display = 'flex'; // Flexbox applies to title row
+    titleRow.style.display = 'flex';
     titleRow.style.alignItems = 'center';
+    titleRow.style.justifyContent = 'space-between'; // Key change: Push button to the right
+
+    // Inner container for title and type (left side)
+    const titleAndTypeContainer = document.createElement('div');
+    titleAndTypeContainer.style.display = 'flex'; // Keep title and type together
+    titleAndTypeContainer.style.alignItems = 'center';
 
     const eventTitleSpan = document.createElement('span');
     eventTitleSpan.className = 'event-title';
     eventTitleSpan.textContent = event.event_title;
-    titleRow.appendChild(eventTitleSpan);
+    titleAndTypeContainer.appendChild(eventTitleSpan);
 
     const eventTypeSpan = document.createElement('span');
     eventTypeSpan.className = 'event-type';
     eventTypeSpan.textContent = `(${event.event_type})`;
-    titleRow.appendChild(eventTypeSpan);
+    titleAndTypeContainer.appendChild(eventTypeSpan);
 
-    details.appendChild(titleRow);
+    titleRow.appendChild(titleAndTypeContainer); // Add the container to the title row
+
+
+    // --- Toggle Button ---
+    const toggleButton = document.createElement('button');
+    toggleButton.className = 'event-toggle-button';
+    const toggleImg = document.createElement('img');
+    toggleImg.src = 'https://epearson.me/faction_status_images/dropdown-more.svg';
+    toggleImg.width = 17;
+    toggleImg.height = 21;
+    toggleButton.appendChild(toggleImg);
+
+    // Add the click event listener to TOGGLE visibility
+    toggleButton.addEventListener('touchstart', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Toggle visibility
+        const isHidden = actionsRow.style.display === 'none';
+        actionsRow.style.display = isHidden ? 'flex' : 'none';
+        separator.style.display = isHidden ? 'block' : 'none';
+
+        // Change button image and background
+        toggleImg.src = isHidden ? 'https://epearson.me/faction_status_images/dropdown-more-open.svg' : 'https://epearson.me/faction_status_images/dropdown-more.svg';
+        toggleButton.style.backgroundColor = isHidden ? '#E7E7E7' : 'transparent';
+    });
+
+    titleRow.appendChild(toggleButton); // Add button to the title row (on the right)
+
+
+    details.appendChild(titleRow); // Add title row to details
+
 
     // 2. Date Line Row
     const dateLineRow = document.createElement('div');
     dateLineRow.className = 'date-line';
-    // No flexbox needed here
 
     const calendarIcon = document.createElement('img');
     calendarIcon.src = 'https://epearson.me/faction_status_images/event_calendar.svg';
@@ -758,7 +835,6 @@ function createEventElement(event, isPastEvent) {
 
     details.appendChild(dateLineRow);
 
-
     // --- Action Buttons Row (Initially Hidden) ---
     const actionsRow = document.createElement('div');
     actionsRow.className = 'event-actions-row';
@@ -773,6 +849,7 @@ function createEventElement(event, isPastEvent) {
     separator.style.margin = '8px 0';
     separator.style.display = 'none'; // Initially hidden
 
+
     // Create the buttons
     const viewButton = createActionButton('View', 'view', event);
     const editButton = createActionButton('Edit', 'edit', event);
@@ -781,52 +858,39 @@ function createEventElement(event, isPastEvent) {
     actionsRow.appendChild(viewButton);
     actionsRow.appendChild(editButton);
     actionsRow.appendChild(deleteButton);
-
-    // --- Toggle Button ---
-    const toggleButton = document.createElement('button');
-    toggleButton.className = 'event-toggle-button';
-    const toggleImg = document.createElement('img');
-    toggleImg.src = 'https://epearson.me/faction_status_images/dropdown-more.svg';
-    toggleImg.width = 17;
-    toggleImg.height = 21;
-    toggleButton.appendChild(toggleImg);
-
-
-    // Add the click event listener to TOGGLE visibility
-    toggleButton.addEventListener('touchstart', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        // Toggle visibility
-        const isHidden = actionsRow.style.display === 'none';
-        actionsRow.style.display = isHidden ? 'flex' : 'none';
-        separator.style.display = isHidden ? 'block' : 'none';
-
-        // Change button image and background
-        toggleImg.src = isHidden ? 'https://epearson.me/faction_status_images/dropdown-more-open.svg' : 'https://epearson.me/faction_status_images/dropdown-more.svg';
-        toggleButton.style.backgroundColor = isHidden ? '#E7E7E7' : 'transparent';
-    });
-
-    // --- Container for Icon and Toggle Button ---
-    const iconAndButtonContainer = document.createElement('div');
-    iconAndButtonContainer.style.display = 'flex'; // Use flexbox
-    iconAndButtonContainer.style.flexDirection = 'column'; // Stack vertically
-    iconAndButtonContainer.style.alignItems = 'center'; // Center horizontally
-    iconAndButtonContainer.style.marginRight = '15px'; // Add some spacing
-
-    iconAndButtonContainer.appendChild(icon);
-    iconAndButtonContainer.appendChild(toggleButton);
-     // Add the icon and button container to the event row
-    eventRow.appendChild(iconAndButtonContainer);
-
-    details.appendChild(separator);
+    details.appendChild(separator); // Add separator *before* actions row
     details.appendChild(actionsRow);
 
-
+    // Add the icon to the event row
+    eventRow.appendChild(icon);
+    // Add the details to the event row
     eventRow.appendChild(details);
-
+    // NO separate container for the button; it's in the title row
 
     return eventRow;
+}
+
+// Helper function (no changes needed)
+function createActionButton(text, actionType, event) {
+    const button = document.createElement('button');
+    button.textContent = text;
+    button.className = `event-action-button event-action-${actionType}`;
+
+    button.style.backgroundColor = actionType === 'delete' ? '#ff6961' : '#f0f0f0';
+    button.style.color = actionType === 'delete' ? '#fff' : '#333';
+    button.style.border = '1px solid #ccc';
+    button.style.padding = '4px 8px';
+    button.style.marginRight = '8px';
+    button.style.borderRadius = '4px';
+    button.style.cursor = 'pointer';
+    button.style.fontFamily = 'Arial, sans-serif';
+    button.style.fontSize = '0.8em';
+
+    button.addEventListener('click', () => {
+        console.log(`${text} clicked for event:`, event);
+    });
+
+    return button;
 }
 
 // Helper function (no changes)
@@ -1016,12 +1080,39 @@ style.textContent = `
         font-family: Arial;
     }
 
-    .card-header {
+     .card-header {
         width: 100%;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 20px;
+        margin-bottom: 5px;
+    }
+
+    .view-toggle-container {
+        display: flex;
+        background-color: #fff; /* Background of the entire toggle */
+        border: 1px solid #E7E7E7;
+        border-radius: 6px; /* Rounded corners for the container */
+        padding: 2px; /* Inner padding */
+        margin-right: 5px;
+    }
+
+    .view-toggle-button {
+        background-color: transparent; /* Initially transparent */
+        border: none;
+        padding: 4px 12px;
+        border-radius: 4px; /* Rounded corners for buttons */
+        cursor: pointer;
+        font-family: Arial, sans-serif;
+        font-size: 0.8em;
+        color: #6C6D71;
+    }
+
+    .view-toggle-button.active {
+        background-color: #fff; /* White background for active button */
+        color: #333;
+       box-shadow: 0 0 0 1px #6C6D71; /* Add an outline */
+
     }
 
     .card-back-button {
