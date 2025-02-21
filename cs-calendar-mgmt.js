@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.62
+// @version      0.3.63
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -762,10 +762,11 @@ function createEventElement(event, isPastEvent) {
     dropdownButton.appendChild(dropdownImg);
 
     // Add the click event listener
-    dropdownButton.addEventListener('click', (event) => {
-        console.log("Dropdown button clicked!");
-        event.stopPropagation(); // Prevent click from bubbling up to the document
-        toggleDropdown(dropdownButton); // Call toggleDropdown, passing the button
+    dropdownButton.addEventListener('touchstart', (event) => {
+        console.log("Dropdown button touchstart!");
+        event.preventDefault();
+        event.stopPropagation();
+        toggleDropdown(dropdownButton);
     });
 
     eventRow.appendChild(icon);  // icon, then details
@@ -776,23 +777,23 @@ function createEventElement(event, isPastEvent) {
 }
 
 function toggleDropdown(button) {
-    console.log("toggleDropdown called!", button); // You have this
+    console.log("toggleDropdown called!", button);
 
-    // Check if a dropdown already exists, and remove it if it does.
     let existingDropdown = document.querySelector('.event-dropdown-menu');
     if (existingDropdown) {
-        console.log("Existing dropdown found, removing:", existingDropdown); // You have this
+        console.log("Existing dropdown found, removing:", existingDropdown);
         existingDropdown.remove();
         if (existingDropdown.parentElement === button) {
-            console.log("Existing dropdown was from the same button. Exiting."); // You have this
-            return; // Exit early.
+            console.log("Existing dropdown was from the same button. Exiting.");
+            return;
         }
     }
 
     const dropdownMenu = document.createElement('div');
     dropdownMenu.className = 'event-dropdown-menu';
+    dropdownMenu.style.zIndex = '100002'; // ADDED: Higher z-index
 
-    console.log("Dropdown menu created:", dropdownMenu); // You have this
+    console.log("Dropdown menu created:", dropdownMenu);
 
     // --- Create the unordered list ---
     const ul = document.createElement('ul');
@@ -810,15 +811,10 @@ function toggleDropdown(button) {
         li.style.fontFamily = 'Arial, sans-serif';
         li.style.fontSize = '.9em';
 
-        // Add hover effect (removed, as per your request)
-        // li.addEventListener('mouseover', () => li.style.backgroundColor = '#f0f0f0');
-        // li.addEventListener('mouseout', () => li.style.backgroundColor = '');
-
-        // Add a click handler to each list item
         li.addEventListener('click', () => {
             console.log(`Clicked: ${itemText}`);
             dropdownMenu.remove();
-            document.removeEventListener('click', closeDropdown);
+            document.removeEventListener('touchstart', closeDropdown); // Keep touchstart
         });
 
         ul.appendChild(li);
@@ -830,19 +826,18 @@ function toggleDropdown(button) {
     button.appendChild(dropdownMenu); // Temporarily append
 
     const buttonRect = button.getBoundingClientRect();
-    console.log("Button Rect:", buttonRect); // You have this (but we need the values!)
+    console.log("Button Rect:", buttonRect);
 
     let top = buttonRect.bottom;
     let left = buttonRect.left;
 
-    // --- Viewport Edge Detection and Adjustment ---
     const menuHeight = dropdownMenu.offsetHeight;
     const menuWidth = dropdownMenu.offsetWidth;
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
 
-    console.log("Menu Height:", menuHeight, "Menu Width:", menuWidth); // ADD THIS - CRITICAL
-    console.log("Viewport Height:", viewportHeight, "Viewport Width:", viewportWidth); // ADD THIS - CRITICAL
+    console.log("Menu Height:", menuHeight, "Menu Width:", menuWidth);
+    console.log("Viewport Height:", viewportHeight, "Viewport Width:", viewportWidth);
 
     if (top + menuHeight > viewportHeight) {
         top = buttonRect.top - menuHeight;
@@ -857,20 +852,20 @@ function toggleDropdown(button) {
     dropdownMenu.style.position = 'absolute';
 
     document.body.appendChild(dropdownMenu);
-    console.log("Dropdown menu appended to body."); // You have this
+    console.log("Dropdown menu appended to body.");
 
     // --- Click-Outside Handler ---
     function closeDropdown(event) {
-        console.log("closeDropdown called", event.target); // You have this
+        console.log("closeDropdown called", event.target);
         if (!dropdownMenu.contains(event.target) && !button.contains(event.target)) {
-            console.log("Closing dropdown"); // You have this
+            console.log("Closing dropdown");
             dropdownMenu.remove();
-            document.removeEventListener('click', closeDropdown);
+            document.removeEventListener('touchstart', closeDropdown); // Keep touchstart
         }
     }
 
-    console.log("Adding click listener to document"); // You have this
-    document.addEventListener('click', closeDropdown);
+    console.log("Adding touchstart listener to document"); // Keep touchstart log message
+    document.addEventListener('touchstart', closeDropdown); // Keep touchstart
 }
 
 function formatTime(time) {
