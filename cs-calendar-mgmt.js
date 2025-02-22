@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.76
+// @version      0.3.77
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -957,17 +957,6 @@ function createEventElement(event, isPastEvent) {
         const isHidden = actionsRow.style.display === 'none';
         actionsRow.style.display = isHidden ? 'flex' : 'none';
         separator.style.display = isHidden ? 'block' : 'none';
-
-        console.log("Actions Row Display:", actionsRow.style.display);
-        console.log("Separator Display:", separator.style.display);
-
-        // If actions are going to be displayed
-        if (isHidden){
-            actionsRow.style.alignItems = 'flex-start';//set to flex start
-        } else {
-             actionsRow.style.alignItems = 'center';//set to center
-
-        }
         toggleImg.src = isHidden ? 'https://epearson.me/faction_status_images/dropdown-more-open.svg' : 'https://epearson.me/faction_status_images/dropdown-more.svg';
         toggleButton.style.backgroundColor = isHidden ? '#E7E7E7' : 'transparent';
     });
@@ -975,7 +964,7 @@ function createEventElement(event, isPastEvent) {
     firstRow.appendChild(toggleButton); // Correctly added to firstRow
 
     // --- Add Rows to Main Container ---
-    eventRow.appendChild(firstRow);
+    eventRow.appendChild(firstRow); // ADD FIRST ROW HERE
 
     // --- Separator (Second Row) ---
     const separator = document.createElement('hr');
@@ -991,6 +980,7 @@ function createEventElement(event, isPastEvent) {
     actionsRow.className = 'event-actions-row';
     actionsRow.style.marginTop = '8px';
     actionsRow.style.display = 'none'; // Initially hidden
+    actionsRow.style.justifyContent = 'flex-start'; // Left align the buttons
 
     const viewButton = createActionButton('View', 'view', event);
     const editButton = createActionButton('Edit', 'edit', event);
