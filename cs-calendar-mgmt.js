@@ -891,7 +891,6 @@ function createEventElement(event, isPastEvent) {
     titleRow.className = 'event-title-row';
     titleRow.style.display = 'flex'; // Horizontal alignment within title row
     titleRow.style.alignItems = 'center';
-    titleRow.style.height = '46px'
 
     const titleAndTypeContainer = document.createElement('div');
     titleAndTypeContainer.style.display = 'flex';
@@ -1019,29 +1018,6 @@ function createActionButton(text, actionType, event) {
     return button;
 }
 
-// Helper function (no changes)
-function createActionButton(text, actionType, event) {
-    const button = document.createElement('button');
-    button.textContent = text;
-    button.className = `event-action-button event-action-${actionType}`;
-
-    button.style.backgroundColor = actionType === 'delete' ? '#ff6961' : '#f0f0f0';
-    button.style.color = actionType === 'delete' ? '#fff' : '#333';
-    button.style.border = '1px solid #ccc';
-    button.style.padding = '4px 8px';
-    button.style.marginRight = '8px';
-    button.style.borderRadius = '4px';
-    button.style.cursor = 'pointer';
-    button.style.fontFamily = 'Arial, sans-serif';
-    button.style.fontSize = '0.8em';
-
-    button.addEventListener('click', () => {
-        console.log(`${text} clicked for event:`, event);
-    });
-
-    return button;
-}
-
 function formatTime(time) {
     if (!time) return '--:--';
     let [hours, minutes] = time.split(':');
@@ -1076,16 +1052,6 @@ function initializeCalendarTool() {
     contentWrapper.style.flexDirection = 'column';
     contentWrapper.style.alignItems = 'center';
 
-    // Create Events Header
-    const eventsHeader = document.createElement('h2');
-    eventsHeader.textContent = 'Events';
-    eventsHeader.style.fontFamily = 'Arial';
-    eventsHeader.style.margin = '5px 1px 10px 1px';
-    eventsHeader.style.textAlign = 'left';
-    eventsHeader.style.fontSize = '1.5em';
-    eventsHeader.style.color = '#3C3B52';
-    eventsHeader.style.width = '94%'; // Take full width
-
     modal.appendChild(card);
 
     // Create event list container and append it to the modal *after* the card.
@@ -1094,7 +1060,6 @@ function initializeCalendarTool() {
     eventListContainer.style.width = '94%';
     eventListContainer.style.boxSizing = 'border-box';
 
-    contentWrapper.appendChild(eventsHeader);
     modal.appendChild(contentWrapper);
     contentWrapper.appendChild(eventListContainer);
 
@@ -1200,7 +1165,7 @@ style.textContent = `
         padding: 20px;
         border: 1px solid #E7E7E7;
         border-radius: 10px;
-        margin: 20px 0;
+        margin: 20px 0 10px 0;
         width: 94%;
         box-sizing: border-box;
         font-family: Arial;
