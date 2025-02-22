@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.75
+// @version      0.3.76
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -955,8 +955,11 @@ function createEventElement(event, isPastEvent) {
         event.preventDefault();
         event.stopPropagation();
         const isHidden = actionsRow.style.display === 'none';
-        actionsRow.style.display = isHidden ? 'flex' : 'none';//make sure we are set to flex
-        separator.style.display = isHidden ? 'block' : 'none'; //Toggle Line
+        actionsRow.style.display = isHidden ? 'flex' : 'none';
+        separator.style.display = isHidden ? 'block' : 'none';
+
+        console.log("Actions Row Display:", actionsRow.style.display);
+        console.log("Separator Display:", separator.style.display);
 
         // If actions are going to be displayed
         if (isHidden){
