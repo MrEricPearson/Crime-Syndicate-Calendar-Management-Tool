@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.79
+// @version      0.3.80
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -969,16 +969,11 @@ function createEventElement(event, isPastEvent) {
     // --- Separator (Second Row) ---
     const separator = document.createElement('hr');
     separator.className = 'event-separator';
-    separator.style.borderTop = '1px solid #E7E7E7';
-    separator.style.margin = '8px 0';
-    separator.style.width = '100%';
-    separator.style.display = 'none'; // Initially hidden
     eventRow.appendChild(separator); // Re-add the separator here
 
     // --- Actions Row (Third Row) ---
     const actionsRow = document.createElement('div');
     actionsRow.className = 'event-actions-row';
-    actionsRow.style.marginTop = '8px';
     actionsRow.style.display = 'none'; // Initially hidden
     actionsRow.style.justifyContent = 'flex-start'; // Left align the buttons
 
@@ -1422,7 +1417,6 @@ style.textContent = `
 
     .event-actions-row {
         display: flex;
-        margin-top: 8px;
         justify-content: flex-start;
     }
 
@@ -1432,6 +1426,14 @@ style.textContent = `
 
     .first-row {
         align-items: center;
+    }
+
+    .event-separator {
+        border: none;
+        border-top: 1px solid #E7E7E7;
+        margin: 8px 0;
+        display: none;
+        width: 100%;
     }
 
     .event-action-view {}
