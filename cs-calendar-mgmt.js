@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.89
+// @version      0.3.90
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -1093,12 +1093,9 @@ function formatTime(time) {
 function initializeCalendarTool() {
     const modal = createModal();
     const topBar = createTopBar(modal);
-    const card = createCard(); // No longer needs modal as param
+    const card = createCard();
 
-    document.body.appendChild(topBar);
-    document.body.appendChild(modal);
-
-    //Create content wrapper
+    // --- Create ALL UI elements BEFORE fetching data ---
     const contentWrapper = document.createElement('div');
     contentWrapper.id = 'content-wrapper-container';
     contentWrapper.style.width = '100%';
@@ -1106,32 +1103,32 @@ function initializeCalendarTool() {
     contentWrapper.style.flexDirection = 'column';
     contentWrapper.style.alignItems = 'center';
 
-    modal.appendChild(card);
-
-    // Create event list container and append it to the modal *after* the card.
     const eventListContainer = document.createElement('div');
     eventListContainer.id = 'event-list-container';
     eventListContainer.style.width = '94%';
     eventListContainer.style.boxSizing = 'border-box';
 
-    modal.appendChild(contentWrapper);
-    contentWrapper.appendChild(eventListContainer);
+    contentWrapper.appendChild(eventListContainer); // Add to contentWrapper *before* appending to modal
 
-    // Initial calendar data retrieval from localStorage
+    modal.appendChild(card);
+    modal.appendChild(contentWrapper); // Append contentWrapper to modal
+
+    document.body.appendChild(topBar);
+    document.body.appendChild(modal);
+
+
+    // --- NOW fetch data, after UI is set up ---
     let storedCalendarData = localStorage.getItem('calendarData');
     if (storedCalendarData) {
         storedCalendarData = JSON.parse(storedCalendarData);
-        const { months, currentMonthIndex, currentYear } = storedCalendarData;
-
-        // Call fetchEventData directly with the stored year and month
-        fetchEventData(currentYear, currentMonthIndex);
+        const { currentMonthIndex, currentYear, currentView } = storedCalendarData; // Destructure view
+        // Use stored view, year, and month:
+        fetchEventData(currentYear, currentMonthIndex, currentView);
     } else {
-        // If no data is found in localStorage, fetch data for the current month/year
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonthIndex = now.getMonth();
-
-        fetchEventData(currentYear, currentMonthIndex);
+        fetchEventData(currentYear, currentMonthIndex); // Default to month view
     }
 }
 
