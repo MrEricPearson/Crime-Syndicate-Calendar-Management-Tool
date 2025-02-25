@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.84
+// @version      0.3.85
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -243,24 +243,37 @@ function createViewToggle() {
 // (You'll need to create this function)
 function switchView(viewType) {
     console.log("Switching to view:", viewType);
+
     // 1. Update localStorage with the selected view
     let storedCalendarData = localStorage.getItem('calendarData');
     if (storedCalendarData) {
         storedCalendarData = JSON.parse(storedCalendarData);
-        storedCalendarData.currentView = viewType; // Add or update currentView
+        storedCalendarData.currentView = viewType;
         localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
     }
 
-    // 2. Re-render the calendar based on the selected view
-    //    You'll need to modify renderCalendar and related functions
-    //    to handle week vs. month views.  This is the more complex part.
-    //    For now, we just update localStorage.
-    const { container, monthTitle, cardBackButton, cardForwardButton, calendarGrid } = createCalendarUI();
-     // Get the current date
-    const now = new Date();
-    let currentMonthIndex = now.getMonth();  // Get current month (0-11)
-    let currentYear = now.getFullYear();     // Get current year
-    renderCalendar(currentYear, currentMonthIndex, calendarGrid, viewType);
+    // 2. Re-render the calendar.  Get current year/month from localStorage.
+    const {  monthTitle, cardBackButton, cardForwardButton, calendarGrid } = createCalendarUI(); // Destructure for easier access
+    let storedData = JSON.parse(localStorage.getItem('calendarData'));
+    let currentYear = storedData.currentYear;
+    let currentMonthIndex = storedData.currentMonthIndex;
+
+    // If switching to week view, calculate the start of the *current* week:
+    if (viewType === 'week') {
+        let now = new Date(currentYear, currentMonthIndex);
+        const dayOfWeek = now.getDay();
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - dayOfWeek);
+        currentYear = startOfWeek.getFullYear();
+        currentMonthIndex = startOfWeek.getMonth();
+         //Also, update local storage:
+        storedData.currentYear = currentYear;
+        storedData.currentMonthIndex = currentMonthIndex;
+        localStorage.setItem('calendarData', JSON.stringify(storedData));
+    }
+
+    // Call updateCalendar with the correct parameters
+    updateCalendar(currentYear, currentMonthIndex, calendarGrid, viewType, monthTitle, cardBackButton, cardForwardButton);
 }
 
 // CALENDAR: Parent calendar function to organize and render the entire calendar UI
@@ -431,24 +444,24 @@ function createCalendarGrid() {
 }
 
 // CALENDAR: Render the calendar days, filling in the grid and handling events
-function renderCalendar(year, month, calendarGrid, view = 'month') { // Add view parameter
+function renderCalendar(year, month, calendarGrid, view = 'month') {
     calendarGrid.innerHTML = ''; // Clear previous grid
 
-    // --- Week View ---
     if (view === 'week') {
         // 1. Determine the start of the week (Sunday)
         const now = new Date(year, month);
         const dayOfWeek = now.getDay(); // 0 (Sunday) to 6 (Saturday)
         const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - dayOfWeek); // Go back to Sunday
+        startOfWeek.setDate(now.getDate() - dayOfWeek);
 
-        // 2. Create day headers (you might want to show dates here)
+        // 2. Create day headers (showing dates)
         for (let i = 0; i < 7; i++) {
             const dayDate = new Date(startOfWeek);
             dayDate.setDate(startOfWeek.getDate() + i);
-            const dayAbbreviation = dayOfWeekHeaders[i]; // S, M, T, etc.
-            // You could also format the date: dayDate.toLocaleDateString(...)
-            const headerCell = createDayOfWeekHeaderCell(`${dayAbbreviation}`);
+            const dayAbbreviation = dayOfWeekHeaders[i];
+            // Format the date for the header (e.g., "S 2/2")
+            const headerText = `${dayAbbreviation} ${dayDate.getMonth() + 1}/${dayDate.getDate()}`;
+            const headerCell = createDayOfWeekHeaderCell(headerText);
             calendarGrid.appendChild(headerCell);
         }
 
@@ -457,19 +470,20 @@ function renderCalendar(year, month, calendarGrid, view = 'month') { // Add view
             const dayDate = new Date(startOfWeek);
             dayDate.setDate(startOfWeek.getDate() + i);
             const day = dayDate.getDate();
-            const d = { day: day, class: 'current', isCurrentMonth: true};
-             // Capture Today Date for comparison
+            const d = { day: day, class: 'current', isCurrentMonth: true }; // Always 'current' in week view
+
+            // Capture Today Date for comparison
             const today = new Date();
             const todayYear = String(today.getUTCFullYear());
-            const todayMonth = String(today.getUTCMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+            const todayMonth = String(today.getUTCMonth() + 1).padStart(2, '0');
             const todayDay = String(today.getUTCDate()).padStart(2, '0');
-            const dayElem = createDayElement(d, i, dayDate.getFullYear(), dayDate.getMonth(), todayYear, todayMonth, todayDay); //pass year, month
+
+            // Pass the correct year and month for the *day* being rendered
+            const dayElem = createDayElement(d, i, dayDate.getFullYear(), dayDate.getMonth(), todayYear, todayMonth, todayDay);
             calendarGrid.appendChild(dayElem);
         }
-    }
-    // --- Month View (Existing Logic) ---
-     else {
 
+    } else { // Month View (Existing Logic - NO CHANGES NEEDED)
         dayOfWeekHeaders.forEach(day => {
             const headerCell = createDayOfWeekHeaderCell(day);
             calendarGrid.appendChild(headerCell);
@@ -485,7 +499,7 @@ function renderCalendar(year, month, calendarGrid, view = 'month') { // Add view
         // Capture Today Date for comparison
         const today = new Date();
         const todayYear = String(today.getUTCFullYear());
-        const todayMonth = String(today.getUTCMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+        const todayMonth = String(today.getUTCMonth() + 1).padStart(2, '0');
         const todayDay = String(today.getUTCDate()).padStart(2, '0');
 
         // Fill previous month's overflow days
@@ -509,27 +523,21 @@ function renderCalendar(year, month, calendarGrid, view = 'month') { // Add view
             const dayElem = createDayElement(d, index, year, month, todayYear, todayMonth, todayDay);
             calendarGrid.appendChild(dayElem);
 
-            // Logic to identify week boundaries only for current month days
             if (d.isCurrentMonth && index % 7 === 0) {
-                // Start of a new week
                 if (currentWeekStart !== null) {
-                    // Mark the end of the previous week (Saturday, which is index - 1)
                     const prevDayElem = calendarGrid.children[index - 1];
                     if (!prevDayElem.classList.contains('prev') && !prevDayElem.classList.contains('next')) {
                         prevDayElem.setAttribute("data-week-end", "true");
                     }
                 }
-                // Mark the start of this week
                 currentWeekStart = dayElem;
                 currentWeekStart.setAttribute("data-week-start", "true");
             }
 
-            // Detect and label the start of the month only if it's part of the current month
             if (d.day === 1 && d.isCurrentMonth) {
                 dayElem.setAttribute("data-month-start", "true");
             }
 
-            // Detect and label the end of the month only if it's part of the current month
             if (d.day === daysInMonth && d.isCurrentMonth) {
                 dayElem.setAttribute("data-month-end", "true");
             }
@@ -601,28 +609,22 @@ const parseDateAsUTC = (dateString) => {
 }
 
 // Fetch and process data using PDA_httpGet
-async function fetchEventData(targetYear, targetMonthIndex) {
-    try {
-        const storedEvents = localStorage.getItem("eventsData"); // Check if events data is stored in localStorage
+async function fetchEventData(targetYear, targetMonthIndex, view = 'month') {
+      try {
+        const storedEvents = localStorage.getItem("eventsData");
 
         if (storedEvents) {
-            // If events data is found in localStorage, use it
             const events = JSON.parse(storedEvents);
-            processEvents(events, targetYear, targetMonthIndex); // Pass targetYear and targetMonthIndex
+            processEvents(events, targetYear, targetMonthIndex, view);
         } else {
-            // If no data is found, make the API request
             const endpoint = "https://epearson.me:3000/api/twisted-minds/calendar";
 
-            // Make GET request using PDA_httpGet
             const response = await PDA_httpGet(endpoint);
 
-            // Validate response structure
             if (!response || typeof response !== "object") {
                 console.log("Error: Invalid response from PDA_httpGet.", true);
                 return;
             }
-
-            // Parse response content
             const status = response.status;
             const statusText = response.statusText;
             const responseText = response.responseText;
@@ -641,11 +643,9 @@ async function fetchEventData(targetYear, targetMonthIndex) {
 
             const events = jsonResponse.events || [];
 
-            // Store the fetched events in localStorage for future use
             localStorage.setItem("eventsData", JSON.stringify(events));
 
-            // Process events
-            processEvents(events, targetYear, targetMonthIndex);
+            processEvents(events, targetYear, targetMonthIndex, view);
         }
     } catch (error) {
         console.log(`Fetch Error: ${error.message}`, true);
@@ -653,61 +653,66 @@ async function fetchEventData(targetYear, targetMonthIndex) {
 }
 
 // Process and display the events
-function processEvents(events, currentYear, currentMonthIndex) {
-    // Get the months array from localStorage
+function processEvents(events, currentYear, currentMonthIndex, view = 'month') {
     const storedCalendarData = localStorage.getItem('calendarData');
     let months;
     if (storedCalendarData) {
         months = JSON.parse(storedCalendarData).months;
     } else {
-        // Define the months array here if not found in localStorage
         months = [
             'January', 'February', 'March', 'April', 'May', 'June',
             'July', 'August', 'September', 'October', 'November', 'December'
         ];
     }
 
-    // Ensure selectedMonth is set correctly
-    let selectedMonth; // Declare selectedMonth outside the if block
+    let selectedMonth;
     if (months && currentMonthIndex >= 0 && currentMonthIndex < months.length) {
         selectedMonth = months[currentMonthIndex];
     } else {
-        selectedMonth = 'Unknown';  // Or some other default value
+        selectedMonth = 'Unknown';
     }
 
-    // Filter out invalid events
     const validEvents = events.filter((event) => {
         if (!event || !event.event_start_date || !event.event_type) {
             return false;
         }
 
-        const eventStartDate = parseDateAsUTC(event.event_start_date);  // Convert to UTC
-        const eventEndDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : eventStartDate;  // Convert to UTC
+        const eventStartDate = parseDateAsUTC(event.event_start_date);
+        const eventEndDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : eventStartDate;
 
-        const validYear = eventStartDate.getUTCFullYear() === currentYear;
-        const validMonth = eventStartDate.getUTCMonth() === currentMonthIndex;
-        const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
+        if (view === 'week') {
+            const now = new Date(currentYear, currentMonthIndex);
+            const dayOfWeek = now.getDay();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - dayOfWeek);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-        return validYear && validMonth && validType;
+            return eventStartDate <= endOfWeek && eventEndDate >= startOfWeek;
+
+        } else {
+            const validYear = eventStartDate.getUTCFullYear() === currentYear;
+            const validMonth = eventStartDate.getUTCMonth() === currentMonthIndex;
+            const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
+
+            return validYear && validMonth && validType;
+        }
     });
 
-    // If no valid events, return early
     if (validEvents.length === 0) {
-        console.log(`No events found for ${selectedMonth} ${currentYear}`);
+        console.log(`No events found for ${selectedMonth} ${currentYear} in view ${view}`);
         const messageContainer = document.getElementById("event-message-container");
         if (messageContainer) {
-            messageContainer.innerHTML = `No events found for ${selectedMonth} ${currentYear}`;
+            messageContainer.innerHTML = `No events found for ${selectedMonth} ${currentYear} in view ${view}`;
         }
 
-        // Update event list container to display message
         const eventListContainer = document.getElementById('event-list-container');
         if (eventListContainer) {
-            eventListContainer.innerHTML = `<p>No events found for ${selectedMonth || 'Unknown'} ${currentYear || 'Unknown'}</p>`;
+            eventListContainer.innerHTML = `<p>No events found for ${selectedMonth || 'Unknown'} ${currentYear || 'Unknown'} in view ${view}</p>`;
         }
         return;
     }
 
-    // Separate past and upcoming events
     const now = new Date();
     const upcomingEvents = [];
     const pastEvents = [];
@@ -723,14 +728,12 @@ function processEvents(events, currentYear, currentMonthIndex) {
         }
     });
 
-    // Render events in the list
     const eventListContainer = document.getElementById('event-list-container');
     if (eventListContainer) {
-        eventListContainer.innerHTML = ''; // Clear existing events
+        eventListContainer.innerHTML = '';
         [...upcomingEvents, ...pastEvents].forEach(event => {
-            // Wrap each eventRow in a card-like div
             const eventCard = document.createElement('div');
-            eventCard.className = 'event-card'; // Use a class for consistent styling
+            eventCard.className = 'event-card';
 
             const eventElement = createEventElement(event, pastEvents.includes(event));
             eventCard.appendChild(eventElement);
@@ -738,11 +741,10 @@ function processEvents(events, currentYear, currentMonthIndex) {
         });
     }
 
-    // Sort valid events by start date
     validEvents.sort((a, b) => {
         const dateA = new Date(a.event_start_date);
         const dateB = new Date(b.event_start_date);
-        return dateA - dateB; // Sort in ascending order (earliest first)
+        return dateA - dateB;
     });
 
     const eventBarLayerMap = new Map();
@@ -755,45 +757,51 @@ function processEvents(events, currentYear, currentMonthIndex) {
 
         let eventDays = [];
 
-        // Loop through the event days
         for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
             const year = d.getUTCFullYear();
             const month = d.getUTCMonth();
             const day = d.getUTCDate();
-
-            if (year === currentYear && month === currentMonthIndex) {
+            if (view === 'week'){
+                const now = new Date(currentYear, currentMonthIndex);
+                const dayOfWeek = now.getDay();
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - dayOfWeek);
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                if (d >= startOfWeek && d <= endOfWeek) {
+                    const formattedMonth = String(month + 1).padStart(2, "0");
+                    const formattedDay = String(day).padStart(2, "0");
+                    const cellId = `cell-${year}-${formattedMonth}-${formattedDay}`;
+                    eventDays.push({ cellId, objectId: eventObjectId, eventColor: eventColor });
+                }
+            }
+            else if (year === currentYear && month === currentMonthIndex) {
                 const formattedMonth = String(month + 1).padStart(2, "0");
                 const formattedDay = String(day).padStart(2, "0");
                 const cellId = `cell-${year}-${formattedMonth}-${formattedDay}`;
-                eventDays.push({ cellId, objectId: eventObjectId, eventColor: eventColor }); // Store eventColor for easy access
+                eventDays.push({ cellId, objectId: eventObjectId, eventColor: eventColor });
             }
         }
 
-        // Create event bars for each event day (now circles)
         eventDays.forEach(({ cellId, objectId, eventColor }) => {
             const eventCell = document.getElementById(cellId);
             if (!eventCell) return;
 
-            // Create container for event circles
             let eventContainer = eventCell.querySelector('.event-container');
             if (!eventContainer) {
                 eventContainer = document.createElement('div');
                 eventContainer.className = 'event-container';
-
-                //Center the EventContainer within the dayCell
                 eventContainer.style.display = 'flex';
                 eventContainer.style.justifyContent = 'center';
                 eventContainer.style.alignItems = 'center';
-                eventContainer.style.marginTop = '8px'; // Distance below the day number
-                eventContainer.style.gap = '3px'; //Space inbetween
+                eventContainer.style.marginTop = '8px';
+                eventContainer.style.gap = '3px';
 
                 eventCell.appendChild(eventContainer);
             }
 
-            // Limit to a max of 3 event circles
             if (eventContainer.children.length >= 3) return;
 
-            // Create the event circle element
             let eventCircle = document.createElement("div");
             eventCircle.className = "event-circle";
             eventCircle.style.cssText = `
@@ -983,50 +991,144 @@ function formatTime(time) {
     return `${hours}:${minutes}${period}`;
 }
 
-// Initialize the calendar tool when the page is loaded
-function initializeCalendarTool() {
-    const modal = createModal();
-    const topBar = createTopBar(modal);
-    const card = createCard(); // No longer needs modal as param
+//  initializeCalendar (calls updateCalendar)
+function initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid) {
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
 
-    document.body.appendChild(topBar);
-    document.body.appendChild(modal);
+    // Get the current date
+    const now = new Date();
+    let currentMonthIndex = now.getMonth();  // Get current month (0-11)
+    let currentYear = now.getFullYear();     // Get current year
 
-    //Create content wrapper
-    const contentWrapper = document.createElement('div');
-    contentWrapper.id = 'content-wrapper-container';
-    contentWrapper.style.width = '100%';
-    contentWrapper.style.display = 'flex';
-    contentWrapper.style.flexDirection = 'column';
-    contentWrapper.style.alignItems = 'center';
-
-    modal.appendChild(card);
-
-    // Create event list container and append it to the modal *after* the card.
-    const eventListContainer = document.createElement('div');
-    eventListContainer.id = 'event-list-container';
-    eventListContainer.style.width = '94%';
-    eventListContainer.style.boxSizing = 'border-box';
-
-    modal.appendChild(contentWrapper);
-    contentWrapper.appendChild(eventListContainer);
-
-    // Initial calendar data retrieval from localStorage
+    // Check localStorage for a saved view:
     let storedCalendarData = localStorage.getItem('calendarData');
+    let initialView = 'month'; // Default to month view
     if (storedCalendarData) {
         storedCalendarData = JSON.parse(storedCalendarData);
-        const { months, currentMonthIndex, currentYear } = storedCalendarData;
-
-        // Call fetchEventData directly with the stored year and month
-        fetchEventData(currentYear, currentMonthIndex);
-    } else {
-        // If no data is found in localStorage, fetch data for the current month/year
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonthIndex = now.getMonth();
-
-        fetchEventData(currentYear, currentMonthIndex);
+        initialView = storedCalendarData.currentView || 'month'; // Use saved view, or default
+         //Also get and set currentYear and currentMonthIndex
+        currentYear = storedCalendarData.currentYear;
+        currentMonthIndex = storedCalendarData.currentMonthIndex;
     }
+    const updateCalendar = (year = currentYear, month = currentMonthIndex, calendarGrid, view = initialView, monthTitle, cardBackButton, cardForwardButton) => {
+        // Update month/week title:
+        if (view === 'week') {
+            const now = new Date(year, month);
+            const dayOfWeek = now.getDay();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - dayOfWeek);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+            const startMonth = months[startOfWeek.getMonth()].substring(0, 3); // Abbreviate month
+            const endMonth = months[endOfWeek.getMonth()].substring(0, 3);
+            const startDay = startOfWeek.getDate();
+            const endDay = endOfWeek.getDate();
+            const year = startOfWeek.getFullYear()
+
+            monthTitle.textContent = `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
+        } else {
+            monthTitle.textContent = `${months[month]} ${year}`;
+        }
+        renderCalendar(year, month, calendarGrid, view);
+        fetchEventData(year, month, view); // Pass view to fetchEventData
+
+    };
+
+    cardBackButton.addEventListener('click', () => {
+      let storedData = JSON.parse(localStorage.getItem('calendarData'));
+      let view = storedData.currentView
+        if (view === 'week'){
+          const {  monthTitle, cardBackButton, cardForwardButton, calendarGrid } = createCalendarUI();
+          let storedData = JSON.parse(localStorage.getItem('calendarData'));
+          let currentYear = storedData.currentYear;
+          let currentMonthIndex = storedData.currentMonthIndex;
+          let now = new Date(currentYear, currentMonthIndex)
+          const dayOfWeek = now.getDay(); // 0 (Sunday) to 6 (Saturday)
+          const startOfWeek = new Date(now);
+          startOfWeek.setDate(now.getDate() - dayOfWeek);
+          let newDate = new Date(startOfWeek)
+          newDate.setDate(newDate.getDate() - 7)
+          currentYear = newDate.getFullYear();
+          currentMonthIndex = newDate.getMonth();
+          let storedCalendarData = localStorage.getItem('calendarData');
+            if (storedCalendarData) {
+                storedCalendarData = JSON.parse(storedCalendarData);
+                storedCalendarData.currentYear = currentYear; // Add or update currentView
+                storedCalendarData.currentMonthIndex = currentMonthIndex;
+                localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
+            }
+          updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton); // Use default view
+        }
+        else {
+          if (currentYear === 2025 && currentMonthIndex === 0) return;
+          currentMonthIndex = (currentMonthIndex === 0) ? 11 : currentMonthIndex - 1;
+          if (currentMonthIndex === 11) currentYear--;
+          let storedData = JSON.parse(localStorage.getItem('calendarData'));
+          let view = storedData.currentView
+          let storedCalendarData = localStorage.getItem('calendarData');
+            if (storedCalendarData) {
+                storedCalendarData = JSON.parse(storedCalendarData);
+                storedCalendarData.currentYear = currentYear;
+                storedCalendarData.currentMonthIndex = currentMonthIndex;
+                localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
+            }
+          updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton);
+        }
+    });
+
+    cardForwardButton.addEventListener('click', () => {
+      let storedData = JSON.parse(localStorage.getItem('calendarData'));
+      let view = storedData.currentView
+        if (view === 'week'){
+          const {  monthTitle, cardBackButton, cardForwardButton, calendarGrid } = createCalendarUI();
+          let storedData = JSON.parse(localStorage.getItem('calendarData'));
+          let currentYear = storedData.currentYear;
+          let currentMonthIndex = storedData.currentMonthIndex;
+          let now = new Date(currentYear, currentMonthIndex)
+          const dayOfWeek = now.getDay(); // 0 (Sunday) to 6 (Saturday)
+          const startOfWeek = new Date(now);
+          startOfWeek.setDate(now.getDate() - dayOfWeek);
+          let newDate = new Date(startOfWeek)
+          newDate.setDate(newDate.getDate() + 7)
+          currentYear = newDate.getFullYear();
+          currentMonthIndex = newDate.getMonth();
+          let storedCalendarData = localStorage.getItem('calendarData');
+            if (storedCalendarData) {
+                storedCalendarData = JSON.parse(storedCalendarData);
+                storedCalendarData.currentYear = currentYear; // Add or update currentView
+                storedCalendarData.currentMonthIndex = currentMonthIndex;
+                localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
+            }
+          updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton); // Use default view
+        }
+        else {
+          currentMonthIndex = (currentMonthIndex === 11) ? 0 : currentMonthIndex + 1;
+          if (currentMonthIndex === 0) currentYear++;
+          let storedData = JSON.parse(localStorage.getItem('calendarData'));
+          let view = storedData.currentView
+          let storedCalendarData = localStorage.getItem('calendarData');
+            if (storedCalendarData) {
+                storedCalendarData = JSON.parse(storedCalendarData);
+                storedCalendarData.currentYear = currentYear;
+                storedCalendarData.currentMonthIndex = currentMonthIndex;
+                localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
+            }
+          updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton);
+        }
+    });
+
+    // Store initial calendar data in localStorage, including the view
+    const initialCalendarData = { months, currentMonthIndex, currentYear, currentView: initialView };
+    localStorage.setItem('calendarData', JSON.stringify(initialCalendarData));
+
+    updateCalendar(currentYear, currentMonthIndex, calendarGrid, initialView, monthTitle, cardBackButton, cardForwardButton); // Initial render, using initialView
+
+    // Return the months array, currentMonthIndex, and currentYear
+    return { months, currentMonthIndex, currentYear };
 }
 
 //Add these styles to the bottom
