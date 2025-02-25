@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.91
+// @version      0.3.92
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -23,6 +23,8 @@
 
     return colorMap[eventType] || colorMap['other']; // Default to 'other' if the eventType is unknown
 };
+
+let modalOpened = false;
 
 // Create the initial topBar with a button to open the modal
 function createTopBar(modal) {
@@ -47,20 +49,25 @@ function createTopBar(modal) {
     modalButton.style.cursor = 'pointer';
     modalButton.style.borderRadius = '5px';
 
-    // REMOVE THIS LINE:
-    // modalButton.onclick = () => { modal.style.display = 'flex'; };
-
     topBar.appendChild(modalButton);
 
     modalButton.addEventListener("click", () => {
-        modal.style.display = "flex"; // Set display to flex FIRST
+        modal.style.display = "flex"; // Show the modal
 
-        // NOW fetch data, after the modal is visible:
-        let storedCalendarData = localStorage.getItem('calendarData');
-        if (storedCalendarData) {
-            storedCalendarData = JSON.parse(storedCalendarData);
-            const { currentYear, currentMonthIndex, currentView } = storedCalendarData; // Get view
-            fetchEventData(currentYear, currentMonthIndex, currentView); // Pass view
+        // Fetch data ONLY if the modal hasn't been opened before:
+        if (!modalOpened) {
+            modalOpened = true; // Set the flag so it doesn't run again
+            let storedCalendarData = localStorage.getItem('calendarData');
+            if (storedCalendarData) {
+                storedCalendarData = JSON.parse(storedCalendarData);
+                const { currentYear, currentMonthIndex, currentView } = storedCalendarData;
+                fetchEventData(currentYear, currentMonthIndex, currentView);
+            } else {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonthIndex = now.getMonth();
+                fetchEventData(currentYear, currentMonthIndex); // Default: month
+            }
         }
     });
 
@@ -1089,13 +1096,12 @@ function formatTime(time) {
     return `${hours}:${minutes}${period}`;
 }
 
-// Initialize the calendar tool when the page is loaded
+// initializeCalendarTool (NO changes - keeps UI creation)
 function initializeCalendarTool() {
     const modal = createModal();
-    const topBar = createTopBar(modal);
+    const topBar = createTopBar(modal);  // createTopBar now handles data fetching
     const card = createCard();
 
-    // --- Create ALL UI elements BEFORE fetching data ---
     const contentWrapper = document.createElement('div');
     contentWrapper.id = 'content-wrapper-container';
     contentWrapper.style.width = '100%';
@@ -1108,28 +1114,15 @@ function initializeCalendarTool() {
     eventListContainer.style.width = '94%';
     eventListContainer.style.boxSizing = 'border-box';
 
-    contentWrapper.appendChild(eventListContainer); // Add to contentWrapper *before* appending to modal
+    contentWrapper.appendChild(eventListContainer);
 
     modal.appendChild(card);
-    modal.appendChild(contentWrapper); // Append contentWrapper to modal
+    modal.appendChild(contentWrapper);
 
     document.body.appendChild(topBar);
     document.body.appendChild(modal);
 
-
-    // --- NOW fetch data, after UI is set up ---
-    let storedCalendarData = localStorage.getItem('calendarData');
-    if (storedCalendarData) {
-        storedCalendarData = JSON.parse(storedCalendarData);
-        const { currentMonthIndex, currentYear, currentView } = storedCalendarData; // Destructure view
-        // Use stored view, year, and month:
-        fetchEventData(currentYear, currentMonthIndex, currentView);
-    } else {
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonthIndex = now.getMonth();
-        fetchEventData(currentYear, currentMonthIndex); // Default to month view
-    }
+    // NO DATA FETCHING HERE.  It's now in createTopBar.
 }
 
 //Add these styles to the bottom
