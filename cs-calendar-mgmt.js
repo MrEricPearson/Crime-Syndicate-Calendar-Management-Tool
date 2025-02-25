@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.87
+// @version      0.3.88
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -10,7 +10,7 @@
 // @grant        none
 // ==/UserScript==
 
- // Helper function to map event types to background colors 
+ // Helper function to map event types to background colors
  const getEventColor = (eventType) => {
     const colorMap = {
         event: '#51c1b6',
@@ -307,102 +307,123 @@ function initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calen
 
     // Define updateCalendar (it can now access initialView, currentYear, currentMonthIndex)
     const updateCalendar = (year = currentYear, month = currentMonthIndex, calendarGrid, view = initialView, monthTitle, cardBackButton, cardForwardButton) => {
-      //... (rest of updateCalendar remains the same as before) ...
-    }
+        // Update month/week title:
+        if (view === 'week') {
+            const now = new Date(year, month);
+            const dayOfWeek = now.getDay();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - dayOfWeek);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+            const startMonth = months[startOfWeek.getMonth()].substring(0, 3); // Abbreviate month
+            const endMonth = months[endOfWeek.getMonth()].substring(0, 3);
+            const startDay = startOfWeek.getDate();
+            const endDay = endOfWeek.getDate();
+            const year = startOfWeek.getFullYear()
+
+            monthTitle.textContent = `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
+        } else {
+            monthTitle.textContent = `${months[month]} ${year}`;
+        }
+        renderCalendar(year, month, calendarGrid, view);
+        fetchEventData(year, month, view); // Pass view to fetchEventData
+
+    };
 
     // --- Event listeners for Back and Forward buttons remain the same ---
-        cardBackButton.addEventListener('click', () => {
-          let storedData = JSON.parse(localStorage.getItem('calendarData'));
-          let view = storedData.currentView
-            if (view === 'week'){
-              const {  monthTitle, cardBackButton, cardForwardButton, calendarGrid } = createCalendarUI();
-              let storedData = JSON.parse(localStorage.getItem('calendarData'));
-              let currentYear = storedData.currentYear;
-              let currentMonthIndex = storedData.currentMonthIndex;
-              let now = new Date(currentYear, currentMonthIndex)
-              const dayOfWeek = now.getDay(); // 0 (Sunday) to 6 (Saturday)
-              const startOfWeek = new Date(now);
-              startOfWeek.setDate(now.getDate() - dayOfWeek);
-              let newDate = new Date(startOfWeek)
-              newDate.setDate(newDate.getDate() - 7)
-              currentYear = newDate.getFullYear();
-              currentMonthIndex = newDate.getMonth();
-              let storedCalendarData = localStorage.getItem('calendarData');
-                if (storedCalendarData) {
-                    storedCalendarData = JSON.parse(storedCalendarData);
-                    storedCalendarData.currentYear = currentYear; // Add or update currentView
-                    storedCalendarData.currentMonthIndex = currentMonthIndex;
-                    localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
-                }
-              updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton); // Use default view
+    cardBackButton.addEventListener('click', () => {
+        let storedData = JSON.parse(localStorage.getItem('calendarData'));
+        let view = storedData.currentView
+        if (view === 'week'){
+            const {  monthTitle, cardBackButton, cardForwardButton, calendarGrid } = createCalendarUI();
+            let storedData = JSON.parse(localStorage.getItem('calendarData'));
+            let currentYear = storedData.currentYear;
+            let currentMonthIndex = storedData.currentMonthIndex;
+            let now = new Date(currentYear, currentMonthIndex)
+            const dayOfWeek = now.getDay(); // 0 (Sunday) to 6 (Saturday)
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - dayOfWeek);
+            let newDate = new Date(startOfWeek)
+            newDate.setDate(newDate.getDate() - 7)
+            currentYear = newDate.getFullYear();
+            currentMonthIndex = newDate.getMonth();
+            let storedCalendarData = localStorage.getItem('calendarData');
+            if (storedCalendarData) {
+                storedCalendarData = JSON.parse(storedCalendarData);
+                storedCalendarData.currentYear = currentYear; // Add or update currentView
+                storedCalendarData.currentMonthIndex = currentMonthIndex;
+                localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
             }
-            else {
-              if (currentYear === 2025 && currentMonthIndex === 0) return;
-              currentMonthIndex = (currentMonthIndex === 0) ? 11 : currentMonthIndex - 1;
-              if (currentMonthIndex === 11) currentYear--;
-              let storedData = JSON.parse(localStorage.getItem('calendarData'));
-              let view = storedData.currentView
-              let storedCalendarData = localStorage.getItem('calendarData');
-                if (storedCalendarData) {
-                    storedCalendarData = JSON.parse(storedCalendarData);
-                    storedCalendarData.currentYear = currentYear;
-                    storedCalendarData.currentMonthIndex = currentMonthIndex;
-                    localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
-                }
-              updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton);
+            updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton); // Use default view
+        }
+        else {
+            if (currentYear === 2025 && currentMonthIndex === 0) return;
+            currentMonthIndex = (currentMonthIndex === 0) ? 11 : currentMonthIndex - 1;
+            if (currentMonthIndex === 11) currentYear--;
+            let storedData = JSON.parse(localStorage.getItem('calendarData'));
+            let view = storedData.currentView
+            let storedCalendarData = localStorage.getItem('calendarData');
+            if (storedCalendarData) {
+                storedCalendarData = JSON.parse(storedCalendarData);
+                storedCalendarData.currentYear = currentYear;
+                storedCalendarData.currentMonthIndex = currentMonthIndex;
+                localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
             }
-        });
+            updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton);
+        }
+    });
 
-        cardForwardButton.addEventListener('click', () => {
-          let storedData = JSON.parse(localStorage.getItem('calendarData'));
-          let view = storedData.currentView
-            if (view === 'week'){
-              const {  monthTitle, cardBackButton, cardForwardButton, calendarGrid } = createCalendarUI();
-              let storedData = JSON.parse(localStorage.getItem('calendarData'));
-              let currentYear = storedData.currentYear;
-              let currentMonthIndex = storedData.currentMonthIndex;
-              let now = new Date(currentYear, currentMonthIndex)
-              const dayOfWeek = now.getDay(); // 0 (Sunday) to 6 (Saturday)
-              const startOfWeek = new Date(now);
-              startOfWeek.setDate(now.getDate() - dayOfWeek);
-              let newDate = new Date(startOfWeek)
-              newDate.setDate(newDate.getDate() + 7)
-              currentYear = newDate.getFullYear();
-              currentMonthIndex = newDate.getMonth();
-              let storedCalendarData = localStorage.getItem('calendarData');
-                if (storedCalendarData) {
-                    storedCalendarData = JSON.parse(storedCalendarData);
-                    storedCalendarData.currentYear = currentYear; // Add or update currentView
-                    storedCalendarData.currentMonthIndex = currentMonthIndex;
-                    localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
-                }
-              updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton); // Use default view
+    cardForwardButton.addEventListener('click', () => {
+        let storedData = JSON.parse(localStorage.getItem('calendarData'));
+        let view = storedData.currentView
+        if (view === 'week'){
+            const {  monthTitle, cardBackButton, cardForwardButton, calendarGrid } = createCalendarUI();
+            let storedData = JSON.parse(localStorage.getItem('calendarData'));
+            let currentYear = storedData.currentYear;
+            let currentMonthIndex = storedData.currentMonthIndex;
+            let now = new Date(currentYear, currentMonthIndex)
+            const dayOfWeek = now.getDay(); // 0 (Sunday) to 6 (Saturday)
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - dayOfWeek);
+            let newDate = new Date(startOfWeek)
+            newDate.setDate(newDate.getDate() + 7)
+            currentYear = newDate.getFullYear();
+            currentMonthIndex = newDate.getMonth();
+            let storedCalendarData = localStorage.getItem('calendarData');
+            if (storedCalendarData) {
+                storedCalendarData = JSON.parse(storedCalendarData);
+                storedCalendarData.currentYear = currentYear; // Add or update currentView
+                storedCalendarData.currentMonthIndex = currentMonthIndex;
+                localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
             }
-            else {
-              currentMonthIndex = (currentMonthIndex === 11) ? 0 : currentMonthIndex + 1;
-              if (currentMonthIndex === 0) currentYear++;
-              let storedData = JSON.parse(localStorage.getItem('calendarData'));
-              let view = storedData.currentView
-              let storedCalendarData = localStorage.getItem('calendarData');
-                if (storedCalendarData) {
-                    storedCalendarData = JSON.parse(storedCalendarData);
-                    storedCalendarData.currentYear = currentYear;
-                    storedCalendarData.currentMonthIndex = currentMonthIndex;
-                    localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
-                }
-              updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton);
+            updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton); // Use default view
+        }
+        else {
+            currentMonthIndex = (currentMonthIndex === 11) ? 0 : currentMonthIndex + 1;
+            if (currentMonthIndex === 0) currentYear++;
+            let storedData = JSON.parse(localStorage.getItem('calendarData'));
+            let view = storedData.currentView
+            let storedCalendarData = localStorage.getItem('calendarData');
+            if (storedCalendarData) {
+                storedCalendarData = JSON.parse(storedCalendarData);
+                storedCalendarData.currentYear = currentYear;
+                storedCalendarData.currentMonthIndex = currentMonthIndex;
+                localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
             }
-        });
+            updateCalendar(currentYear, currentMonthIndex, calendarGrid, view, monthTitle, cardBackButton, cardForwardButton);
+        }
+    });
 
     // Store initial calendar data (including year and month)
     const initialCalendarData = { months, currentMonthIndex, currentYear, currentView: initialView };
     localStorage.setItem('calendarData', JSON.stringify(initialCalendarData));
 
-     // NOW we call updateCalendar, *after* everything is initialized:
+    // NOW we call updateCalendar, *after* everything is initialized:
     updateCalendar(currentYear, currentMonthIndex, calendarGrid, initialView, monthTitle, cardBackButton, cardForwardButton); // Pass all parameters
 
     return { months, currentMonthIndex, currentYear };
-}
+    }
 
 // CALENDAR: Create and initialize the UI components for the calendar
 function createCalendarUI() {
