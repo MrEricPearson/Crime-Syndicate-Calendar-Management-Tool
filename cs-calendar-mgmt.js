@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.88
+// @version      0.3.89
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -769,6 +769,24 @@ function processEvents(events, currentYear, currentMonthIndex, view = 'month') {
         selectedMonth = 'Unknown';
     }
 
+    // --- Calculate start and end dates for filtering ---
+    let startDateFilter;
+    let endDateFilter;
+
+    if (view === 'week') {
+        const now = new Date(currentYear, currentMonthIndex);
+        const dayOfWeek = now.getDay();
+        startDateFilter = new Date(now);
+        startDateFilter.setDate(now.getDate() - dayOfWeek); // Start of week
+        endDateFilter = new Date(startDateFilter);
+        endDateFilter.setDate(startDateFilter.getDate() + 6); // End of week
+    } else { // Month view
+        startDateFilter = new Date(Date.UTC(currentYear, currentMonthIndex, 1)); // Start of month
+        endDateFilter = new Date(Date.UTC(currentYear, currentMonthIndex + 1, 0)); // End of month
+    }
+
+
+    // --- Filter events based on the calculated dates ---
     const validEvents = events.filter((event) => {
         if (!event || !event.event_start_date || !event.event_type) {
             return false;
@@ -777,39 +795,27 @@ function processEvents(events, currentYear, currentMonthIndex, view = 'month') {
         const eventStartDate = parseDateAsUTC(event.event_start_date);
         const eventEndDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : eventStartDate;
 
-        if (view === 'week') {
-            const now = new Date(currentYear, currentMonthIndex);
-            const dayOfWeek = now.getDay();
-            const startOfWeek = new Date(now);
-            startOfWeek.setDate(now.getDate() - dayOfWeek);
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-            return eventStartDate <= endOfWeek && eventEndDate >= startOfWeek;
-
-        } else {
-            const validYear = eventStartDate.getUTCFullYear() === currentYear;
-            const validMonth = eventStartDate.getUTCMonth() === currentMonthIndex;
-            const validType = ["event", "training", "stacking", "war", "chaining", "other"].includes(event.event_type);
-
-            return validYear && validMonth && validType;
-        }
+        // Simplified date filtering (more robust):
+        return eventStartDate <= endDateFilter && eventEndDate >= startDateFilter;
     });
+
+
+    // --- Handle the "No Events" Case GRACEFULLY ---
+    const eventListContainer = document.getElementById('event-list-container');
+    if (!eventListContainer) {
+        console.error("eventListContainer not found!"); // Debugging
+        return; // Exit early if container is missing
+    }
+
+    eventListContainer.innerHTML = ''; // Clear previous content
 
     if (validEvents.length === 0) {
         console.log(`No events found for ${selectedMonth} ${currentYear} in view ${view}`);
-        const messageContainer = document.getElementById("event-message-container");
-        if (messageContainer) {
-            messageContainer.innerHTML = `No events found for ${selectedMonth} ${currentYear} in view ${view}`;
-        }
-
-        const eventListContainer = document.getElementById('event-list-container');
-        if (eventListContainer) {
-            eventListContainer.innerHTML = `<p>No events found for ${selectedMonth || 'Unknown'} ${currentYear || 'Unknown'} in view ${view}</p>`;
-        }
-        return;
+        eventListContainer.innerHTML = `<p>No events found for ${selectedMonth || 'Unknown'} ${currentYear || 'Unknown'} in view ${view}</p>`;
+        return; // Exit early after displaying the message
     }
 
+    // --- (Rest of the processEvents function remains the same) ---
     const now = new Date();
     const upcomingEvents = [];
     const pastEvents = [];
@@ -825,20 +831,16 @@ function processEvents(events, currentYear, currentMonthIndex, view = 'month') {
         }
     });
 
-    const eventListContainer = document.getElementById('event-list-container');
-    if (eventListContainer) {
-        eventListContainer.innerHTML = '';
-        [...upcomingEvents, ...pastEvents].forEach(event => {
-            const eventCard = document.createElement('div');
-            eventCard.className = 'event-card';
+    // Render events in the list
+    [...upcomingEvents, ...pastEvents].forEach(event => {
+        const eventCard = document.createElement('div');
+        eventCard.className = 'event-card';
 
-            const eventElement = createEventElement(event, pastEvents.includes(event));
-            eventCard.appendChild(eventElement);
-            eventListContainer.appendChild(eventCard);
-        });
-    }
-
-    validEvents.sort((a, b) => {
+        const eventElement = createEventElement(event, pastEvents.includes(event));
+        eventCard.appendChild(eventElement);
+        eventListContainer.appendChild(eventCard);
+    });
+  validEvents.sort((a, b) => {
         const dateA = new Date(a.event_start_date);
         const dateB = new Date(b.event_start_date);
         return dateA - dateB;
@@ -851,7 +853,6 @@ function processEvents(events, currentYear, currentMonthIndex, view = 'month') {
         const endDate = event.event_end_date ? parseDateAsUTC(event.event_end_date) : startDate;
         const eventColor = getEventColor(event.event_type);
         const eventObjectId = event._id;
-
         let eventDays = [];
 
         for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
