@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.98
+// @version      0.3.99
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -206,7 +206,7 @@ function createCard(switchView) {
     };
 }
 
-function createViewToggle(switchView) {
+function createViewToggle(switchView) { // Accept only switchView
     console.log("createViewToggle() function called"); // DEBUG: Function entry
 
     const toggleContainer = document.createElement('div');
@@ -235,7 +235,7 @@ function createViewToggle(switchView) {
             weekButton.classList.add('active');
             monthButton.classList.remove('active');
             // Call a function to switch to week view (you'll implement this)
-            switchView('week'); // Call the passed-in switchView function
+            switchView('week'); // Call the passed-in switchView function - CORRECT CALL
         }
     });
 
@@ -245,7 +245,7 @@ function createViewToggle(switchView) {
             monthButton.classList.add('active');
             weekButton.classList.remove('active');
             // Call a function to switch to month view
-            switchView('month'); // Call the passed-in switchView function
+            switchView('month'); // Call the passed-in switchView function - CORRECT CALL
         }
     });
 
