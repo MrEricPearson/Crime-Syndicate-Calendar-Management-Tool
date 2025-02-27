@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.97
+// @version      0.3.98
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -146,7 +146,7 @@ function createModal() {
 }
 
 // Create the card component containing the calendar and toggling buttons
-function createCard(switchView) { // Accept switchView as argument
+function createCard(switchView) {
     const card = document.createElement('div');
     card.className = 'calendar-card'; // Add a class for styling
     const cardHeader = document.createElement('div');
@@ -205,7 +205,10 @@ function createCard(switchView) { // Accept switchView as argument
         cardForwardButton: cardForwardButton
     };
 }
-function createViewToggle(calendarGrid, monthTitle) { // Accept calendarGrid and monthTitle
+
+function createViewToggle(switchView) {
+    console.log("createViewToggle() function called"); // DEBUG: Function entry
+
     const toggleContainer = document.createElement('div');
     toggleContainer.className = 'view-toggle-container';
 
@@ -227,23 +230,26 @@ function createViewToggle(calendarGrid, monthTitle) { // Accept calendarGrid and
 
     // --- Add Event Listeners (with TOGGLING logic) ---
     weekButton.addEventListener('click', () => {
+        console.log("Week button clicked"); // DEBUG: Week button click event
         if (!weekButton.classList.contains('active')) { // Only toggle if not already active
             weekButton.classList.add('active');
             monthButton.classList.remove('active');
             // Call a function to switch to week view (you'll implement this)
-            switchView('week', calendarGrid, monthTitle); // Pass calendarGrid and monthTitle
+            switchView('week'); // Call the passed-in switchView function
         }
     });
 
     monthButton.addEventListener('click', () => {
+        console.log("Month button clicked"); // DEBUG: Month button click event
         if (!monthButton.classList.contains('active')) {
             monthButton.classList.add('active');
             weekButton.classList.remove('active');
             // Call a function to switch to month view
-            switchView('month', calendarGrid, monthTitle); // Pass calendarGrid and monthTitle
+            switchView('month'); // Call the passed-in switchView function
         }
     });
 
+    console.log("Event listeners attached to toggle buttons"); // DEBUG: Listeners attached
     return toggleContainer;
 }
 
