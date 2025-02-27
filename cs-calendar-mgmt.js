@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.94
+// @version      0.3.95
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -241,27 +241,39 @@ function createViewToggle() {
 }
 
 function switchView(viewType) {
-    console.log("Switching to view:", viewType);
+    console.log("switchView called with viewType:", viewType); // DEBUG
+
     // 1. Update localStorage with the selected view
     let storedCalendarData = localStorage.getItem('calendarData');
     if (storedCalendarData) {
         storedCalendarData = JSON.parse(storedCalendarData);
-        storedCalendarData.currentView = viewType; // Add or update currentView
+        storedCalendarData.currentView = viewType;
         localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
     } else {
-        storedCalendarData = { currentView: viewType }; // Initialize if not existing
+        storedCalendarData = { currentView: viewType };
         localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
     }
+    console.log("localStorage updated:", localStorage.getItem('calendarData')); // DEBUG
 
     // 2. Re-render the calendar based on the selected view
     let calendarData = JSON.parse(localStorage.getItem('calendarData')) || { currentMonthIndex: new Date().getMonth(), currentYear: new Date().getFullYear() };
-    const { currentMonthIndex, currentYear } = calendarData;
+    let { currentMonthIndex, currentYear } = calendarData;
 
-    const calendarGrid = document.querySelector('.calendar-grid'); // Assuming you have a way to get the grid
-    const monthTitle = document.querySelector('#month-title'); // Assuming you have a way to get the title
+    const calendarGrid = document.querySelector('.calendar-grid');
+    const monthTitle = document.querySelector('#month-title');
+
+    console.log("calendarGrid element:", calendarGrid); // DEBUG
+    console.log("monthTitle element:", monthTitle); // DEBUG
+
+    if (!calendarGrid || !monthTitle) {
+        console.error("Error: calendarGrid or monthTitle element not found!"); // DEBUG
+        return; // Exit if elements are not found
+    }
 
     renderCalendar(currentYear, currentMonthIndex, calendarGrid, viewType);
-    updateMonthTitle(currentYear, currentMonthIndex, monthTitle); // Update month title after re-render
+    updateMonthTitle(currentYear, currentMonthIndex, monthTitle, viewType);
+
+    console.log("renderCalendar and updateMonthTitle called"); // DEBUG
 }
 
 // CALENDAR: Parent calendar function to organize and render the entire calendar UI
@@ -493,7 +505,7 @@ function createCalendarGrid() {
 }
 
 // CALENDAR: Render the calendar days, filling in the grid and handling events
-function renderCalendar(year, month, calendarGrid, view = 'month') { // Add view parameter
+function renderCalendar(year, month, calendarGrid, view = 'month') {
     calendarGrid.innerHTML = ''; // Clear previous grid
 
     // --- Week View ---
@@ -509,7 +521,7 @@ function renderCalendar(year, month, calendarGrid, view = 'month') { // Add view
             const dayDate = new Date(startOfWeek);
             dayDate.setDate(startOfWeek.getDate() + i);
             const dayAbbreviation = dayOfWeekHeaders[i]; // S, M, T, etc.
-            const headerCell = createDayOfWeekHeaderCell(`${dayAbbreviation}<br>${dayDate.getDate()}`); // Include date in header
+            const headerCell = createDayOfWeekHeaderCell(`${dayAbbreviation}`); // Removed date from header
             calendarGrid.appendChild(headerCell);
         }
 
