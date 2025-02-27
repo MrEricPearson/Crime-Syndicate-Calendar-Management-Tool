@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crime Syndicate Calendar Management Tool
 // @namespace    https://github.com/MrEricPearson
-// @version      0.3.96
+// @version      0.3.97
 // @description  Adds calendar management capabilities for your faction.
 // @author       BeefDaddy
 // @downloadURL  https://github.com/MrEricPearson/Crime-Syndicate-Calendar-Management-Tool/raw/refs/heads/main/cs-calendar-mgmt.js
@@ -146,7 +146,7 @@ function createModal() {
 }
 
 // Create the card component containing the calendar and toggling buttons
-function createCard() {
+function createCard(switchView) { // Accept switchView as argument
     const card = document.createElement('div');
     card.className = 'calendar-card'; // Add a class for styling
     const cardHeader = document.createElement('div');
@@ -180,7 +180,7 @@ function createCard() {
     navAndToggleContainer.style.alignItems = 'center';
 
     // --- Week/Month Toggle ---
-    const viewToggle = createViewToggle(calendarGrid, monthTitle); // Pass calendarGrid and monthTitle to createViewToggle
+    const viewToggle = createViewToggle(switchView); // Pass switchView here
     navAndToggleContainer.appendChild(viewToggle);
 
     const navButtonsContainer = document.createElement('div');
@@ -197,9 +197,14 @@ function createCard() {
     card.appendChild(calendarGrid);
 
 
-    return card;
+    return { // Return an object containing all relevant elements
+        cardContainer: card, // Rename 'card' to 'cardContainer' for clarity
+        monthTitle: monthTitle,
+        calendarGrid: calendarGrid,
+        cardBackButton: cardBackButton,
+        cardForwardButton: cardForwardButton
+    };
 }
-
 function createViewToggle(calendarGrid, monthTitle) { // Accept calendarGrid and monthTitle
     const toggleContainer = document.createElement('div');
     toggleContainer.className = 'view-toggle-container';
@@ -240,32 +245,6 @@ function createViewToggle(calendarGrid, monthTitle) { // Accept calendarGrid and
     });
 
     return toggleContainer;
-}
-
-function switchView(viewType, calendarGrid, monthTitle) { // Accept calendarGrid and monthTitle as arguments
-    console.log("switchView called with viewType:", viewType); // DEBUG
-
-    // 1. Update localStorage with the selected view
-    let storedCalendarData = localStorage.getItem('calendarData');
-    if (storedCalendarData) {
-        storedCalendarData = JSON.parse(storedCalendarData);
-        storedCalendarData.currentView = viewType;
-        localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
-    } else {
-        storedCalendarData = { currentView: viewType };
-        localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
-    }
-    console.log("localStorage updated:", localStorage.getItem('calendarData')); // DEBUG
-
-
-    console.log("calendarGrid element received:", calendarGrid); // DEBUG
-    console.log("monthTitle element received:", monthTitle); // DEBUG
-
-
-    renderCalendar(currentYear, currentMonthIndex, calendarGrid, viewType);
-    updateMonthTitle(currentYear, currentMonthIndex, monthTitle, viewType);
-
-    console.log("renderCalendar and updateMonthTitle called"); // DEBUG
 }
 
 // CALENDAR: Parent calendar function to organize and render the entire calendar UI
@@ -1053,7 +1032,42 @@ function formatTime(time) {
 function initializeCalendarTool() {
     const modal = createModal();
     const topBar = createTopBar(modal);
-    const card = createCard(); // card now creates calendarGrid and monthTitle
+    const cardElements = createCard(switchView); // Get the object returned from createCard
+
+    // Extract elements from the returned object
+    const card = cardElements.cardContainer;
+    const monthTitle = cardElements.monthTitle;
+    const calendarGrid = cardElements.calendarGrid;
+    const cardBackButton = cardElements.cardBackButton;
+    const cardForwardButton = cardElements.cardForwardButton;
+
+    // --- switchView FUNCTION ---
+    function switchView(viewType) {
+        console.log("switchView called with viewType:", viewType); // DEBUG
+
+        // 1. Update localStorage with the selected view
+        let storedCalendarData = localStorage.getItem('calendarData');
+        if (storedCalendarData) {
+            storedCalendarData = JSON.parse(storedCalendarData);
+            storedCalendarData.currentView = viewType;
+            localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
+        } else {
+            storedCalendarData = { currentView: viewType };
+            localStorage.setItem('calendarData', JSON.stringify(storedCalendarData));
+        }
+        console.log("localStorage updated:", localStorage.getItem('calendarData')); // DEBUG
+
+
+        console.log("calendarGrid element received:", calendarGrid); // DEBUG
+        console.log("monthTitle element received:", monthTitle); // DEBUG
+
+
+        renderCalendar(currentYear, currentMonthIndex, calendarGrid, viewType);
+        updateMonthTitle(currentYear, currentMonthIndex, monthTitle, viewType);
+
+        console.log("renderCalendar and updateMonthTitle called"); // DEBUG
+    }
+    // --- END OF switchView FUNCTION ---
 
 
     document.body.appendChild(topBar);
@@ -1067,7 +1081,7 @@ function initializeCalendarTool() {
     contentWrapper.style.flexDirection = 'column';
     contentWrapper.style.alignItems = 'center';
 
-    modal.appendChild(card);
+    modal.appendChild(card); // Append the card container
 
     // Create event list container and append it to the modal *after* the card.
     const eventListContainer = document.createElement('div');
@@ -1078,16 +1092,8 @@ function initializeCalendarTool() {
     modal.appendChild(contentWrapper);
     contentWrapper.appendChild(eventListContainer);
 
-    // Get elements from card for initializeCalendar
-    const monthTitle = card.querySelector('#month-title');
-    const calendarGrid = card.querySelector('.calendar-grid');
-    const cardBackButton = card.querySelector('.card-back-button'); // Assuming these have classes now
-    const cardForwardButton = card.querySelector('.card-forward-button'); // Assuming these have classes now
-
-
-    // Initialize calendar with the created elements
-    initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid); // Pass elements here
-
+    // Initialize calendar with the created elements - NOW USING EXTRACTED ELEMENTS
+    initializeCalendar(monthTitle, cardBackButton, cardForwardButton, calendarGrid); // Pass extracted elements
 
     // Initial calendar data retrieval from localStorage
     let storedCalendarData = localStorage.getItem('calendarData');
